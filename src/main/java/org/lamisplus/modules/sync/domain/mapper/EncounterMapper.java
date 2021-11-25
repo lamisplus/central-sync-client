@@ -19,6 +19,8 @@ public interface EncounterMapper {
             @Mapping(source="encounter.createdBy", target="createdBy"),
             @Mapping(source="encounter.modifiedBy", target="modifiedBy"),
             @Mapping(source="encounter.dateModified", target="dateModified"),
+            @Mapping(source="visit.uuid", target="visitUuid"),
+            @Mapping(source="encounter.timeCreated", target="dateCreated"),
             @Mapping(source="encounter.archived", target="archived")
     })
     EncounterDTO toEncounterDTO(Encounter encounter, Patient patient, Visit visit);

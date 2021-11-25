@@ -6,12 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.sync.domain.entity.Tables;
 import org.lamisplus.modules.sync.service.ObjectSerializer;
 import org.lamisplus.modules.sync.utility.HttpConnectionManager;
-import org.lamisplus.modules.sync.utility.UuidService;
-import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,16 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/sync")
 public class ClientController {
-    public enum Tables {
-        patient
-        //visit,
-        //encounter,
-        //form_data,
-        //appointment,
-        //biometric
-    };
 
-    private final UuidService uuidService;
     private final ObjectSerializer objectSerializer;
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -44,8 +33,6 @@ public class ClientController {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-        uuidService.addUuid();
-
         try {
             for (Tables table : Tables.values()) {
                 List<Object> objects = objectSerializer.serialize(table.name(), facilityId);
@@ -53,7 +40,7 @@ public class ClientController {
                 String pathVariable = table.name().concat("/").concat(Long.toString(facilityId));
                 String response = new HttpConnectionManager().post(mapper.writeValueAsString(objects),
                         "http://localhost:8080/api/sync/" + pathVariable);
-                System.out.println("Response from server: "+response);
+                System.out.println("Response from server: " + response);
             }
         } catch (JsonProcessingException e) {
             e.printStackTrace();
