@@ -1,12 +1,13 @@
 package org.lamisplus.modules.sync.domain.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Data
 public class FormDataDTO {
@@ -15,18 +16,23 @@ public class FormDataDTO {
 
     private String encounterUuid;
 
-    private Object data;
-
-
     private Long organisationUnitId;
 
-//    private LocalDateTime dateCreated;
-//
-//    private String createdBy;
-//
-//    private LocalDateTime dateModified;
-//
-//    private String modifiedBy;
+    private Object data;
 
-//    private int archived;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime dateCreated;
+
+    private String createdBy;
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime dateModified;
+
+    private String modifiedBy;
+
+    private int archived;
 }
