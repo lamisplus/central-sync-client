@@ -20,7 +20,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 public class VisitDTO {
 
-    Long id;
+   Long id;
     private String uuid;
 
     private String patientUuid;
