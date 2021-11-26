@@ -1,6 +1,5 @@
 package org.lamisplus.modules.sync.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -28,8 +27,9 @@ public class ClientController {
     private final ObjectSerializer objectSerializer;
     private final ObjectMapper mapper = new ObjectMapper();
 
+
     @GetMapping("/{facilityId}")
-    public ResponseEntity<String> sender(@PathVariable("facilityId") Long facilityId) throws JSONException {
+    public ResponseEntity<String> sender(@PathVariable("facilityId") Long facilityId) throws Exception  {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
@@ -39,14 +39,13 @@ public class ClientController {
                 // Convert object to JSON string and post to the server url
                 String pathVariable = table.name().concat("/").concat(Long.toString(facilityId));
                 String response = new HttpConnectionManager().post(mapper.writeValueAsString(objects),
-                        "http://localhost:8080/api/sync/" + pathVariable);
-                System.out.println("Response from server: " + response);
+                        "http://localhost:8081/api/sync/" + pathVariable);
+                System.out.println("  "+response);
             }
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            return ResponseEntity.ok("Successful");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return ResponseEntity.ok("Successful");
+        return ResponseEntity.ok("EMty");
     }
 }
