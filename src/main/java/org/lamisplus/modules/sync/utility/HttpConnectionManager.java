@@ -31,7 +31,6 @@ public class HttpConnectionManager {
             // Get response body
             return Objects.requireNonNull(response.body()).string();
         }
-
     }
 
     public String post(byte[] bytes, String url) throws IOException {
