@@ -1,4 +1,4 @@
-package org.lamisplus.modules.central.domain.entity;
+package org.lamisplus.modules.sync.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
@@ -41,10 +41,6 @@ public class SyncQueue implements Serializable {
     private Integer processed;
 
     @Basic
-    @Column(name = "received_size")
-    private Integer receivedSize;
-
-    @Basic
-    @Column(name = "processed_size")
+    @Column(name = "upload_size")
     private Integer processedSize;
 }

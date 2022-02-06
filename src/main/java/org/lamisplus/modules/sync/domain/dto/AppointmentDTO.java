@@ -1,34 +1,31 @@
 package org.lamisplus.modules.sync.domain.dto;
 
-
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
-
 @Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-
-public class PatientDTO {
+public class AppointmentDTO {
 
     private String uuid;
 
-    private String hospitalNumber; //TODO: change to hospitalNumber before demo
+    private String patientUuid;
 
-    private Long  organisationUnitId;
+    private String visitUuid;
 
-   private Object details;
+    private Long organisationUnitId;
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime date;
+
+    private Object detail;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -36,7 +33,6 @@ public class PatientDTO {
     private LocalDateTime dateCreated;
 
     private String createdBy;
-
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
@@ -45,7 +41,4 @@ public class PatientDTO {
     private String modifiedBy;
 
     private int archived;
-
-    private String patientNumberType;
-
 }
