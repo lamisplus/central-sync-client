@@ -5,8 +5,8 @@ store: true
 menus:
   - icon: fa fa-bar-chart
     disabled: false
-    name: Report
-    state: report
+    name: Central Sync
+    state: Central Sync
     url: /across/resources/static/central/index.html
 umdLocation: /across/resources/static/central/index.html
 webModules:
