@@ -1,4 +1,4 @@
-package org.lamisplus.modules.sync.utility;
+package org.lamisplus.modules.central.utility;
 
 import com.google.common.hash.Hashing;
 import okhttp3.*;
@@ -42,7 +42,7 @@ public class HttpConnectionManager {
                 .addHeader("User-Agent", "OkHttp Bot")
                 .addHeader("Hash-Value", hash)
                 .addHeader("token", "lamisplus")
-                .addHeader("Authorization", token)
+                .addHeader("authorization", token)
                 .post(body)
                 .build();
 

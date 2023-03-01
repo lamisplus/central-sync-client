@@ -57,14 +57,10 @@ public class ServerRemoteAccessTokenService {
         byte[] aesKey = this.rsaUtils.encrypt(key.getBytes(StandardCharsets.UTF_8), remoteAccessToken);
         remoteAccessToken.setAnyByteKey(aesKey);
 
-        //Save to user table on the server
-        this.createUserOnServer(remoteAccessToken);
+        this.createUserOnServer(remoteAccessToken); // save to user table on the server
 
-        //Authenticate user & get token
         remoteAccessToken.setToken(this.authenticateToGetToken(remoteAccessToken));
-
-        // Server public & private key
-        remoteAccessToken = this.rsaUtils.keyGenerateAndReturnKey(remoteAccessToken);
+        remoteAccessToken = this.rsaUtils.keyGenerateAndReturnKey(remoteAccessToken); // Server public & private key
 
         remoteAccessToken.setPrKey(key);
         remoteAccessTokenRepository.save(remoteAccessToken);

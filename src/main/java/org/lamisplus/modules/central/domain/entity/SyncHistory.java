@@ -1,4 +1,4 @@
-package org.lamisplus.modules.sync.domain.entity;
+package org.lamisplus.modules.central.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;

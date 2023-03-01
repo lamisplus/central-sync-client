@@ -89,7 +89,6 @@ public class ClientRemoteAccessTokenService {
         }catch (Exception e){
             throw e;
         }
-
     }
 
     public List<RemoteUrlDTO> getRemoteUrls() {

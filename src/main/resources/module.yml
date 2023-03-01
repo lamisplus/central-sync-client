@@ -1,5 +1,5 @@
-basePackage: org.lamisplus.modules.sync
-name: SyncModule
+basePackage: org.lamisplus.modules.central
+name: CentralSyncModule
 dependencies: {PatientModule: 1.0.0, TriageModule: 1.0.0, HivModule: 1.0.0 }
 store: true
 menus:
@@ -7,10 +7,10 @@ menus:
     disabled: false
     name: Report
     state: report
-    url: /across/resources/static/sync/index.html
-umdLocation: /across/resources/static/sync/index.html
+    url: /across/resources/static/central/index.html
+umdLocation: /across/resources/static/central/index.html
 webModules:
-  - breadcrumb: Sync
-    name: SyncModule
+  - breadcrumb: Central Sync
+    name: CentralSyncModule
     path: sync
     position: 99

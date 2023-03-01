@@ -17,7 +17,7 @@ import javax.sql.DataSource;
 @Slf4j
 @Configuration
 @EnableJpaRepositories(
-        transactionManagerRef = "csyncTransactionManger",
+        transactionManagerRef = "syncTransactionManger",
         basePackages = {"org.lamisplus.modules.central.repository"}
 )
 public class DomainConfiguration {
@@ -28,7 +28,7 @@ public class DomainConfiguration {
     private  final EntityManagerFactory entityManagerFactory;
 
 
-    @Bean(name = "csyncTransactionManger")
+    @Bean(name = "syncTransactionManger")
     @Primary
     public TransactionManager transactionManager(){
         JpaTransactionManager jpaTransactionManager = new JpaTransactionManager();
