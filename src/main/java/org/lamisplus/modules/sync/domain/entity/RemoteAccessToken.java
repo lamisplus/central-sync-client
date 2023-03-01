@@ -64,11 +64,6 @@ public class RemoteAccessToken  implements Serializable {
     @Transient
     private byte[] anyByteKey;
 
-    @ManyToOne
-    @JoinColumn(name = "remote_id", referencedColumnName = "id", insertable = false, updatable = false)
-    @ToString.Exclude
-    private RemoteKey remoteKey;
-
     @Basic
     @Column(name = "remote_id")
     private Long remoteId;

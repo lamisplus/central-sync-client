@@ -13,10 +13,9 @@ import org.lamisplus.modules.sync.domain.entity.RemoteAccessToken;
 import org.lamisplus.modules.sync.domain.entity.SyncHistory;
 import org.lamisplus.modules.sync.domain.entity.SyncQueue;
 import org.lamisplus.modules.sync.domain.entity.Tables;
-import org.lamisplus.modules.sync.repo.RemoteAccessTokenRepository;
+import org.lamisplus.modules.sync.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.sync.utility.AESUtil;
 import org.lamisplus.modules.sync.utility.HttpConnectionManager;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
@@ -25,7 +24,6 @@ import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service

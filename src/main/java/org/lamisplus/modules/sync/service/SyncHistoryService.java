@@ -5,16 +5,14 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
-import org.lamisplus.modules.base.domain.entity.OrganisationUnit;
-import org.lamisplus.modules.base.repository.OrganisationUnitRepository;
+import org.lamisplus.modules.base.domain.entities.OrganisationUnit;
+import org.lamisplus.modules.base.domain.repositories.OrganisationUnitRepository;
 import org.lamisplus.modules.sync.domain.entity.RemoteAccessToken;
 import org.lamisplus.modules.sync.domain.entity.SyncHistory;
 import org.lamisplus.modules.sync.domain.entity.SyncQueue;
-import org.lamisplus.modules.sync.repo.RemoteAccessTokenRepository;
-import org.lamisplus.modules.sync.repo.SyncHistoryRepository;
+import org.lamisplus.modules.sync.repository.RemoteAccessTokenRepository;
+import org.lamisplus.modules.sync.repository.SyncHistoryRepository;
 import org.lamisplus.modules.sync.utility.HttpConnectionManager;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -26,11 +24,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class SyncHistoryService {
-
     private final SyncHistoryRepository syncHistoryRepository;
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
     private final OrganisationUnitRepository organisationUnitRepository;
-
     public void save(SyncHistory syncHistory) {
         syncHistoryRepository.save(syncHistory);
     }

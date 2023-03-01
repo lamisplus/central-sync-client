@@ -1,6 +1,16 @@
-name: Sync
-version: 1.0.0
 basePackage: org.lamisplus.modules.sync
-menuUrl: /across/resources/static/sync/index.html
-menuName: Sync
-description: Sync Module
+name: SyncModule
+dependencies: {PatientModule: 1.0.0, TriageModule: 1.0.0, HivModule: 1.0.0 }
+store: true
+menus:
+  - icon: fa fa-bar-chart
+    disabled: false
+    name: Report
+    state: report
+    url: /across/resources/static/sync/index.html
+umdLocation: /across/resources/static/sync/index.html
+webModules:
+  - breadcrumb: Sync
+    name: SyncModule
+    path: sync
+    position: 99
