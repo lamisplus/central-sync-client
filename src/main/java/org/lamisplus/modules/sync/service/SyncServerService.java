@@ -26,7 +26,7 @@ public class SyncServerService {
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
 
 
-    public SyncQueue save(byte[] bytes, String hash, String table, Long facilityId, String name) throws Exception {
+    public SyncQueue save(byte[] bytes, String hash, String table, Long facilityId, String name, Integer size) throws Exception {
         log.info("I am in the server");
 
         RemoteAccessToken remoteAccessToken = remoteAccessTokenRepository.findByUsernameAndOrganisationUnitId(name, facilityId)
@@ -43,6 +43,7 @@ public class SyncServerService {
 
         SyncQueue syncQueue = queueManager.setQueue(bytes,table, facilityId);
         syncQueue.setProcessed(processed);
+        if(size != null)syncQueue.setReceivedSize(size);
 
         /*if(syncQueueRepository.save(syncQueue)){
             syncQueue = syncQueueRepository.findByFileNameAndOrganisationUnitAnd(syncQueue.getFileName(), syncQueue.getOrganisationUnitId(), syncQueue.getDateCreated()).get();

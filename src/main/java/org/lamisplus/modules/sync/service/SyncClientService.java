@@ -62,10 +62,13 @@ public class SyncClientService {
 
             if (!serializeTableRecords.isEmpty()) {
                 Object serializeObject = serializeTableRecords.get(0);
+                Integer size = serializeTableRecords.size();
                 log.info("object size:  {} ", serializeTableRecords.size());
                 if (!serializeObject.toString().contains("No table records was retrieved for server sync")) {
                     String pathVariable = table.name().concat("/").concat(Long.toString(uploadDTO.getFacilityId()))
-                            .concat("/").concat(remoteAccessToken.getUsername());
+                            .concat("/").concat(remoteAccessToken.getUsername())
+                            .concat("/")
+                            .concat(Integer.toString(size));
                     //log.info("path: {}", pathVariable);
                     String url = uploadDTO.getServerUrl().concat("/api/sync/").concat(pathVariable);
 

@@ -50,7 +50,6 @@ public class ClientController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<FacilityDto>> getOrganisationUnitWithRecords() {
-        //TODO: work on query
         return ResponseEntity.ok(remoteAccessTokenRepository.findFacilityWithRecords());
     }
 

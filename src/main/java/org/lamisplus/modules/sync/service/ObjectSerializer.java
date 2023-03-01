@@ -2,6 +2,8 @@ package org.lamisplus.modules.sync.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.patient.domain.entity.Person;
+import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.sync.domain.dto.PatientSyncDto;
 import org.lamisplus.modules.sync.domain.dto.PatientVisitSyncDto;
 import org.lamisplus.modules.sync.domain.dto.PharmacySyncDto;
@@ -18,6 +20,7 @@ import java.util.List;
 @Slf4j
 public class ObjectSerializer {
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
+    private final PersonRepository personRepository;
 
     public List<?> serialize(Tables table, long facilityId, LocalDateTime dateLastSync) {
 
@@ -25,9 +28,13 @@ public class ObjectSerializer {
             log.info(" Retrieving records from  {} ", table.name());
             List<PatientSyncDto> patientList = new LinkedList<>();
             if (dateLastSync == null) {
-                return remoteAccessTokenRepository.getAllPatients(facilityId);
+                List<Person> persons  = personRepository.findAllByFacilityIdAndArchived(facilityId, 0);
+                System.out.println("persons -- " + persons.size());
+                return persons;
             } else {
-                return remoteAccessTokenRepository.getPatientsDueForServerUpload(dateLastSync, facilityId);
+                List<Person> persons  = personRepository.findAllByFacilityIdAndArchivedAndLastModifiedDate(facilityId, 0, dateLastSync);
+                System.out.println("persons -- " + persons.size());
+                return persons;
             }
         }
 

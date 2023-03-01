@@ -44,35 +44,25 @@ public class ServerRemoteAccessTokenService {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        System.out.println("Level 1 ---");
-        System.out.println("Level 1a ---");
 
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
         ObjectInput in = new ObjectInputStream(bis);
         RemoteAccessToken remoteAccessToken = (RemoteAccessToken) in.readObject();
 
         //RemoteAccessToken remoteAccessToken = (RemoteAccessToken)SerializationUtils.deserialize(bytes);
-        System.out.println("Level 2 ---");
-        //log.info("Username is: {}", remoteAccessToken.getUsername());
         Optional<RemoteAccessToken> optionalRemoteAccessToken = remoteAccessTokenRepository.findByUsername(remoteAccessToken.getUsername());
-        System.out.println("optionalRemoteAccessToken is " + optionalRemoteAccessToken.isPresent());
         optionalRemoteAccessToken.ifPresent(remoteAccessToken1 -> {
             throw new RecordExistException(RemoteAccessToken.class, "username", ""+remoteAccessToken1.getUsername());
         });
-        System.out.println("Level 3 ---");
         String key = this.generateAESKey(remoteAccessToken);
 
         //Encrypt Server generated AESKey with client public key
         byte[] aesKey = this.rsaUtils.encrypt(key.getBytes(StandardCharsets.UTF_8), remoteAccessToken);
         remoteAccessToken.setAnyByteKey(aesKey);
 
-        System.out.println("Level 4 ---");
         this.createUserOnServer(remoteAccessToken); // save to user table on the server
-        System.out.println("Level 5 ---");
 
         remoteAccessToken.setToken(this.authenticateToGetToken(remoteAccessToken));
-        System.out.println("Level 6 ---");
-
         remoteAccessToken = this.rsaUtils.keyGenerateAndReturnKey(remoteAccessToken); // Server public & private key
 
         remoteAccessToken.setPrKey(key);
@@ -85,7 +75,6 @@ public class ServerRemoteAccessTokenService {
 
     //@SneakyThrows
     public User createUserOnServer(RemoteAccessToken remoteAccessToken) {
-        System.out.println("createUserOnServer start ---");
         UserDTO userDTO = new UserDTO();
         userDTO.setFirstName(remoteAccessToken.getUsername());
         userDTO.setLastName(remoteAccessToken.getUsername());
@@ -93,24 +82,18 @@ public class ServerRemoteAccessTokenService {
 
         if(null != remoteAccessToken.getOrganisationUnitId())userDTO.setCurrentOrganisationUnitId(remoteAccessToken.getOrganisationUnitId());
         else userDTO.setCurrentOrganisationUnitId(0L);
-        System.out.println("createUserOnServer end ---");
 
         return userService.registerOrUpdateUser(userDTO, remoteAccessToken.getPassword(), true);
     }
 
     private String authenticateToGetToken(RemoteAccessToken remoteAccessToken){
-        System.out.println("authenticateToGetToken start ---");
         LoginVM loginVM = new LoginVM();
         loginVM.setUsername(remoteAccessToken.getUsername());
         loginVM.setPassword(remoteAccessToken.getPassword());
         //Long sevenDays = 168L;
         //return userJWTController.authorize(loginVM, sevenDays).getBody().getIdToken();
 
-        System.out.println("authenticateToGetToken end ---");
-        System.out.println("jwt start--");
         String jwt = userJWTController.authorization(loginVM);
-        System.out.println("jwt --" + jwt);
-
         return jwt;
     }
 
