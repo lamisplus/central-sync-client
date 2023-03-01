@@ -1,6 +1,5 @@
 package org.lamisplus.modules.central.service;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -14,7 +13,6 @@ import org.lamisplus.modules.central.domain.entity.SyncQueue;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.utility.HttpConnectionManager;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -53,7 +51,7 @@ public class SyncHistoryService {
     //@Scheduled(fixedDelay = 30000)
     public void getSyncQueueIdForClient() {
         List<SyncHistory> histories = new ArrayList<>();
-        LOG.info("Retrieving processed status from server...");
+        log.info("Retrieving processed status from server...");
 
         List<SyncHistory> syncHistories = syncHistoryRepository.findSyncQueueByProcessed(0);
         syncHistories.forEach(syncHistory -> {
@@ -66,20 +64,20 @@ public class SyncHistoryService {
 
                     //getting token
                     //TODO: handle error, syncQueueId maybe wrong
-                    LOG.info("sync history for remote access token id is - {}", syncHistory);
+                    log.info("sync history for remote access token id is - {}", syncHistory);
                     RemoteAccessToken remoteAccessToken = remoteAccessTokenRepository.findById(syncHistory.getRemoteAccessTokenId())
                             .orElseThrow(() -> new NullPointerException("RemoteAccessToken is null"));
 
                     //calling the server
                     String url = remoteAccessToken.getUrl().concat("/api/sync/sync-queue/").concat(Long.toString(syncHistory.getSyncQueueId()));
 
-                    LOG.info("url is {}", url);
+                    log.info("url is {}", url);
                     String response = new HttpConnectionManager().get(url);
                     SyncQueue syncQueue = objectMapper.readValue(response, SyncQueue.class);
                     syncHistory.setProcessed(syncQueue.getProcessed());
                     histories.add(syncHistory);
-                    LOG.info("processed status retrieved from url {}", remoteAccessToken.getUrl());
-                    LOG.info("syncHistory is now {}", syncHistory);
+                    log.info("processed status retrieved from url {}", remoteAccessToken.getUrl());
+                    log.info("syncHistory is now {}", syncHistory);
 
 
                 } catch (Exception e) {

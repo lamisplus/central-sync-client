@@ -36,7 +36,7 @@ public class SyncClientService {
 
     //@Async
     public String sender(UploadDTO uploadDTO) throws Exception {
-        LOG.info("path: {}", uploadDTO.getServerUrl());
+        log.info("path: {}", uploadDTO.getServerUrl());
         RemoteAccessToken remoteAccessToken = remoteAccessTokenRepository.findByUrl(uploadDTO.getServerUrl())
                 .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "url", ""+uploadDTO.getServerUrl()));
 
@@ -52,27 +52,27 @@ public class SyncClientService {
         mapper.registerModule(new JavaTimeModule());
         mapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        LOG.info("table values: => {}", Arrays.toString(Tables.values()));
+        log.info("table values: => {}", Arrays.toString(Tables.values()));
 
         for (Tables table : Tables.values()) {
             SyncHistory syncHistory = syncHistoryService.getSyncHistory(table.name(), uploadDTO.getFacilityId());
             LocalDateTime dateLastSync = syncHistory.getDateLastSync();
-            LOG.info("last date sync 1 {}", dateLastSync);
+            log.info("last date sync 1 {}", dateLastSync);
             List<?> serializeTableRecords = objectSerializer.serialize(table, uploadDTO.getFacilityId(), dateLastSync);
 
             if (!serializeTableRecords.isEmpty()) {
                 Object serializeObject = serializeTableRecords.get(0);
                 Integer size = serializeTableRecords.size();
-                LOG.info("object size:  {} ", serializeTableRecords.size());
+                log.info("object size:  {} ", serializeTableRecords.size());
                 if (!serializeObject.toString().contains("No table records was retrieved for server sync")) {
                     String pathVariable = table.name().concat("/").concat(Long.toString(uploadDTO.getFacilityId()))
                             .concat("/").concat(remoteAccessToken.getUsername())
                             .concat("/")
                             .concat(Integer.toString(size));
-                    //LOG.info("path: {}", pathVariable);
+                    //log.info("path: {}", pathVariable);
                     String url = uploadDTO.getServerUrl().concat("/api/sync/").concat(pathVariable);
 
-                    LOG.info("url : {}", url);
+                    log.info("url : {}", url);
 
                     byte[] bytes = mapper.writeValueAsBytes(serializeTableRecords);
 
@@ -81,7 +81,7 @@ public class SyncClientService {
                     bytes = this.encrypt(bytes, secretKey);
 
                     String response = new HttpConnectionManager().post(bytes, token, url);
-                    LOG.info("Done : {}", response);
+                    log.info("Done : {}", response);
 
                     syncHistory.setTableName(table.name());
                     syncHistory.setOrganisationUnitId(uploadDTO.getFacilityId());

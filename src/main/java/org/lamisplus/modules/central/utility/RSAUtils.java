@@ -48,7 +48,7 @@ public class RSAUtils {
     public RemoteAccessToken keyGenerateAndReturnKey(RemoteAccessToken remoteAccessToken) {
         String publicKeyPEM;
         String privateKeyPEM;
-        //System.out.println("main method of generator");
+        System.out.println("main method of generator");
         try {
             this.generateSecureKeys();
             this.createKeys();

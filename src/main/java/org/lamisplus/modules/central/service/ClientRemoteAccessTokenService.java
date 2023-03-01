@@ -58,7 +58,7 @@ public class ClientRemoteAccessTokenService {
         remoteAccessToken.setPrKey(null);
        String url = remoteAccessToken.getUrl().concat("/api/sync/server/remote-access-token");
        //TODO: set currentOrganisationUnit
-        LOG.info("url is {}", url);
+        log.info("url is {}", url);
 
         try {
             byte [] byteArray = SerializationUtils.serialize(remoteAccessToken);

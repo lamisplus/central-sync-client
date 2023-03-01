@@ -27,7 +27,7 @@ public class SyncServerService {
 
 
     public SyncQueue save(byte[] bytes, String hash, String table, Long facilityId, String name, Integer size) throws Exception {
-        LOG.info("I am in the server");
+        log.info("I am in the server");
 
         RemoteAccessToken remoteAccessToken = remoteAccessTokenRepository.findByUsernameAndOrganisationUnitId(name, facilityId)
                 .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Name & organisationUnitId", name +" & " + facilityId));

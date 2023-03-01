@@ -15,7 +15,6 @@ import org.lamisplus.modules.patient.domain.entity.Visit;
 import org.lamisplus.modules.patient.repository.*;
 import org.lamisplus.modules.patient.service.PersonService;
 import org.lamisplus.modules.central.domain.dto.HivEnrollmentSyncDto;
-import org.lamisplus.modules.central.domain.dto.PatientSyncDto;
 import org.lamisplus.modules.central.domain.dto.PatientVisitSyncDto;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.springframework.beans.BeanUtils;
@@ -55,23 +54,23 @@ public class ObjectDeserializer {
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         if (table.equals("patient")) {
-            LOG.info("Saving " + table + " on Server");
+            log.info("Saving " + table + " on Server");
             return processAndSavePatientsOnServer(data, objectMapper);
         }
         if (table.equals("visit")) {
-            LOG.info("Saving " + table + " on Server");
+            log.info("Saving " + table + " on Server");
             return processAndSaveVisitsOnServer(data, objectMapper);
         }
         /*if (table.equals("triage_vital_sign")) {
-            LOG.info("Saving " + table + " on Server");
+            log.info("Saving " + table + " on Server");
             return processAndSaveEnrollmentOnServer(data, objectMapper);
         }*/
         if (table.equals("hiv_enrollment")) {
-            LOG.info("Saving " + table + " on Server");
+            log.info("Saving " + table + " on Server");
             return processAndSaveHivEnrollmentOnServer(data, objectMapper);
         }
         /*if (table.equals("hiv_art_clinical")) {
-            LOG.info("Saving " + table + " on Server");
+            log.info("Saving " + table + " on Server");
             return processAndSaveAppointmentsOnServer(data, objectMapper);
         }*/
         List<String> msg = new LinkedList<>();
@@ -98,7 +97,7 @@ public class ObjectDeserializer {
             persons.add(person);
         });
         List<Person> savedPatients = personRepository.saveAll(persons);
-        LOG.info("number of patients save on server => : {}", savedPatients.size());
+        log.info("number of patients save on server => : {}", savedPatients.size());
         return savedPatients;
     }
 
@@ -116,7 +115,7 @@ public class ObjectDeserializer {
             visits.add(visit);
         });
         List<Visit> savedVisits = visitRepository.saveAll(visits);
-        LOG.info("number of visits save on server => : {}", savedVisits.size());
+        log.info("number of visits save on server => : {}", savedVisits.size());
         return savedVisits;
     }
 
@@ -134,7 +133,7 @@ public class ObjectDeserializer {
             hivEnrollments.add(hivEnrollment);
         });
         List<HivEnrollment> saveEnrollments = enrollmentRepository.saveAll(hivEnrollments);
-        LOG.info("number of form-data save on server => : {}", saveEnrollments.size());
+        log.info("number of form-data save on server => : {}", saveEnrollments.size());
         return saveEnrollments;
     }
 
@@ -159,7 +158,7 @@ public class ObjectDeserializer {
                     });
         });
         List<Encounter> savedEncounters = encounterRepository.saveAll(encounters);
-        LOG.info("number of encounters save on server => : {}", savedEncounters.size());
+        log.info("number of encounters save on server => : {}", savedEncounters.size());
         return savedEncounters;
     }*/
 
@@ -187,7 +186,7 @@ public class ObjectDeserializer {
                                 });
                     });
         });
-        LOG.info("number of appointments save on server => : {}", appointments.size());
+        log.info("number of appointments save on server => : {}", appointments.size());
         return appointments;
     }*/
 }

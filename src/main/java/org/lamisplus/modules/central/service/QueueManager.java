@@ -62,7 +62,7 @@ public class QueueManager {
     @Scheduled(fixedDelay = 30000)
     public void process() throws Exception {
         List<SyncQueue> filesNotProcessed = syncQueueRepository.getAllSyncQueueByFacilitiesNotProcessed();
-        LOG.info("available file for processing are : {}", filesNotProcessed.size());
+        log.info("available file for processing are : {}", filesNotProcessed.size());
         InputStream targetStream=null;
         for (SyncQueue syncQueue : filesNotProcessed) {
             String folder = ("sync/").concat(Long.toString(syncQueue.getOrganisationUnitId())
@@ -77,7 +77,7 @@ public class QueueManager {
                     syncQueue.setProcessedSize(list.size());
                     syncQueueRepository.save(syncQueue);
                     FileUtils.deleteQuietly(file);
-                    //LOG.info("deleting file : {}", file.getName());
+                    //log.info("deleting file : {}", file.getName());
                 }
             } catch (Exception e) {
                 e.printStackTrace();

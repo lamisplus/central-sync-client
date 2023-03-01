@@ -10,10 +10,10 @@
 	</parent>
 
 	<groupId>org.lamisplus.modules</groupId>
-	<artifactId>sync</artifactId>
+	<artifactId>central</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
-	<description>Sync Module</description>
+	<description>Central Sync Module</description>
 
 	<properties>
 		<java.version>1.8</java.version>

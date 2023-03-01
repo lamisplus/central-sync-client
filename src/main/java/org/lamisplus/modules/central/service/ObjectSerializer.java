@@ -2,13 +2,13 @@ package org.lamisplus.modules.central.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.central.domain.entity.Tables;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.central.domain.dto.PatientSyncDto;
 import org.lamisplus.modules.central.domain.dto.PatientVisitSyncDto;
 import org.lamisplus.modules.central.domain.dto.PharmacySyncDto;
 import org.lamisplus.modules.central.domain.dto.TriageVitalSignSyncDto;
-import org.lamisplus.modules.central.domain.entity.*;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -25,7 +25,7 @@ public class ObjectSerializer {
     public List<?> serialize(Tables table, long facilityId, LocalDateTime dateLastSync) {
 
         if (table.name().equals("patient")) {
-            LOG.info(" Retrieving records from  {} ", table.name());
+            log.info(" Retrieving records from  {} ", table.name());
             List<PatientSyncDto> patientList = new LinkedList<>();
             if (dateLastSync == null) {
                 List<Person> persons  = personRepository.findAllByFacilityIdAndArchived(facilityId, 0);
@@ -40,7 +40,7 @@ public class ObjectSerializer {
 
 
         if (table.name().equals("visit")) {
-            LOG.info(" Retrieving records from  {} ", table.name());
+            log.info(" Retrieving records from  {} ", table.name());
             List<PatientVisitSyncDto> visitList = new LinkedList<>();
             if (dateLastSync == null) {
                 return remoteAccessTokenRepository.getAllPatientVisits(facilityId);
@@ -51,7 +51,7 @@ public class ObjectSerializer {
 
 
         if (table.name().equals("triage_vital_sign")) {
-            LOG.info(" Retrieving records from  {} ", table.name());
+            log.info(" Retrieving records from  {} ", table.name());
             List<TriageVitalSignSyncDto> triageVitalSigns = new LinkedList<>();
             if (dateLastSync == null) {
                 return remoteAccessTokenRepository.getAllTriageVitalSign(facilityId);
@@ -61,7 +61,7 @@ public class ObjectSerializer {
         }
 
         if (table.name().equals("hiv_enrollment")) {
-            LOG.info(" Retrieving records from  {} ", table.name());
+            log.info(" Retrieving records from  {} ", table.name());
             List<TriageVitalSignSyncDto> triageVitalSigns = new LinkedList<>();
             if (dateLastSync == null) {
                 return remoteAccessTokenRepository.getAllHivEnrollment(facilityId);
@@ -71,7 +71,7 @@ public class ObjectSerializer {
         }
 
         if (table.name().equals("hiv_art_clinical")) {
-            LOG.info(" Retrieving records from  {} ", table.name());
+            log.info(" Retrieving records from  {} ", table.name());
             List<TriageVitalSignSyncDto> triageVitalSigns = new LinkedList<>();
             if (dateLastSync == null) {
                 return remoteAccessTokenRepository.getAllHivArtClinic(facilityId);
@@ -81,7 +81,7 @@ public class ObjectSerializer {
         }
 
         if (table.name().equals("hiv_art_pharmacy")) {
-            LOG.info(" Retrieving records from  {} ", table.name());
+            log.info(" Retrieving records from  {} ", table.name());
             List<PharmacySyncDto> pharmacies = new LinkedList<>();
             if (dateLastSync == null) {
                 return remoteAccessTokenRepository.getAllPharmacy(facilityId);

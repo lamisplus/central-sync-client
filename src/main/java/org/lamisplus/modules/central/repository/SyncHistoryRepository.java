@@ -1,10 +1,8 @@
 package org.lamisplus.modules.central.repository;
 
-import lombok.RequiredArgsConstructor;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;

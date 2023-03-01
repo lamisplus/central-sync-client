@@ -1,13 +1,10 @@
 package org.lamisplus.modules.central.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationUtils;
 import org.lamisplus.modules.base.controller.UserJWTController;
 import org.lamisplus.modules.base.controller.apierror.RecordExistException;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
@@ -18,7 +15,6 @@ import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.central.utility.AESUtil;
 import org.lamisplus.modules.central.utility.RSAUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.xml.bind.DatatypeConverter;
@@ -28,7 +24,9 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -44,7 +42,6 @@ public class ServerRemoteAccessTokenService {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
         ObjectInput in = new ObjectInputStream(bis);
         RemoteAccessToken remoteAccessToken = (RemoteAccessToken) in.readObject();
@@ -79,6 +76,11 @@ public class ServerRemoteAccessTokenService {
         userDTO.setFirstName(remoteAccessToken.getUsername());
         userDTO.setLastName(remoteAccessToken.getUsername());
         userDTO.setUserName(remoteAccessToken.getUsername());
+
+        Set<String> set = new HashSet<>();
+        set.add("Data Clerk");
+        //set as Data Clerk but change to another user
+        userDTO.setRoles(set);
 
         if(null != remoteAccessToken.getOrganisationUnitId())userDTO.setCurrentOrganisationUnitId(remoteAccessToken.getOrganisationUnitId());
         else userDTO.setCurrentOrganisationUnitId(0L);

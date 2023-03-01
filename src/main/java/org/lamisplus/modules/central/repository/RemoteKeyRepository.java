@@ -2,7 +2,6 @@ package org.lamisplus.modules.central.repository;
 
 import org.lamisplus.modules.central.domain.entity.RemoteKey;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
