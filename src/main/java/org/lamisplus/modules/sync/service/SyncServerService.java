@@ -3,11 +3,11 @@ package org.lamisplus.modules.sync.service;
 import com.google.common.hash.Hashing;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.lamisplus.modules.sync.controller.apierror.EntityNotFoundException;
+import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.sync.domain.entity.RemoteAccessToken;
 import org.lamisplus.modules.sync.domain.entity.SyncQueue;
-import org.lamisplus.modules.sync.repo.RemoteAccessTokenRepository;
-import org.lamisplus.modules.sync.repo.SyncQueueRepository;
+import org.lamisplus.modules.sync.repository.RemoteAccessTokenRepository;
+import org.lamisplus.modules.sync.repository.SyncQueueRepository;
 import org.lamisplus.modules.sync.utility.AESUtil;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +29,7 @@ public class SyncServerService {
     public SyncQueue save(byte[] bytes, String hash, String table, Long facilityId, String name) throws Exception {
         log.info("I am in the server");
 
-        RemoteAccessToken remoteAccessToken = remoteAccessTokenRepository.findByNameAndOrganisationUnitId(name, facilityId)
+        RemoteAccessToken remoteAccessToken = remoteAccessTokenRepository.findByUsernameAndOrganisationUnitId(name, facilityId)
                 .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Name & organisationUnitId", name +" & " + facilityId));
 
         // Verify the hash value of the byte, if the do not values match set processed to -1
@@ -44,11 +44,11 @@ public class SyncServerService {
         SyncQueue syncQueue = queueManager.setQueue(bytes,table, facilityId);
         syncQueue.setProcessed(processed);
 
-        if(syncQueueRepository.save(syncQueue) > 0){
+        /*if(syncQueueRepository.save(syncQueue)){
             syncQueue = syncQueueRepository.findByFileNameAndOrganisationUnitAnd(syncQueue.getFileName(), syncQueue.getOrganisationUnitId(), syncQueue.getDateCreated()).get();
             return syncQueue;
-        }
-        return null;
+        }*/
+        return syncQueueRepository.save(syncQueue);
     }
 
     private byte[] decrypt(byte[] bytes, SecretKey secretKey) throws GeneralSecurityException, IOException {

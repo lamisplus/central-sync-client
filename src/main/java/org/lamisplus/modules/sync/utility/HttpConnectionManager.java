@@ -34,7 +34,7 @@ public class HttpConnectionManager {
     }
 
     public String post(byte[] bytes, String token, String url) throws IOException {
-        RequestBody body = RequestBody.create(bytes, MediaType.parse("application/json; charset=utf-8"));
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), bytes);
         String hash = Hashing.sha256().hashBytes(bytes).toString();
 
         Request request = new Request.Builder()

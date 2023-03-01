@@ -4,16 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.SerializationUtils;
-import org.lamisplus.modules.base.domain.entity.User;
+import org.apache.commons.lang3.SerializationUtils;
+import org.lamisplus.modules.base.domain.entities.User;
 import org.lamisplus.modules.base.service.UserService;
 import org.lamisplus.modules.sync.domain.dto.RemoteUrlDTO;
 import org.lamisplus.modules.sync.domain.entity.RemoteAccessToken;
 import org.lamisplus.modules.sync.domain.entity.RemoteKey;
-import org.lamisplus.modules.sync.repo.RemoteAccessTokenRepository;
-import org.lamisplus.modules.sync.repo.RemoteKeyRepository;
+import org.lamisplus.modules.sync.repository.RemoteAccessTokenRepository;
+import org.lamisplus.modules.sync.repository.RemoteKeyRepository;
 import org.lamisplus.modules.sync.utility.HttpConnectionManager;
 import org.lamisplus.modules.sync.utility.RSAUtils;
 import org.springframework.stereotype.Service;
@@ -53,7 +52,7 @@ public class ClientRemoteAccessTokenService {
             remoteAccessToken.setOrganisationUnitId(user.getCurrentOrganisationUnitId());
         });
 
-        remoteAccessToken.setRemoteId(remoteKeyRepository.findByUUID(uuid).get().getId());
+        remoteAccessToken.setRemoteId(remoteKeyRepository.findByUuid(uuid).get().getId());
 
         remoteAccessToken.setAnyPubKey(remoteAccessToken.getPubKey());
         remoteAccessToken.setPrKey(null);

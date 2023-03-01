@@ -24,8 +24,6 @@ public class ServerController {
     private final ServerRemoteAccessTokenService serverRemoteAccessTokenService;
     private final SyncServerService syncServerService;
 
-
-
     @PostMapping("/{table}/{facilityId}/{name}")
     @CircuitBreaker(name = "server2", fallbackMethod = "getReceiverDefault")
     public ResponseEntity<SyncQueue> receiver(

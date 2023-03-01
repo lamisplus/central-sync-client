@@ -2,7 +2,7 @@ package org.lamisplus.modules.sync.utility;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.lamisplus.modules.sync.controller.apierror.EntityNotFoundException;
+import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.sync.domain.entity.RemoteAccessToken;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +48,7 @@ public class RSAUtils {
     public RemoteAccessToken keyGenerateAndReturnKey(RemoteAccessToken remoteAccessToken) {
         String publicKeyPEM;
         String privateKeyPEM;
-        System.out.println("main method of generator");
+        //System.out.println("main method of generator");
         try {
             this.generateSecureKeys();
             this.createKeys();
@@ -89,10 +89,12 @@ public class RSAUtils {
         return key;
     }
 
-    public byte[] encrypt(byte[] bytes, RemoteAccessToken remoteAccessToken) throws GeneralSecurityException, IOException {
+    public byte[] encrypt(byte[] bytes, RemoteAccessToken remoteAccessToken) throws GeneralSecurityException {
+        System.out.println("encrypt start ---");
         Cipher encryptCipher = Cipher.getInstance("RSA");
         encryptCipher.init(Cipher.ENCRYPT_MODE, this.readRSAPublicKey(remoteAccessToken));
         byte[] encryptedMessageBytes = encryptCipher.doFinal(bytes);
+        System.out.println("encrypt end ---");
         return encryptedMessageBytes;
     }
 }

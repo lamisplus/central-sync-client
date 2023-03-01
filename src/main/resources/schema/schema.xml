@@ -98,6 +98,7 @@
             <column name="table_name" type="VARCHAR(255)"/>
             <column name="upload_size" type="INT"/>
             <column name="processed_size" type="INT"/>
+            <column name="received_size" type="INT"/>
         </createTable>
     </changeSet>
 
@@ -169,7 +170,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet failOnError="false" author="Emeka Ilozue" id="1649865054498-14-sync">
+    <!--<changeSet failOnError="false" author="Emeka Ilozue" id="1649865054498-14-sync">
         <preConditions onFail="MARK_RAN">
             <not>
                 <foreignKeyConstraintExists foreignKeyName="remote_id_fk" />
@@ -183,7 +184,7 @@
             ON DELETE NO ACTION
             NOT VALID;
         </sql>
-    </changeSet>
+    </changeSet>-->
 
     <changeSet failOnError="false" author="Emeka Ilozue" id="1649865054498-15-sync">
         <preConditions onFail="MARK_RAN">
@@ -203,6 +204,12 @@
 
             ALTER TABLE remote_access_token
             ADD COLUMN pub_key character varying(10485760);
+
+            ALTER TABLE remote_access_token
+            ADD COLUMN any_pub_key character varying(10485760);
+
+            ALTER TABLE remote_access_token
+            ADD COLUMN status BIGINT;
         </sql>
     </changeSet>
 </databaseChangeLog>

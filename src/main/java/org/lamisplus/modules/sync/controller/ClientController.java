@@ -3,12 +3,12 @@ package org.lamisplus.modules.sync.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.lamisplus.modules.base.domain.entity.OrganisationUnit;
-import org.lamisplus.modules.base.repository.OrganisationUnitRepository;
+import org.lamisplus.modules.sync.domain.dto.FacilityDto;
 import org.lamisplus.modules.sync.domain.dto.RemoteUrlDTO;
 import org.lamisplus.modules.sync.domain.dto.UploadDTO;
 import org.lamisplus.modules.sync.domain.entity.RemoteAccessToken;
 import org.lamisplus.modules.sync.domain.entity.SyncHistory;
+import org.lamisplus.modules.sync.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.sync.service.ClientRemoteAccessTokenService;
 import org.lamisplus.modules.sync.service.SyncClientService;
 import org.lamisplus.modules.sync.service.SyncHistoryService;
@@ -26,9 +26,9 @@ import java.util.List;
 @RequestMapping("api/sync")
 public class ClientController {
     private final SyncHistoryService syncHistoryService;
-    private final OrganisationUnitRepository organisationUnitRepository;
     private final ClientRemoteAccessTokenService clientRemoteAccessTokenService;
     private final SyncClientService syncClientService;
+    private final RemoteAccessTokenRepository remoteAccessTokenRepository;
 
 
     @RequestMapping(value = "/upload",
@@ -49,8 +49,9 @@ public class ClientController {
     @RequestMapping(value = "/facilities",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<OrganisationUnit>> getOrganisationUnitWithRecords() {
-        return ResponseEntity.ok(organisationUnitRepository.findOrganisationUnitWithRecords());
+    public ResponseEntity<List<FacilityDto>> getOrganisationUnitWithRecords() {
+        //TODO: work on query
+        return ResponseEntity.ok(remoteAccessTokenRepository.findFacilityWithRecords());
     }
 
     @RequestMapping(value = "/sync-history",
