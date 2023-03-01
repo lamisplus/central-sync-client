@@ -1,0 +1,16 @@
+basePackage: org.lamisplus.modules.central
+name: CentralServerSyncModule
+dependencies: {PatientModule: 1.0.0, TriageModule: 1.0.0, HivModule: 1.0.0 }
+store: true
+menus:
+  - icon: fa fa-bar-chart
+    disabled: false
+    name: Report
+    state: report
+    url: /across/resources/static/central/index.html
+umdLocation: /across/resources/static/central/index.html
+webModules:
+  - breadcrumb: Central Server Sync
+    name: CentralServerSyncModule
+    path: sync
+    position: 99
