@@ -2,6 +2,7 @@ package org.lamisplus.modules.sync.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -80,14 +81,20 @@ public class ObjectDeserializer {
 
     private List<Person> processAndSavePatientsOnServer(String data, ObjectMapper objectMapper) throws JsonProcessingException {
         List<Person> persons = new LinkedList<>();
-        List<PatientSyncDto> patientSyncDtoList = objectMapper.readValue(data, new TypeReference<List<PatientSyncDto>>() {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<Person> clientPersonList = objectMapper.readValue(data, new TypeReference<List<Person>>() {
         });
 
-        patientSyncDtoList.forEach(patientSyncDto -> {
+        clientPersonList.forEach(clientPerson -> {
             Person person = new Person();
-            BeanUtils.copyProperties(patientSyncDto, person);
-            Optional<PatientSyncDto> savePatient = remoteAccessTokenRepository.getByPersonUuid(patientSyncDto.getUuid());
-            savePatient.ifPresent(value -> person.setId(value.getId()));
+            BeanUtils.copyProperties(clientPerson, person);
+            Optional<Person> foundPerson = personRepository.findByUuid(clientPerson.getUuid());
+            //Set Id for new or old person on the server
+            if(foundPerson.isPresent()){
+                person.setId(foundPerson.get().getId());
+            } else {
+                person.setId(null);
+            }
             persons.add(person);
         });
         List<Person> savedPatients = personRepository.saveAll(persons);
@@ -99,6 +106,7 @@ public class ObjectDeserializer {
         List<Visit> visits = new LinkedList<>();
         List<PatientVisitSyncDto> patientVisitSyncDtoList = objectMapper.readValue(data, new TypeReference<List<PatientVisitSyncDto>>() {
         });
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         patientVisitSyncDtoList.forEach(visitDTO -> {
             Visit visit = new Visit();
             BeanUtils.copyProperties(visitDTO, visit);
@@ -116,6 +124,7 @@ public class ObjectDeserializer {
         List<HivEnrollment> hivEnrollments = new LinkedList<>();
         List<HivEnrollmentSyncDto> enrollmentSyncDtos = objectMapper.readValue(data, new TypeReference<List<HivEnrollmentSyncDto>>() {
         });
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         enrollmentSyncDtos.forEach(enrollmentSyncDto -> {
             HivEnrollment hivEnrollment = new HivEnrollment();
             BeanUtils.copyProperties(enrollmentSyncDto, hivEnrollment);

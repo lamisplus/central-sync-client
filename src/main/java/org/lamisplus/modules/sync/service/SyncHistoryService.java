@@ -1,5 +1,6 @@
 package org.lamisplus.modules.sync.service;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -49,7 +50,7 @@ public class SyncHistoryService {
         return syncHistoryList1;
     }
 
-    @Scheduled(fixedDelay = 30000)
+    //@Scheduled(fixedDelay = 30000)
     public void getSyncQueueIdForClient() {
         List<SyncHistory> histories = new ArrayList<>();
         log.info("Retrieving processed status from server...");

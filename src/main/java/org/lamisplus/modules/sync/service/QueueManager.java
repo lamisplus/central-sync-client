@@ -58,30 +58,33 @@ public class QueueManager {
     }
 
 
-    @Scheduled(fixedDelay = 300000)
+    /*Client processing...*/
+    @Scheduled(fixedDelay = 30000)
     public void process() throws Exception {
         List<SyncQueue> filesNotProcessed = syncQueueRepository.getAllSyncQueueByFacilitiesNotProcessed();
         log.info("available file for processing are : {}", filesNotProcessed.size());
-        filesNotProcessed
-                .forEach(syncQueue -> {
-                    String folder = ("sync/").concat(Long.toString(syncQueue.getOrganisationUnitId())
-                            .concat("/")).concat(syncQueue.getTableName()).concat("/");
-                    File file = FileUtils.getFile(folder, syncQueue.getFileName());
-                    try {
-                        InputStream targetStream = new FileInputStream(file);
-                        byte[] bytes = ByteStreams.toByteArray(Objects.requireNonNull(targetStream));
-                        List<?> list = objectDeserializer.deserialize(bytes, syncQueue.getTableName());
-                        if (!list.isEmpty()) {
-                            syncQueue.setProcessed(1);
-                            syncQueue.setProcessedSize(list.size());
-                            syncQueueRepository.save(syncQueue);
-                            FileUtils.deleteQuietly(file);
-                            //log.info("deleting file : {}", file.getName());
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
+        InputStream targetStream=null;
+        for (SyncQueue syncQueue : filesNotProcessed) {
+            String folder = ("sync/").concat(Long.toString(syncQueue.getOrganisationUnitId())
+                    .concat("/")).concat(syncQueue.getTableName()).concat("/");
+            File file = FileUtils.getFile(folder, syncQueue.getFileName());
+            try {
+                targetStream = new FileInputStream(file);
+                byte[] bytes = ByteStreams.toByteArray(Objects.requireNonNull(targetStream));
+                List<?> list = objectDeserializer.deserialize(bytes, syncQueue.getTableName());
+                if (!list.isEmpty()) {
+                    syncQueue.setProcessed(1);
+                    syncQueue.setProcessedSize(list.size());
+                    syncQueueRepository.save(syncQueue);
+                    FileUtils.deleteQuietly(file);
+                    //log.info("deleting file : {}", file.getName());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }finally {
+                if(targetStream != null) targetStream.close();
+            }
+        }
     }
 }
 

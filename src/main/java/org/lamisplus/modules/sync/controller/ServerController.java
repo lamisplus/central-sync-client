@@ -24,7 +24,7 @@ public class ServerController {
     private final ServerRemoteAccessTokenService serverRemoteAccessTokenService;
     private final SyncServerService syncServerService;
 
-    @PostMapping("/{table}/{facilityId}/{name}")
+    @PostMapping("/{table}/{facilityId}/{name}/{size}")
     @CircuitBreaker(name = "server2", fallbackMethod = "getReceiverDefault")
     public ResponseEntity<SyncQueue> receiver(
             @RequestBody byte[] bytes,
@@ -32,9 +32,9 @@ public class ServerController {
             @RequestHeader("token") String token,
             @PathVariable String table,
             @PathVariable Long facilityId,
-            @PathVariable String name) throws Exception {
+            @PathVariable String name, @PathVariable Integer size) throws Exception {
 
-        SyncQueue syncQueue = syncServerService.save(bytes, hash, table, facilityId, name);
+        SyncQueue syncQueue = syncServerService.save(bytes, hash, table, facilityId, name, size);
         return ResponseEntity.ok(syncQueue);
     }
 
