@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.domain.entities.OrganisationUnit;
 import org.lamisplus.modules.base.domain.repositories.OrganisationUnitRepository;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
@@ -13,6 +14,7 @@ import org.lamisplus.modules.central.domain.entity.SyncQueue;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.utility.HttpConnectionManager;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -48,7 +50,7 @@ public class SyncHistoryService {
         return syncHistoryList1;
     }
 
-    //@Scheduled(fixedDelay = 30000)
+    @Scheduled(fixedDelay = 30000)
     public void getSyncQueueIdForClient() {
         List<SyncHistory> histories = new ArrayList<>();
         log.info("Retrieving processed status from server...");
@@ -62,11 +64,11 @@ public class SyncHistoryService {
                     objectMapper.registerModule(new JavaTimeModule());
                     objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-                    //getting token
+                    //TODO: getting token
                     //TODO: handle error, syncQueueId maybe wrong
                     log.info("sync history for remote access token id is - {}", syncHistory);
                     RemoteAccessToken remoteAccessToken = remoteAccessTokenRepository.findById(syncHistory.getRemoteAccessTokenId())
-                            .orElseThrow(() -> new NullPointerException("RemoteAccessToken is null"));
+                            .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "RemoteAccessToken is id", "id"));
 
                     //calling the server
                     String url = remoteAccessToken.getUrl().concat("/api/sync/sync-queue/").concat(Long.toString(syncHistory.getSyncQueueId()));

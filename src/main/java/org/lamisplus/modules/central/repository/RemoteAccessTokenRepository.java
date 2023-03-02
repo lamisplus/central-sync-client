@@ -18,6 +18,10 @@ public interface RemoteAccessTokenRepository extends JpaRepository<RemoteAccessT
 
     Optional<RemoteAccessToken> findByUrl(String url);
 
+    Optional<RemoteAccessToken> findByUrlAndApplicationUserId(String url, Long userId);
+
+    Optional<RemoteAccessToken> findByUrlAndUsername(String url, String username);
+
     @Query(value = "SELECT * FROM remote_access_token WHERE url=?1 AND organisation_unit_id=?2", nativeQuery = true)
     Optional<RemoteAccessToken> findByUrlAndFacilityId(String url, Long organisationUnit);
 
