@@ -8,6 +8,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
+import org.lamisplus.modules.base.domain.entities.User;
+import org.lamisplus.modules.base.service.UserService;
 import org.lamisplus.modules.central.domain.dto.UploadDTO;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
@@ -33,16 +35,24 @@ public class SyncClientService {
     private final SyncHistoryService syncHistoryService;
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
     private final ObjectSerializer objectSerializer;
+    private final UserService userService;
 
     //@Async
     public String sender(UploadDTO uploadDTO) throws Exception {
         log.info("path: {}", uploadDTO.getServerUrl());
-        RemoteAccessToken remoteAccessToken = remoteAccessTokenRepository.findByUrl(uploadDTO.getServerUrl())
-                .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "url", ""+uploadDTO.getServerUrl()));
-
-        /*RemoteAccessToken remoteAccessToken1 = remoteAccessTokenRepository.findById(uploadDTO.getRemoteAccessTokenId())
-                .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "id", ""+uploadDTO.getFacilityId()));*/
-
+        //Current login user
+        User user = userService.getUserWithRoles().orElse(null);
+        RemoteAccessToken remoteAccessToken = null;
+        //Check the if user is not null
+        if(user != null){
+            remoteAccessToken = remoteAccessTokenRepository
+                    .findByUrlAndApplicationUserId(uploadDTO.getServerUrl(), user.getId())
+                    .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "url or user", ""+uploadDTO.getServerUrl()));
+        }else {
+            remoteAccessToken = remoteAccessTokenRepository
+                    .findByUrl(uploadDTO.getServerUrl())
+                    .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "url", ""+uploadDTO.getServerUrl()));
+        }
         if(remoteAccessToken.getToken() == null) new EntityNotFoundException(RemoteAccessToken.class, "token", ""+remoteAccessToken.getToken());
 
         //Setting the token
