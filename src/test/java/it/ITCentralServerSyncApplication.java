@@ -1,6 +1,6 @@
 package it;
 
-import org.lamisplus.modules.central.CentralServerSyncModule;
+import org.lamisplus.modules.central.CentralSyncModule;
 import com.foreach.across.test.support.config.MockAcrossServletContextInitializer;
 import com.foreach.across.test.support.config.MockMvcConfiguration;
 import org.junit.Test;
@@ -27,7 +27,7 @@ import static org.junit.Assert.assertNotNull;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@SpringBootTest(classes = { CentralServerSyncModule.class, MockMvcConfiguration.class })
+@SpringBootTest(classes = { CentralSyncModule.class, MockMvcConfiguration.class })
 @ActiveProfiles("integration-test")
 @ContextConfiguration(initializers = MockAcrossServletContextInitializer.class)
 public class ITCentralServerSyncApplication
