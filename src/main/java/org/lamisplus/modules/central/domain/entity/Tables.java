@@ -8,6 +8,4 @@ public enum Tables{
 //    hiv_art_clinical,
 //    hiv_art_pharmacy,
     biometric
-
-
 };

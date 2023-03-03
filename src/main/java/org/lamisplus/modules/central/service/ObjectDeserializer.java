@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.biometric.domain.Biometric;
+import org.lamisplus.modules.biometric.repository.BiometricRepository;
 import org.lamisplus.modules.hiv.domain.entity.HivEnrollment;
 import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
 import org.lamisplus.modules.patient.domain.entity.Person;
@@ -35,6 +37,7 @@ public class ObjectDeserializer {
     private final HivEnrollmentRepository enrollmentRepository;
 
     private final PersonService personService;
+    private final BiometricRepository biometricRepository;
 
     private final VisitRepository visitRepository;
 
@@ -52,23 +55,31 @@ public class ObjectDeserializer {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        switch (table){
+            case "patient":
+                log.info("Saving " + table + " on Server");
+                return processAndSavePatientsOnServer(data, objectMapper);
+            case "biometric":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveBiometricsOnServer(data, objectMapper);
+        }
 
-        if (table.equals("patient")) {
+        /*if (table.equals("patient")) {
             log.info("Saving " + table + " on Server");
             return processAndSavePatientsOnServer(data, objectMapper);
+        }
+        if (table.equals("biometric")) {
+            log.info("Saving " + table + " on Server");
+            return processAndSaveBiometricsOnServer(data, objectMapper);
         }
         if (table.equals("visit")) {
             log.info("Saving " + table + " on Server");
             return processAndSaveVisitsOnServer(data, objectMapper);
         }
-        /*if (table.equals("triage_vital_sign")) {
-            log.info("Saving " + table + " on Server");
-            return processAndSaveEnrollmentOnServer(data, objectMapper);
-        }*/
         if (table.equals("hiv_enrollment")) {
             log.info("Saving " + table + " on Server");
             return processAndSaveHivEnrollmentOnServer(data, objectMapper);
-        }
+        }*/
         /*if (table.equals("hiv_art_clinical")) {
             log.info("Saving " + table + " on Server");
             return processAndSaveAppointmentsOnServer(data, objectMapper);
@@ -99,6 +110,14 @@ public class ObjectDeserializer {
         List<Person> savedPatients = personRepository.saveAll(persons);
         log.info("number of patients save on server => : {}", savedPatients.size());
         return savedPatients;
+    }
+
+    private List<Biometric> processAndSaveBiometricsOnServer(String data, ObjectMapper objectMapper) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<Biometric> clientBiometrics = objectMapper.readValue(data, new TypeReference<List<Biometric>>() {});
+        List<Biometric> savedBiometrics = biometricRepository.saveAll(clientBiometrics);
+        log.info("number of patients save on server => : {}", savedBiometrics.size());
+        return savedBiometrics;
     }
 
     private List<Visit> processAndSaveVisitsOnServer(String data, ObjectMapper objectMapper) throws JsonProcessingException {

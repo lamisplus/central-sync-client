@@ -2,6 +2,8 @@ package org.lamisplus.modules.central.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.biometric.domain.Biometric;
+import org.lamisplus.modules.biometric.repository.BiometricRepository;
 import org.lamisplus.modules.central.domain.entity.Tables;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
@@ -22,6 +24,8 @@ public class ObjectSerializer {
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
     private final PersonRepository personRepository;
 
+    private final BiometricRepository biometricRepository;
+
     public List<?> serialize(Tables table, long facilityId, LocalDateTime dateLastSync) {
 
         if (table.name().equals("patient")) {
@@ -32,9 +36,23 @@ public class ObjectSerializer {
                 System.out.println("persons -- " + persons.size());
                 return persons;
             } else {
-                List<Person> persons  = personRepository.findAllByFacilityIdAndArchivedAndLastModifiedDate(facilityId, 0, dateLastSync);
+                List<Person> persons  = personRepository.getPatientsDueForServerUpload(dateLastSync, facilityId, 0);
                 System.out.println("persons -- " + persons.size());
                 return persons;
+            }
+        }
+
+        if (table.name().equals("biometric")) {
+            log.info(" Retrieving records from  {} ", table.name());
+            List<Biometric> biometrics = new LinkedList<>();
+            if (dateLastSync == null) {
+                biometrics =  biometricRepository.findAllByFacilityIdAndArchived(facilityId, 0);
+                System.out.println("biometric -- " + biometrics.size());
+                return biometrics;
+            } else {
+                biometrics =  biometricRepository.getBiometricDueForServerUpload(dateLastSync, facilityId, 0);
+                System.out.println("biometric -- " + biometrics.size());
+                return biometrics;
             }
         }
 
