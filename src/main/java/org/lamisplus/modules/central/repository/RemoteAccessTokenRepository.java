@@ -1,8 +1,10 @@
 package org.lamisplus.modules.central.repository;
 
 import org.lamisplus.modules.base.domain.entities.User;
+import org.lamisplus.modules.biometric.domain.Biometric;
 import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
+import org.lamisplus.modules.patient.domain.entity.Person;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -59,8 +61,8 @@ public interface RemoteAccessTokenRepository extends JpaRepository<RemoteAccessT
     @Query(value ="SELECT * FROM patient_person WHERE facility_id=?1", nativeQuery = true)
     public List<PatientSyncDto> getAllPatients(Long facilityId);
 
-    @Query(value ="SELECT * FROM patient_person WHERE last_modified_date > ?1 AND facility_id=?2", nativeQuery = true)
-    public List<PatientSyncDto> getPatientsDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
+    @Query(value ="SELECT * FROM patient_person WHERE last_modified_date > ?1 AND facility_id=?2 And archived=?3", nativeQuery = true)
+    public List<Person> getPatientsDueForServerUpload(LocalDateTime dateLastSync, Long facilityId, int archived);
 
 
     @Query(value ="SELECT * FROM patient_visit WHERE facility_id=?1", nativeQuery = true)
@@ -102,5 +104,12 @@ public interface RemoteAccessTokenRepository extends JpaRepository<RemoteAccessT
     @Query(value = "SELECT org.id, org.name FROM base_organisation_unit org WHERE " +
             "org.id IN (SELECT DISTINCT ps.facility_id FROM patient_person ps)", nativeQuery = true)
     List<FacilityDto> findFacilityWithRecords();
+
+    @Query(value ="SELECT * FROM biometric WHERE last_modified_date > ?1 AND facility_id=?2 AND archived=?3", nativeQuery = true)
+    public List<Biometric> getBiometricDueForServerUpload(LocalDateTime dateLastSync, Long facilityId, int archived);
+
+    @Query(value ="SELECT * FROM biometric WHERE facility_id=?1 AND archived=?2", nativeQuery = true)
+    public List<Biometric> getBiometricDueForServerUpload(Long facilityId, int archived);
+
 
 }

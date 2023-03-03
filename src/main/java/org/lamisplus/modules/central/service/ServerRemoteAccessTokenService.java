@@ -58,7 +58,7 @@ public class ServerRemoteAccessTokenService {
         remoteAccessToken.setAnyByteKey(aesKey);
 
         //Save to user table on the server
-        this.createUserOnServer(remoteAccessToken);
+        //this.createUserOnServer(remoteAccessToken);
 
         //Authenticate user & get token
         remoteAccessToken.setToken(this.authenticateToGetToken(remoteAccessToken));
