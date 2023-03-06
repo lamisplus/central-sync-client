@@ -22,6 +22,8 @@ public class SyncQueueService {
         syncQueueRepository.save(syncQueue);
     }
 
+
+
     public SyncQueue getAllSyncQueueById(Long id) {
         Optional<SyncQueue> optionalSyncQueue = syncQueueRepository.findTopByIdOrderByIdDesc(id);
         if(optionalSyncQueue.isPresent())return optionalSyncQueue.get();

@@ -65,6 +65,8 @@ public class SyncClientService {
         log.info("table values: => {}", Arrays.toString(Tables.values()));
 
         for (Tables table : Tables.values()) {
+            log.info("table.name() ", table.name());
+            if(table.name().equalsIgnoreCase("patient")){
             SyncHistory syncHistory = syncHistoryService.getSyncHistory(table.name(), uploadDTO.getFacilityId());
             LocalDateTime dateLastSync = syncHistory.getDateLastSync();
             log.info("last date sync 1 {}", dateLastSync);
@@ -110,13 +112,14 @@ public class SyncClientService {
                         //get remote access token id
                         syncHistory.setRemoteAccessTokenId(remoteAccessToken.getId());
                         syncHistory.setUploadSize(serializeTableRecords.size());
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
 
                     syncHistoryService.save(syncHistory);
                 }
             }
+        }//else continue;
         }
         return "Successful";//CompletableFuture.completedFuture("Successful");
     }

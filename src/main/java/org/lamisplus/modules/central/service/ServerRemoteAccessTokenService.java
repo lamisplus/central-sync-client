@@ -99,7 +99,7 @@ public class ServerRemoteAccessTokenService {
         //Long sevenDays = 168L;
         //return userJWTController.authorize(loginVM, sevenDays).getBody().getIdToken();
 
-        String jwt = userJWTController.authorization(loginVM);
+        String jwt = "token";//userJWTController.authorization(loginVM);
         return jwt;
     }
 
