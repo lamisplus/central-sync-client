@@ -8,7 +8,7 @@ import java.io.Serializable;
 @Data
 @Entity
 @EqualsAndHashCode
-@Table(name = "remote_key")
+@Table(name = "sync_remote_key")
 public class RemoteKey implements Serializable {
     @Id
     @Column(name = "id", updatable = false)

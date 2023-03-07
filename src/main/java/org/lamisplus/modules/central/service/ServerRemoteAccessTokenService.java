@@ -57,20 +57,19 @@ public class ServerRemoteAccessTokenService {
         byte[] aesKey = this.rsaUtils.encrypt(key.getBytes(StandardCharsets.UTF_8), remoteAccessToken);
         remoteAccessToken.setAnyByteKey(aesKey);
 
-        //Save to user table on the server
-        //this.createUserOnServer(remoteAccessToken);
-
         //Authenticate user & get token
         remoteAccessToken.setToken(this.authenticateToGetToken(remoteAccessToken));
-
+        System.out.println("Token gotten ---");
         // Server public & private key
         remoteAccessToken = this.rsaUtils.keyGenerateAndReturnKey(remoteAccessToken);
+        System.out.println("Encryption done ---");
 
         remoteAccessToken.setPrKey(key);
-        remoteAccessTokenRepository.save(remoteAccessToken);
-        remoteAccessToken.setPrKey("x");
         remoteAccessToken.setPassword("x");
+        remoteAccessTokenRepository.save(remoteAccessToken);
+        System.out.println("RemoteAccessToken done ---");
         remoteAccessToken.setStatus(0L);
+        System.out.println("RemoteAccessToken returned ---");
         return remoteAccessToken;
     }
 
@@ -99,8 +98,7 @@ public class ServerRemoteAccessTokenService {
         //Long sevenDays = 168L;
         //return userJWTController.authorize(loginVM, sevenDays).getBody().getIdToken();
 
-        String jwt = userJWTController.authorization(loginVM);
-        return jwt;
+        return userJWTController.authorize(loginVM).getBody().getIdToken();
     }
 
     public String generateAESKey(RemoteAccessToken remoteAccessToken) throws GeneralSecurityException, IOException {

@@ -24,7 +24,7 @@ public interface RemoteAccessTokenRepository extends JpaRepository<RemoteAccessT
 
     Optional<RemoteAccessToken> findByUrlAndUsername(String url, String username);
 
-    @Query(value = "SELECT * FROM remote_access_token WHERE url=?1 AND organisation_unit_id=?2", nativeQuery = true)
+    @Query(value = "SELECT * FROM sync_remote_access_token WHERE url=?1 AND organisation_unit_id=?2", nativeQuery = true)
     Optional<RemoteAccessToken> findByUrlAndFacilityId(String url, Long organisationUnit);
 
     void deleteById(Long id);
@@ -55,7 +55,7 @@ public interface RemoteAccessTokenRepository extends JpaRepository<RemoteAccessT
     Optional<RemoteAccessToken> findByUsernameAndUrlAndOrganisationUnitId(String username, String url, Long organisationUnitId);
     Optional<RemoteAccessToken> findByUsernameAndOrganisationUnitId(String username, Long organisationUnitId);
 
-    @Query(value ="SELECT * FROM remote_access_token WHERE pr_key IS NULL", nativeQuery = true)
+    @Query(value ="SELECT * FROM sync_remote_access_token WHERE pr_key IS NULL", nativeQuery = true)
     List<RemoteAccessToken> findWherePrivateKeyIsNull(String publicKey);
 
     @Query(value ="SELECT * FROM patient_person WHERE facility_id=?1", nativeQuery = true)

@@ -25,12 +25,11 @@ public class SyncServerService {
     private final QueueManager queueManager;
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
 
-
     public SyncQueue save(byte[] bytes, String hash, String table, Long facilityId, String name, Integer size) throws Exception {
         log.info("I am in the server");
 
-        RemoteAccessToken remoteAccessToken = remoteAccessTokenRepository.findByUsernameAndOrganisationUnitId(name, facilityId)
-                .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Name & organisationUnitId", name +" & " + facilityId));
+        RemoteAccessToken remoteAccessToken = remoteAccessTokenRepository.findByUsername(name)
+                .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Name", name));
 
         // Verify the hash value of the byte, if the do not values match set processed to -1
         Integer processed;
@@ -43,12 +42,9 @@ public class SyncServerService {
 
         SyncQueue syncQueue = queueManager.setQueue(bytes,table, facilityId);
         syncQueue.setProcessed(processed);
+        syncQueue.setCreatedBy(name);
         if(size != null)syncQueue.setReceivedSize(size);
 
-        /*if(syncQueueRepository.save(syncQueue)){
-            syncQueue = syncQueueRepository.findByFileNameAndOrganisationUnitAnd(syncQueue.getFileName(), syncQueue.getOrganisationUnitId(), syncQueue.getDateCreated()).get();
-            return syncQueue;
-        }*/
         return syncQueueRepository.save(syncQueue);
     }
 

@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 @Slf4j
@@ -36,13 +38,9 @@ public class ClientController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     //@CircuitBreaker(name = "service2", fallbackMethod = "getDefaultMessage")
     //@Retry(name = "retryService2", fallbackMethod = "retryFallback")
-    public @ResponseBody ResponseEntity sender(@Valid @RequestBody UploadDTO uploadDTO) throws Exception {
-        try {
+    public @ResponseBody ResponseEntity sender(@Valid @RequestBody UploadDTO uploadDTO) throws Exception  {
             syncClientService.sender(uploadDTO);
             return ResponseEntity.status(HttpStatus.OK).build();
-        } catch(final Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
     }
 
     //@GetMapping("/facilities")
@@ -71,8 +69,7 @@ public class ClientController {
     @RequestMapping(value = "/remote-access-token",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    @SneakyThrows
-    public void sendToRemoteAccessToServer(@Valid @RequestBody RemoteAccessToken remoteAccessToken) {
+    public void sendToRemoteAccessToServer(@Valid @RequestBody RemoteAccessToken remoteAccessToken) throws GeneralSecurityException, IOException {
         clientRemoteAccessTokenService.sendToRemoteAccessToServer(remoteAccessToken);
     }
 }

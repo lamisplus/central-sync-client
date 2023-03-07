@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Data
 @Entity
 @EqualsAndHashCode
-@Table(name = "remote_access_token")
+@Table(name = "sync_remote_access_token")
 public class RemoteAccessToken  implements Serializable {
     @Id
     @Column(name = "id", updatable = false)
