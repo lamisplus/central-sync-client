@@ -98,6 +98,7 @@ public class ClientRemoteAccessTokenService {
         Optional<User> optionalUser = userService.getUserWithRoles();
 
         if(optionalUser.isPresent()){
+            System.out.println("optionalUser.get().getCurrentOrganisationUnitId() "+optionalUser.get().getCurrentOrganisationUnitId());
             remoteAccessTokens = remoteAccessTokenRepository.findAllByApplicationUserId(optionalUser.get().getId());
         } else {
             remoteAccessTokens = remoteAccessTokenRepository.findAll();
@@ -108,6 +109,7 @@ public class ClientRemoteAccessTokenService {
             RemoteUrlDTO remoteUrlDTO = new RemoteUrlDTO();
             remoteUrlDTO.setId(remoteAccessToken.getId());
             remoteUrlDTO.setUrl(remoteAccessToken.getUrl());
+            remoteUrlDTO.setFacilityId(remoteAccessToken.getOrganisationUnitId());
             remoteUrlDTO.setUsername(remoteAccessToken.getUsername());
             remoteUrlDTOS.add(remoteUrlDTO);
         });

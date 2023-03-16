@@ -66,14 +66,13 @@ public class SyncClientService {
 
         for (Tables table : Tables.values()) {
             log.info("table.name() ", table.name());
-            if(table.name().equalsIgnoreCase("patient")){
+            //if(table.name().equalsIgnoreCase("patient")){
             SyncHistory syncHistory = syncHistoryService.getSyncHistory(table.name(), uploadDTO.getFacilityId());
             LocalDateTime dateLastSync = syncHistory.getDateLastSync();
             log.info("last date sync 1 {}", dateLastSync);
             List<?> serializeTableRecords = objectSerializer.serialize(table, uploadDTO.getFacilityId(), dateLastSync);
-
             if (!serializeTableRecords.isEmpty()) {
-                Object serializeObject = serializeTableRecords.get(0);
+                Object serializeObject = serializeTableRecords.get(0); //Get First Table
                 Integer size = serializeTableRecords.size();
                 log.info("object size:  {} ", serializeTableRecords.size());
                 if (!serializeObject.toString().contains("No table records was retrieved for server sync")) {
@@ -81,45 +80,35 @@ public class SyncClientService {
                             .concat("/").concat(remoteAccessToken.getUsername())
                             .concat("/")
                             .concat(Integer.toString(size));
-                    //log.info("path: {}", pathVariable);
+                    //log.info("path: {}", pathVariable); jhjkhkjhg
                     String url = uploadDTO.getServerUrl().concat("/api/sync/").concat(pathVariable);
-
                     log.info("url : {}", url);
-
                     byte[] bytes = mapper.writeValueAsBytes(serializeTableRecords);
-
-
                     SecretKey secretKey = AESUtil.getPrivateAESKeyFromDB(remoteAccessToken);
                     bytes = this.encrypt(bytes, secretKey);
-
                     String response = new HttpConnectionManager().post(bytes, token, url);
                     log.info("Done : {}", response);
-
                     syncHistory.setTableName(table.name());
                     syncHistory.setOrganisationUnitId(uploadDTO.getFacilityId());
                     syncHistory.setDateLastSync(LocalDateTime.now());
+                    syncHistory.setUploadSize(serializeTableRecords.size());
+                    //syncHistory.setProcessed(0);
                     try {
                         //For serializing the date on the sync queue
                         ObjectMapper objectMapper = new ObjectMapper();
                         objectMapper.registerModule(new JavaTimeModule());
                         objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
                         SyncQueue syncQueue = objectMapper.readValue(response, SyncQueue.class);
-
                         syncHistory.setProcessed(syncQueue.getProcessed());
                         syncHistory.setSyncQueueId(syncQueue.getId());
-
                         //get remote access token id
                         syncHistory.setRemoteAccessTokenId(remoteAccessToken.getId());
-                        syncHistory.setUploadSize(serializeTableRecords.size());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-
                     syncHistoryService.save(syncHistory);
                 }
             }
-        }//else continue;
         }
         return "Successful";//CompletableFuture.completedFuture("Successful");
     }
