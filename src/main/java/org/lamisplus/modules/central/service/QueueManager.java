@@ -71,7 +71,7 @@ public class QueueManager {
             try {
                 targetStream = new FileInputStream(file);
                 byte[] bytes = ByteStreams.toByteArray(Objects.requireNonNull(targetStream));
-                List<?> list = objectDeserializer.deserialize(bytes, syncQueue.getTableName());
+                List<?> list = objectDeserializer.deserialize(bytes, syncQueue.getTableName(), syncQueue.getOrganisationUnitId());
                 if (!list.isEmpty()) {
                     syncQueue.setProcessed(1);
                     syncQueue.setProcessedSize(list.size());

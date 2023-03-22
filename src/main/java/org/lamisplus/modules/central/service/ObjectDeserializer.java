@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.biometric.domain.Biometric;
 import org.lamisplus.modules.biometric.repository.BiometricRepository;
+import org.lamisplus.modules.central.repository.SyncQueueRepository;
 import org.lamisplus.modules.hiv.domain.entity.HivEnrollment;
 import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
 import org.lamisplus.modules.patient.domain.entity.Person;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +43,8 @@ public class ObjectDeserializer {
 
     private final VisitRepository visitRepository;
 
+    private final SyncQueueRepository syncQueueRepository;
+
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
 
 
@@ -50,7 +54,7 @@ public class ObjectDeserializer {
     }
 
 
-    public List<?> deserialize(byte[] bytes, String table) throws Exception {
+    public List<?> deserialize(byte[] bytes, String table, Long facilityId) throws Exception {
         String data = new String(bytes, StandardCharsets.UTF_8);
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
@@ -60,30 +64,15 @@ public class ObjectDeserializer {
                 log.info("Saving " + table + " on Server");
                 return processAndSavePatientsOnServer(data, objectMapper);
             case "biometric":
+                //Check to see that all patients related to the facility is saved before saving biometric
+                if(!syncQueueRepository
+                        .findAllByTableNameAndOrganisationUnitIdAndProcessed("patient",
+                                facilityId, 0).isEmpty()){
+                    return new ArrayList<>();
+                }
                 log.info("Saving " + table + " on Server");
                 return processAndSaveBiometricsOnServer(data, objectMapper);
         }
-
-        /*if (table.equals("patient")) {
-            log.info("Saving " + table + " on Server");
-            return processAndSavePatientsOnServer(data, objectMapper);
-        }
-        if (table.equals("biometric")) {
-            log.info("Saving " + table + " on Server");
-            return processAndSaveBiometricsOnServer(data, objectMapper);
-        }
-        if (table.equals("visit")) {
-            log.info("Saving " + table + " on Server");
-            return processAndSaveVisitsOnServer(data, objectMapper);
-        }
-        if (table.equals("hiv_enrollment")) {
-            log.info("Saving " + table + " on Server");
-            return processAndSaveHivEnrollmentOnServer(data, objectMapper);
-        }*/
-        /*if (table.equals("hiv_art_clinical")) {
-            log.info("Saving " + table + " on Server");
-            return processAndSaveAppointmentsOnServer(data, objectMapper);
-        }*/
         List<String> msg = new LinkedList<>();
         msg.add("Nothing was saved on the server");
         return msg;

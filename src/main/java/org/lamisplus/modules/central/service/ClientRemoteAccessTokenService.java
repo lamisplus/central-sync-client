@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
+import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.domain.entities.User;
 import org.lamisplus.modules.base.service.UserService;
 import org.lamisplus.modules.central.domain.dto.RemoteUrlDTO;
@@ -36,9 +37,14 @@ public class ClientRemoteAccessTokenService {
     private final UserService userService;
     private final RSAUtils rsaUtils;
 
-
-
     public void sendToRemoteAccessToServer(RemoteAccessToken clientRemoteAccessToken) throws IOException, GeneralSecurityException {
+        //check if username exist on client
+        remoteAccessTokenRepository
+                .findByUsername(clientRemoteAccessToken.getUsername())
+                .ifPresent(remoteAccessToken -> {
+            throw new EntityNotFoundException(RemoteAccessToken.class, "Username", clientRemoteAccessToken.getUsername());
+        });
+        //generate RSA key
         final RemoteAccessToken remoteAccessToken = this.rsaUtils.keyGenerateAndReturnKey(clientRemoteAccessToken);
         String uuid = UUID.randomUUID().toString();
 
@@ -48,13 +54,17 @@ public class ClientRemoteAccessTokenService {
         remoteKey.setUuid(uuid);
 
         remoteKeyRepository.save(remoteKey);
+
         userService.getUserWithRoles().ifPresent(user -> {
             remoteAccessToken.setOrganisationUnitId(user.getCurrentOrganisationUnitId());
         });
 
         remoteAccessToken.setRemoteId(remoteKeyRepository.findByUuid(uuid).get().getId());
 
+        //set public key before sending to server
         remoteAccessToken.setAnyPubKey(remoteAccessToken.getPubKey());
+
+        //remove private key
         remoteAccessToken.setPrKey(null);
        String url = remoteAccessToken.getUrl().concat("/api/sync/server/remote-access-token");
        //TODO: set currentOrganisationUnit
@@ -62,7 +72,7 @@ public class ClientRemoteAccessTokenService {
 
         try {
             byte [] byteArray = SerializationUtils.serialize(remoteAccessToken);
-            String response = new HttpConnectionManager().post(byteArray, "lamisplus", url);
+            String response = new HttpConnectionManager().post(byteArray, null, url);
 
             //For serializing the date on the sync queue
             ObjectMapper objectMapper = new ObjectMapper();
@@ -82,6 +92,7 @@ public class ClientRemoteAccessTokenService {
             //Key things
             String pubKey = remoteKeyRepository.findById(savedRemoteAccessToken.getRemoteId()).get().getKey();
             remoteAccessToken.setPrKey(pubKey);
+            //Decrypt to get key
             String aesKey = this.decryptWithPrivateKey(savedRemoteAccessToken.getAnyByteKey(), remoteAccessToken);
             savedRemoteAccessToken.setPrKey(aesKey);
 
@@ -98,7 +109,6 @@ public class ClientRemoteAccessTokenService {
         Optional<User> optionalUser = userService.getUserWithRoles();
 
         if(optionalUser.isPresent()){
-            System.out.println("optionalUser.get().getCurrentOrganisationUnitId() "+optionalUser.get().getCurrentOrganisationUnitId());
             remoteAccessTokens = remoteAccessTokenRepository.findAllByApplicationUserId(optionalUser.get().getId());
         } else {
             remoteAccessTokens = remoteAccessTokenRepository.findAll();
@@ -109,7 +119,6 @@ public class ClientRemoteAccessTokenService {
             RemoteUrlDTO remoteUrlDTO = new RemoteUrlDTO();
             remoteUrlDTO.setId(remoteAccessToken.getId());
             remoteUrlDTO.setUrl(remoteAccessToken.getUrl());
-            remoteUrlDTO.setFacilityId(remoteAccessToken.getOrganisationUnitId());
             remoteUrlDTO.setUsername(remoteAccessToken.getUsername());
             remoteUrlDTOS.add(remoteUrlDTO);
         });

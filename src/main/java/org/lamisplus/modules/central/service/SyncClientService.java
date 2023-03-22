@@ -1,6 +1,7 @@
 package org.lamisplus.modules.central.service;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -23,6 +24,8 @@ import org.springframework.stereotype.Service;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -44,15 +47,10 @@ public class SyncClientService {
         User user = userService.getUserWithRoles().orElse(null);
         RemoteAccessToken remoteAccessToken = null;
         //Check the if user is not null
-        if(user != null){
-            remoteAccessToken = remoteAccessTokenRepository
-                    .findByUrlAndApplicationUserId(uploadDTO.getServerUrl(), user.getId())
-                    .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "url or user", ""+uploadDTO.getServerUrl()));
-        }else {
-            remoteAccessToken = remoteAccessTokenRepository
-                    .findByUrl(uploadDTO.getServerUrl())
-                    .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "url", ""+uploadDTO.getServerUrl()));
-        }
+        remoteAccessToken = remoteAccessTokenRepository
+                .findByUrl(uploadDTO.getServerUrl())
+                .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "url", ""+uploadDTO.getServerUrl()));
+
         if(remoteAccessToken.getToken() == null) new EntityNotFoundException(RemoteAccessToken.class, "token", ""+remoteAccessToken.getToken());
 
         //Setting the token
@@ -65,14 +63,13 @@ public class SyncClientService {
         log.info("table values: => {}", Arrays.toString(Tables.values()));
 
         for (Tables table : Tables.values()) {
-            log.info("table.name() ", table.name());
-            //if(table.name().equalsIgnoreCase("patient")){
             SyncHistory syncHistory = syncHistoryService.getSyncHistory(table.name(), uploadDTO.getFacilityId());
             LocalDateTime dateLastSync = syncHistory.getDateLastSync();
             log.info("last date sync 1 {}", dateLastSync);
             List<?> serializeTableRecords = objectSerializer.serialize(table, uploadDTO.getFacilityId(), dateLastSync);
+
             if (!serializeTableRecords.isEmpty()) {
-                Object serializeObject = serializeTableRecords.get(0); //Get First Table
+                Object serializeObject = serializeTableRecords.get(0);
                 Integer size = serializeTableRecords.size();
                 log.info("object size:  {} ", serializeTableRecords.size());
                 if (!serializeObject.toString().contains("No table records was retrieved for server sync")) {
@@ -80,32 +77,44 @@ public class SyncClientService {
                             .concat("/").concat(remoteAccessToken.getUsername())
                             .concat("/")
                             .concat(Integer.toString(size));
-                    //log.info("path: {}", pathVariable); jhjkhkjhg
+                    //log.info("path: {}", pathVariable);
                     String url = uploadDTO.getServerUrl().concat("/api/sync/").concat(pathVariable);
+
                     log.info("url : {}", url);
+                    log.info("remote token : {}", remoteAccessToken);
+
                     byte[] bytes = mapper.writeValueAsBytes(serializeTableRecords);
+                    log.info("finished mapping ---");
+
                     SecretKey secretKey = AESUtil.getPrivateAESKeyFromDB(remoteAccessToken);
+                    log.info("generated secret key  ---");
                     bytes = this.encrypt(bytes, secretKey);
+                    log.info("encrypted  ---");
+
                     String response = new HttpConnectionManager().post(bytes, token, url);
                     log.info("Done : {}", response);
+
                     syncHistory.setTableName(table.name());
                     syncHistory.setOrganisationUnitId(uploadDTO.getFacilityId());
                     syncHistory.setDateLastSync(LocalDateTime.now());
-                    syncHistory.setUploadSize(serializeTableRecords.size());
-                    //syncHistory.setProcessed(0);
                     try {
                         //For serializing the date on the sync queue
                         ObjectMapper objectMapper = new ObjectMapper();
                         objectMapper.registerModule(new JavaTimeModule());
                         objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
                         SyncQueue syncQueue = objectMapper.readValue(response, SyncQueue.class);
+
                         syncHistory.setProcessed(syncQueue.getProcessed());
                         syncHistory.setSyncQueueId(syncQueue.getId());
+
                         //get remote access token id
                         syncHistory.setRemoteAccessTokenId(remoteAccessToken.getId());
-                    } catch (Exception e) {
+                        syncHistory.setUploadSize(serializeTableRecords.size());
+                    }catch (Exception e){
                         e.printStackTrace();
                     }
+
                     syncHistoryService.save(syncHistory);
                 }
             }

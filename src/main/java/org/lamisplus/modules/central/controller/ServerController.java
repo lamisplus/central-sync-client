@@ -48,11 +48,6 @@ public class ServerController {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> save(@Valid @RequestBody byte[] bytes) throws Exception {
-
-        try {
-            return ResponseEntity.ok(serverRemoteAccessTokenService.save(bytes));
-        }catch (Exception e){
-            return new ResponseEntity<>("Error!, Please try again", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return ResponseEntity.ok(serverRemoteAccessTokenService.save(bytes));
     }
 }

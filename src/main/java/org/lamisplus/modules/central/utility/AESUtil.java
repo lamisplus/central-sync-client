@@ -157,8 +157,10 @@ public class AESUtil {
     }
 
     public static SecretKey getPrivateAESKeyFromDB(RemoteAccessToken remoteAccessToken) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        System.out.println("getPrivateAESKeyFromDB -- start");
         byte[] keyBytes = DatatypeConverter.parseBase64Binary(remoteAccessToken.getPrKey());
         SecretKey secret = new SecretKeySpec(Arrays.copyOf(keyBytes, 16), "AES");
+        System.out.println("getPrivateAESKeyFromDB -- end");
         return secret;
     }
 }

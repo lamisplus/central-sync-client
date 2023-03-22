@@ -50,5 +50,5 @@ public interface SyncQueueRepository extends JpaRepository<SyncQueue, Long> {
 
     Optional<SyncQueue> findByFileNameAndOrganisationUnitIdAndDateCreated(String fileName, Long facilityId, LocalDateTime DateCreated);
 
-
+    List<SyncQueue> findAllByTableNameAndOrganisationUnitIdAndProcessed(String tableName, Long facilityId, Integer processed);
 }

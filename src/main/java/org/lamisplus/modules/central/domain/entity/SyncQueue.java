@@ -47,4 +47,9 @@ public class SyncQueue implements Serializable {
     @Basic
     @Column(name = "processed_size")
     private Integer processedSize;
+
+//    @Basic
+//    @Column(name = "created_by")
+//    private String createdBy;
+
 }
