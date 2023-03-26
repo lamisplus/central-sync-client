@@ -28,6 +28,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 @Slf4j
@@ -40,6 +41,8 @@ public class SyncClientService {
     private final ObjectSerializer objectSerializer;
     private final UserService userService;
 
+
+
     //@Async
     public String sender(UploadDTO uploadDTO) throws Exception {
         log.info("path: {}", uploadDTO.getServerUrl());
@@ -49,9 +52,10 @@ public class SyncClientService {
         //Check the if user is not null
         remoteAccessToken = remoteAccessTokenRepository
                 .findByUrl(uploadDTO.getServerUrl())
-                .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "url", ""+uploadDTO.getServerUrl()));
+                .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "url", "" + uploadDTO.getServerUrl()));
 
-        if(remoteAccessToken.getToken() == null) new EntityNotFoundException(RemoteAccessToken.class, "token", ""+remoteAccessToken.getToken());
+        if (remoteAccessToken.getToken() == null)
+            new EntityNotFoundException(RemoteAccessToken.class, "token", "" + remoteAccessToken.getToken());
 
         //Setting the token
         String token = " Bearer ".concat(remoteAccessToken.getToken());
@@ -60,10 +64,11 @@ public class SyncClientService {
         mapper.registerModule(new JavaTimeModule());
         mapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        log.info("table values: => {}", Arrays.toString(Tables.values()));
-
-        for (Tables table : Tables.values()) {
-            SyncHistory syncHistory = syncHistoryService.getSyncHistory(table.name(), uploadDTO.getFacilityId());
+        Iterator iterator =uploadDTO.getTableList().iterator();
+        while (iterator.hasNext()) {
+            String table = (String)  iterator.next();
+              //String table ="biometric";
+              SyncHistory syncHistory = syncHistoryService.getSyncHistory(table, uploadDTO.getFacilityId());
             LocalDateTime dateLastSync = syncHistory.getDateLastSync();
             log.info("last date sync 1 {}", dateLastSync);
             List<?> serializeTableRecords = objectSerializer.serialize(table, uploadDTO.getFacilityId(), dateLastSync);
@@ -73,7 +78,7 @@ public class SyncClientService {
                 Integer size = serializeTableRecords.size();
                 log.info("object size:  {} ", serializeTableRecords.size());
                 if (!serializeObject.toString().contains("No table records was retrieved for server sync")) {
-                    String pathVariable = table.name().concat("/").concat(Long.toString(uploadDTO.getFacilityId()))
+                    String pathVariable = table.concat("/").concat(Long.toString(uploadDTO.getFacilityId()))
                             .concat("/").concat(remoteAccessToken.getUsername())
                             .concat("/")
                             .concat(Integer.toString(size));
@@ -94,7 +99,7 @@ public class SyncClientService {
                     String response = new HttpConnectionManager().post(bytes, token, url);
                     log.info("Done : {}", response);
 
-                    syncHistory.setTableName(table.name());
+                    syncHistory.setTableName(table);
                     syncHistory.setOrganisationUnitId(uploadDTO.getFacilityId());
                     syncHistory.setDateLastSync(LocalDateTime.now());
                     try {
@@ -111,7 +116,7 @@ public class SyncClientService {
                         //get remote access token id
                         syncHistory.setRemoteAccessTokenId(remoteAccessToken.getId());
                         syncHistory.setUploadSize(serializeTableRecords.size());
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
 
@@ -119,6 +124,8 @@ public class SyncClientService {
                 }
             }
         }
+
+
         return "Successful";//CompletableFuture.completedFuture("Successful");
     }
 
