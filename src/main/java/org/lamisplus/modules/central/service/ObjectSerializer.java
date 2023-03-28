@@ -30,9 +30,9 @@ public class ObjectSerializer {
 
     private final BiometricRepository biometricRepository;
 
-    public List<?> serialize(String table, long facilityId, LocalDateTime dateLastSync) {
+    public List<?> serialize(Tables table, long facilityId, LocalDateTime dateLastSync) {
 
-        if (table.equalsIgnoreCase("patient")) {
+        if (table.name().equalsIgnoreCase("patient")) {
             log.info(" Retrieving records from  {} ", table);
             if (dateLastSync == null) {
                 return personRepository.findAllByFacilityIdAndArchived(facilityId, 0);
@@ -41,8 +41,8 @@ public class ObjectSerializer {
                }
         }
 
-        if (table.equalsIgnoreCase("biometric")) {
-            log.info(" Retrieving records from  {} ", table);
+        if (table.name().equalsIgnoreCase("biometric")) {
+            log.info(" Retrieving records from  {} ", table.name());
             if (dateLastSync == null) {
                 return   biometricRepository.findAllByFacilityIdAndArchived(facilityId, 0);
              } else {

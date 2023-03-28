@@ -42,7 +42,6 @@ public class SyncClientService {
     private final UserService userService;
 
 
-
     //@Async
     public String sender(UploadDTO uploadDTO) throws Exception {
         log.info("path: {}", uploadDTO.getServerUrl());
@@ -64,11 +63,9 @@ public class SyncClientService {
         mapper.registerModule(new JavaTimeModule());
         mapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        Iterator iterator =uploadDTO.getTableList().iterator();
-        while (iterator.hasNext()) {
-            String table = (String)  iterator.next();
-              //String table ="biometric";
-              SyncHistory syncHistory = syncHistoryService.getSyncHistory(table, uploadDTO.getFacilityId());
+        for (Tables table : Tables.values()) {
+            log.info("table.name() ", table.name());
+              SyncHistory syncHistory = syncHistoryService.getSyncHistory(table.name(), uploadDTO.getFacilityId());
             LocalDateTime dateLastSync = syncHistory.getDateLastSync();
             log.info("last date sync 1 {}", dateLastSync);
             List<?> serializeTableRecords = objectSerializer.serialize(table, uploadDTO.getFacilityId(), dateLastSync);
@@ -78,7 +75,7 @@ public class SyncClientService {
                 Integer size = serializeTableRecords.size();
                 log.info("object size:  {} ", serializeTableRecords.size());
                 if (!serializeObject.toString().contains("No table records was retrieved for server sync")) {
-                    String pathVariable = table.concat("/").concat(Long.toString(uploadDTO.getFacilityId()))
+                    String pathVariable = table.name().concat("/").concat(Long.toString(uploadDTO.getFacilityId()))
                             .concat("/").concat(remoteAccessToken.getUsername())
                             .concat("/")
                             .concat(Integer.toString(size));
@@ -99,7 +96,7 @@ public class SyncClientService {
                     String response = new HttpConnectionManager().post(bytes, token, url);
                     log.info("Done : {}", response);
 
-                    syncHistory.setTableName(table);
+                    syncHistory.setTableName(table.name());
                     syncHistory.setOrganisationUnitId(uploadDTO.getFacilityId());
                     syncHistory.setDateLastSync(LocalDateTime.now());
                     try {
@@ -130,7 +127,6 @@ public class SyncClientService {
     }
 
     private byte[] encrypt(byte[] bytes, SecretKey secretKey) throws GeneralSecurityException, Exception {
-
         try{
             Cipher encryptCipher = Cipher.getInstance("AES");
             encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);

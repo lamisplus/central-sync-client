@@ -22,7 +22,7 @@ public class UploadDTO {
     private Long remoteAccessTokenId;
 
     private String name;
-
-    private List<String> tableList;
+//
+//    private List<String> tableList;
 
 }
