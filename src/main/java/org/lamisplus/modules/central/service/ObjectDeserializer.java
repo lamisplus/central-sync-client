@@ -11,7 +11,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.biometric.domain.Biometric;
 import org.lamisplus.modules.biometric.repository.BiometricRepository;
 import org.lamisplus.modules.central.repository.SyncQueueRepository;
+import org.lamisplus.modules.hiv.domain.entity.ARTClinical;
+import org.lamisplus.modules.hiv.domain.entity.ArtPharmacy;
 import org.lamisplus.modules.hiv.domain.entity.HivEnrollment;
+import org.lamisplus.modules.hiv.repositories.ARTClinicalRepository;
+import org.lamisplus.modules.hiv.repositories.ArtPharmacyRepository;
 import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
@@ -20,6 +24,8 @@ import org.lamisplus.modules.patient.service.PersonService;
 import org.lamisplus.modules.central.domain.dto.HivEnrollmentSyncDto;
 import org.lamisplus.modules.central.domain.dto.PatientVisitSyncDto;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
+import org.lamisplus.modules.triage.domain.entity.VitalSign;
+import org.lamisplus.modules.triage.repository.VitalSignRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
@@ -43,6 +49,12 @@ public class ObjectDeserializer {
 
     private final VisitRepository visitRepository;
 
+    private final VitalSignRepository vitalSignRepository;
+
+    private final ARTClinicalRepository artClinicalRepository;
+
+    private final ArtPharmacyRepository artPharmacyRepository;
+
     private final SyncQueueRepository syncQueueRepository;
 
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
@@ -64,15 +76,29 @@ public class ObjectDeserializer {
                 log.info("Saving " + table + " on Server");
                 return processAndSavePatientsOnServer(data, objectMapper);
             case "biometric":
-                //Check to see that all patients related to the facility is saved before saving biometric
-                if(!syncQueueRepository
-                        .findAllByTableNameAndOrganisationUnitIdAndProcessed("patient",
-                                facilityId, 0).isEmpty()){
-                    return new ArrayList<>();
-                }
                 log.info("Saving " + table + " on Server");
                 return processAndSaveBiometricsOnServer(data, objectMapper);
+
+        /**    case "triage_vital_sign":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveVitalSignOnServer(data, objectMapper);
+
+            case "visit":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveVisitsOnServer(data, objectMapper);
+
+            case "hiv_enrollment":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveHivEnrollmentsOnServer(data, objectMapper);
+            case "hiv_art_clinical":
+                log.info("Saving " + table + " on Server");
+                return this.processAndSaveARTClinicalsOnServer(data, objectMapper);
+            case "hiv_art_pharmacy":
+                log.info("Saving " + table + " on Server");
+                return this.processAndSaveArtPharmacyOnServer(data, objectMapper);
+         */
         }
+
         List<String> msg = new LinkedList<>();
         msg.add("Nothing was saved on the server");
         return msg;
@@ -109,92 +135,43 @@ public class ObjectDeserializer {
         return savedBiometrics;
     }
 
+   //========================Dr Karim Coding Session Start from here============================
+  /**  private List<VitalSign> processAndSaveVitalSignOnServer(String data, ObjectMapper objectMapper) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<VitalSign> clientTriages = objectMapper.readValue(data, new TypeReference<List<VitalSign>>() {});
+        List<VitalSign> savedTriages = vitalSignRepository.saveAll(clientTriages);
+        log.info("number of patients save on server => : {}", savedTriages.size());
+        return savedTriages;
+    }
+
     private List<Visit> processAndSaveVisitsOnServer(String data, ObjectMapper objectMapper) throws JsonProcessingException {
-        List<Visit> visits = new LinkedList<>();
-        List<PatientVisitSyncDto> patientVisitSyncDtoList = objectMapper.readValue(data, new TypeReference<List<PatientVisitSyncDto>>() {
-        });
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        patientVisitSyncDtoList.forEach(visitDTO -> {
-            Visit visit = new Visit();
-            BeanUtils.copyProperties(visitDTO, visit);
-            Optional<PatientVisitSyncDto> saveVisit = remoteAccessTokenRepository.getByPersonVisitUuid(visitDTO.getUuid());
-
-            saveVisit.ifPresent(value -> visit.setId(value.getId()));
-            visits.add(visit);
-        });
-        List<Visit> savedVisits = visitRepository.saveAll(visits);
-        log.info("number of visits save on server => : {}", savedVisits.size());
-        return savedVisits;
+        List<Visit> clientVisit = objectMapper.readValue(data, new TypeReference<List<Visit>>() {});
+        List<Visit> savedVisit = visitRepository.saveAll(clientVisit);
+        log.info("number of patients save on server => : {}", savedVisit.size());
+        return savedVisit;
     }
 
-    private List<HivEnrollment> processAndSaveHivEnrollmentOnServer(String data, ObjectMapper objectMapper) throws JsonProcessingException {
-        List<HivEnrollment> hivEnrollments = new LinkedList<>();
-        List<HivEnrollmentSyncDto> enrollmentSyncDtos = objectMapper.readValue(data, new TypeReference<List<HivEnrollmentSyncDto>>() {
-        });
+    private List<HivEnrollment> processAndSaveHivEnrollmentsOnServer(String data, ObjectMapper objectMapper) throws JsonProcessingException {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        enrollmentSyncDtos.forEach(enrollmentSyncDto -> {
-            HivEnrollment hivEnrollment = new HivEnrollment();
-            BeanUtils.copyProperties(enrollmentSyncDto, hivEnrollment);
-            Optional<HivEnrollmentSyncDto> saveEnrollment = remoteAccessTokenRepository.getByHivEnrollmentUuid(enrollmentSyncDto.getUuid());
-
-            saveEnrollment.ifPresent(value -> hivEnrollment.setId(value.getId()));
-            hivEnrollments.add(hivEnrollment);
-        });
-        List<HivEnrollment> saveEnrollments = enrollmentRepository.saveAll(hivEnrollments);
-        log.info("number of form-data save on server => : {}", saveEnrollments.size());
-        return saveEnrollments;
+        List<HivEnrollment> clientHivEnrollment = objectMapper.readValue(data, new TypeReference<List<HivEnrollment>>() {});
+        List<HivEnrollment> savedHivEnrollment = enrollmentRepository.saveAll(clientHivEnrollment);
+        log.info("number of patients save on server => : {}", savedHivEnrollment.size());
+        return savedHivEnrollment;
     }
 
-    /*private List<Triage> processAndSaveEnrollmentOnServer(String data, ObjectMapper objectMapper) throws JsonProcessingException {
-        List<Encounter> encounters = new LinkedList<>();
-        List<EncounterDTO> encounterDTOS =
-                objectMapper.readValue(data, new TypeReference<List<EncounterDTO>>() {
-                });
-        encounterDTOS.forEach(encounterDTO -> {
-            Encounter encounter = encounterMapper.toEncounter(encounterDTO);
-            personRepository.findByUuid(encounterDTO.getPatientUuid())
-                    .ifPresent(patient -> {
-                        encounter.setPatientId(patient.getId());
-                        visitRepository.findByUuid(encounterDTO.getVisitUuid())
-                                .ifPresent(visit -> {
-                                    encounter.setVisitId(visit.getId());
-                                    encounterRepository.findByUuid(encounter.getUuid())
-                                            .ifPresent(encounterDb -> encounter.setId(encounterDb.getId()));
-                                    encounters.add(encounter);
-                                });
-
-                    });
-        });
-        List<Encounter> savedEncounters = encounterRepository.saveAll(encounters);
-        log.info("number of encounters save on server => : {}", savedEncounters.size());
-        return savedEncounters;
-    }*/
-
-    /*private List<Appointment> processAndSaveAppointmentsOnServer(String data, ObjectMapper objectMapper) throws JsonProcessingException {
-        List<Appointment> appointments = new LinkedList<>();
-        List<AppointmentDTO> appointmentDTOS =
-                objectMapper.readValue(data, new TypeReference<List<AppointmentDTO>>() {
-                });
-        appointmentDTOS.forEach(appointmentDTO -> {
-            Appointment appointment = appointmentMapper.toAppointment(appointmentDTO);
-            personRepository.findByUuid(appointmentDTO.getPatientUuid())
-                    .ifPresent(patient -> {
-                        appointment.setPatientId(patient.getId());
-                        visitRepository.findByUuid(appointmentDTO.getVisitUuid())
-                                .ifPresent(visit -> {
-                                    appointment.setVisitId(visit.getId());
-                                    encounterRepository.findByUuid(appointment.getUuid())
-                                            .ifPresent(encounter -> {
-                                                appointment.setId(encounter.getId());
-                                            });
-                                    appointmentRepository.findByUuid(appointment.getUuid())
-                                            .ifPresent(appointmentDb
-                                                    -> appointment.setId(appointmentDb.getId()));
-                                    appointments.add(appointmentRepository.save(appointment));
-                                });
-                    });
-        });
-        log.info("number of appointments save on server => : {}", appointments.size());
-        return appointments;
+    private List<ARTClinical> processAndSaveARTClinicalsOnServer(String data, ObjectMapper objectMapper) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<ARTClinical> clientARTClinical = objectMapper.readValue(data, new TypeReference<List<ARTClinical>>() {});
+        List<ARTClinical> savedARTClinical = artClinicalRepository.saveAll(clientARTClinical);
+        log.info("number of patients save on server => : {}", savedARTClinical.size());
+        return savedARTClinical;
+    }
+    private List<ArtPharmacy> processAndSaveArtPharmacyOnServer(String data, ObjectMapper objectMapper) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<ArtPharmacy> clientArtPharmacy = objectMapper.readValue(data, new TypeReference<List<ArtPharmacy>>() {});
+        List<ArtPharmacy> savedArtPharmacy = artPharmacyRepository.saveAll(clientArtPharmacy);
+        log.info("number of patients save on server => : {}", savedArtPharmacy.size());
+        return savedArtPharmacy;
     }*/
 }

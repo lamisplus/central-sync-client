@@ -227,6 +227,16 @@
 			<artifactId>biometric</artifactId>
 			<version>1.0.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.lamisplus.modules</groupId>
+			<artifactId>triage</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.lamisplus.modules</groupId>
+			<artifactId>hiv</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

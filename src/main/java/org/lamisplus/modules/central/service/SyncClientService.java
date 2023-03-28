@@ -28,6 +28,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 @Slf4j
@@ -40,6 +41,7 @@ public class SyncClientService {
     private final ObjectSerializer objectSerializer;
     private final UserService userService;
 
+
     //@Async
     public String sender(UploadDTO uploadDTO) throws Exception {
         log.info("path: {}", uploadDTO.getServerUrl());
@@ -49,9 +51,10 @@ public class SyncClientService {
         //Check the if user is not null
         remoteAccessToken = remoteAccessTokenRepository
                 .findByUrl(uploadDTO.getServerUrl())
-                .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "url", ""+uploadDTO.getServerUrl()));
+                .orElseThrow(() -> new EntityNotFoundException(RemoteAccessToken.class, "url", "" + uploadDTO.getServerUrl()));
 
-        if(remoteAccessToken.getToken() == null) new EntityNotFoundException(RemoteAccessToken.class, "token", ""+remoteAccessToken.getToken());
+        if (remoteAccessToken.getToken() == null)
+            new EntityNotFoundException(RemoteAccessToken.class, "token", "" + remoteAccessToken.getToken());
 
         //Setting the token
         String token = " Bearer ".concat(remoteAccessToken.getToken());
@@ -60,10 +63,9 @@ public class SyncClientService {
         mapper.registerModule(new JavaTimeModule());
         mapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        log.info("table values: => {}", Arrays.toString(Tables.values()));
-
         for (Tables table : Tables.values()) {
-            SyncHistory syncHistory = syncHistoryService.getSyncHistory(table.name(), uploadDTO.getFacilityId());
+            log.info("table.name() ", table.name());
+              SyncHistory syncHistory = syncHistoryService.getSyncHistory(table.name(), uploadDTO.getFacilityId());
             LocalDateTime dateLastSync = syncHistory.getDateLastSync();
             log.info("last date sync 1 {}", dateLastSync);
             List<?> serializeTableRecords = objectSerializer.serialize(table, uploadDTO.getFacilityId(), dateLastSync);
@@ -111,7 +113,7 @@ public class SyncClientService {
                         //get remote access token id
                         syncHistory.setRemoteAccessTokenId(remoteAccessToken.getId());
                         syncHistory.setUploadSize(serializeTableRecords.size());
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
 
@@ -119,11 +121,12 @@ public class SyncClientService {
                 }
             }
         }
+
+
         return "Successful";//CompletableFuture.completedFuture("Successful");
     }
 
     private byte[] encrypt(byte[] bytes, SecretKey secretKey) throws GeneralSecurityException, Exception {
-
         try{
             Cipher encryptCipher = Cipher.getInstance("AES");
             encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);

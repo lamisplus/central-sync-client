@@ -4,7 +4,10 @@ import org.lamisplus.modules.base.domain.entities.User;
 import org.lamisplus.modules.biometric.domain.Biometric;
 import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
+import org.lamisplus.modules.hiv.domain.entity.*;
 import org.lamisplus.modules.patient.domain.entity.Person;
+import org.lamisplus.modules.patient.domain.entity.Visit;
+import org.lamisplus.modules.triage.domain.entity.VitalSign;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -105,11 +108,48 @@ public interface RemoteAccessTokenRepository extends JpaRepository<RemoteAccessT
             "org.id IN (SELECT DISTINCT ps.facility_id FROM patient_person ps)", nativeQuery = true)
     List<FacilityDto> findFacilityWithRecords();
 
-    @Query(value ="SELECT * FROM biometric WHERE last_modified_date > ?1 AND facility_id=?2 AND archived=?3", nativeQuery = true)
-    public List<Biometric> getBiometricDueForServerUpload(LocalDateTime dateLastSync, Long facilityId, int archived);
+//    @Query(value ="SELECT * FROM biometric WHERE last_modified_date > ?1 AND facility_id=?2 AND archived=?3", nativeQuery = true)
+//    public List<Biometric> getBiometricDueForServerUpload(LocalDateTime dateLastSync, Long facilityId, int archived);
+//
+//    @Query(value ="SELECT * FROM biometric WHERE facility_id=?1 AND archived=?2", nativeQuery = true)
+//    public List<Biometric> getBiometricDueForServerUpload(Long facilityId, int archived);
 
-    @Query(value ="SELECT * FROM biometric WHERE facility_id=?1 AND archived=?2", nativeQuery = true)
-    public List<Biometric> getBiometricDueForServerUpload(Long facilityId, int archived);
+    //==================================Dr Karim =========================================
+
+
+//    @Query(value ="SELECT * FROM triage_vital_sign WHERE last_modified_date > ?1", nativeQuery = true)
+//    public List<VitalSign> findAllVitalSignsDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
+//
+//    @Query(value ="SELECT * FROM triage_vital_sign", nativeQuery = true)
+//    List<VitalSign> findAllVitalSignslByFacilityId(Long facilityId);
+//
+//
+//    @Query(value ="SELECT * FROM hiv_enrollment WHERE last_modified_date > ?1", nativeQuery = true)
+//    List<HivEnrollment> findAllByHivEnrollmentsDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
+//
+//
+//    @Query(value ="SELECT * FROM hiv_enrollment", nativeQuery = true)
+//    List<HivEnrollment> findAllHivByFacilityId(Long facilityId);
+//
+//    @Query(value ="SELECT * FROM hiv_art_pharmacy WHERE last_modified_date > ?1", nativeQuery = true)
+//    List<ArtPharmacy> findAllByArtPharmacyDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
+//    @Query(value ="SELECT art_pharmacy_id FROM hiv_art_pharmacy", nativeQuery = true)
+//    List<Integer> findAllArtPharmacyByFacilityId2(Long facilityId);
+//    @Query(value ="SELECT art_pharmacy_id FROM hiv_art_pharmacy WHERE last_modified_date > ?1", nativeQuery = true)
+//    List<Integer> findAllByArtPharmacyDueForServerUpload2(LocalDateTime dateLastSync, Long facilityId);
+//    @Query(value ="SELECT * FROM hiv_art_pharmacy", nativeQuery = true)
+//    List<ArtPharmacy> findAllArtPharmacyByFacilityId(Long facilityId);
+//
+//    @Query(value ="SELECT * FROM hiv_art_clinical WHERE last_modified_date > ?1", nativeQuery = true)
+//    List<ARTClinical> findAllByARTClinicalDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
+//    @Query(value ="SELECT * FROM hiv_art_clinical", nativeQuery = true)
+//    List<ARTClinical> findAllByARTClinicalFacilityId(Long facilityId);
+
+//    @Query(value ="SELECT * FROM hiv_art_pharmacy_regimens WHERE art_pharmacy_id IN ?1", nativeQuery = true)
+//    List<Integer> findAllByARTClinicalDueForServerUpload2(List<Integer> pharmacyIdList);
+
+
+
 
 
 }

@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.biometric.domain.Biometric;
 import org.lamisplus.modules.biometric.repository.BiometricRepository;
 import org.lamisplus.modules.central.domain.entity.Tables;
+import org.lamisplus.modules.central.repository.SyncQueueRepository;
 import org.lamisplus.modules.patient.domain.entity.Person;
+import org.lamisplus.modules.patient.domain.entity.Visit;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.central.domain.dto.PatientSyncDto;
 import org.lamisplus.modules.central.domain.dto.PatientVisitSyncDto;
@@ -24,89 +26,79 @@ public class ObjectSerializer {
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
     private final PersonRepository personRepository;
 
+    private final SyncQueueRepository syncQueueRepository;
+
     private final BiometricRepository biometricRepository;
 
     public List<?> serialize(Tables table, long facilityId, LocalDateTime dateLastSync) {
 
-        if (table.name().equals("patient")) {
-            log.info(" Retrieving records from  {} ", table.name());
-            List<PatientSyncDto> patientList = new LinkedList<>();
+        if (table.name().equalsIgnoreCase("patient")) {
+            log.info(" Retrieving records from  {} ", table);
             if (dateLastSync == null) {
-                List<Person> persons  = personRepository.findAllByFacilityIdAndArchived(facilityId, 0);
-                System.out.println("persons -- " + persons.size());
-                return persons;
+                return personRepository.findAllByFacilityIdAndArchived(facilityId, 0);
             } else {
-                List<Person> persons  = personRepository.getPatientsDueForServerUpload(dateLastSync, facilityId, 0);
-                System.out.println("persons -- " + persons.size());
-                return persons;
-            }
+                return personRepository.getPatientsDueForServerUpload(dateLastSync, facilityId, 0);
+               }
         }
 
-        if (table.name().equals("biometric")) {
+        if (table.name().equalsIgnoreCase("biometric")) {
             log.info(" Retrieving records from  {} ", table.name());
-            List<Biometric> biometrics = new LinkedList<>();
             if (dateLastSync == null) {
-                biometrics =  biometricRepository.findAllByFacilityIdAndArchived(facilityId, 0);
-                System.out.println("biometric -- " + biometrics.size());
-                return biometrics;
-            } else {
-                biometrics =  biometricRepository.getBiometricDueForServerUpload(dateLastSync, facilityId, 0);
-                System.out.println("biometric -- " + biometrics.size());
-                return biometrics;
-            }
+                return   biometricRepository.findAllByFacilityIdAndArchived(facilityId, 0);
+             } else {
+                return biometricRepository.getBiometricDueForServerUpload(dateLastSync, facilityId, 0);
+             }
         }
 
-
+    /**
         if (table.name().equals("visit")) {
             log.info(" Retrieving records from  {} ", table.name());
-            List<PatientVisitSyncDto> visitList = new LinkedList<>();
             if (dateLastSync == null) {
-                return remoteAccessTokenRepository.getAllPatientVisits(facilityId);
+                return remoteAccessTokenRepository.findAllVisitsByFacilityId(facilityId);
             } else {
-                return remoteAccessTokenRepository.getPatientVisitDueForServerUpload(dateLastSync, facilityId);
+                return remoteAccessTokenRepository.findAllVisitsDueForServerUpload(dateLastSync, facilityId);
             }
         }
 
 
         if (table.name().equals("triage_vital_sign")) {
             log.info(" Retrieving records from  {} ", table.name());
-            List<TriageVitalSignSyncDto> triageVitalSigns = new LinkedList<>();
             if (dateLastSync == null) {
-                return remoteAccessTokenRepository.getAllTriageVitalSign(facilityId);
+                return remoteAccessTokenRepository.findAllVitalSignslByFacilityId(facilityId);
             } else {
-                return remoteAccessTokenRepository.getTriageVitalSignDueForServerUpload(dateLastSync, facilityId);
+                return remoteAccessTokenRepository.findAllVitalSignsDueForServerUpload(dateLastSync, facilityId);
             }
         }
 
         if (table.name().equals("hiv_enrollment")) {
             log.info(" Retrieving records from  {} ", table.name());
-            List<TriageVitalSignSyncDto> triageVitalSigns = new LinkedList<>();
             if (dateLastSync == null) {
-                return remoteAccessTokenRepository.getAllHivEnrollment(facilityId);
+                return remoteAccessTokenRepository.findAllHivByFacilityId(facilityId);
             } else {
-                return remoteAccessTokenRepository.getHivEnrollmentDueForServerUpload(dateLastSync, facilityId);
+                return remoteAccessTokenRepository.findAllByHivEnrollmentsDueForServerUpload(dateLastSync, facilityId);
             }
         }
 
         if (table.name().equals("hiv_art_clinical")) {
             log.info(" Retrieving records from  {} ", table.name());
-            List<TriageVitalSignSyncDto> triageVitalSigns = new LinkedList<>();
-            if (dateLastSync == null) {
-                return remoteAccessTokenRepository.getAllHivArtClinic(facilityId);
+           if (dateLastSync == null) {
+                return remoteAccessTokenRepository.findAllByARTClinicalFacilityId(facilityId);
             } else {
-                return remoteAccessTokenRepository.getHivArtClinicDueForServerUpload(dateLastSync, facilityId);
+                return remoteAccessTokenRepository.findAllByARTClinicalDueForServerUpload(dateLastSync, facilityId);
             }
         }
+        //List<Integer> artPharmacyId=null;
 
         if (table.name().equals("hiv_art_pharmacy")) {
             log.info(" Retrieving records from  {} ", table.name());
-            List<PharmacySyncDto> pharmacies = new LinkedList<>();
             if (dateLastSync == null) {
-                return remoteAccessTokenRepository.getAllPharmacy(facilityId);
+                //artPharmacyId = remoteAccessTokenRepository.findAllArtPharmacyByFacilityId2(facilityId);
+                return remoteAccessTokenRepository.findAllArtPharmacyByFacilityId(facilityId);
             } else {
-                return remoteAccessTokenRepository.getPharmacyDueForServerUpload(dateLastSync, facilityId);
+                return remoteAccessTokenRepository.findAllByArtPharmacyDueForServerUpload(dateLastSync, facilityId);
             }
         }
+    */
 
 
         List<String> msg = new LinkedList<>();

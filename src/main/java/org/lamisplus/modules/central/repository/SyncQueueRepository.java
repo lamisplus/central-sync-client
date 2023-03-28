@@ -1,6 +1,8 @@
 package org.lamisplus.modules.central.repository;
 
 import org.lamisplus.modules.central.domain.entity.SyncQueue;
+import org.lamisplus.modules.hiv.domain.entity.HivEnrollment;
+import org.lamisplus.modules.patient.domain.entity.Visit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -51,4 +53,7 @@ public interface SyncQueueRepository extends JpaRepository<SyncQueue, Long> {
     Optional<SyncQueue> findByFileNameAndOrganisationUnitIdAndDateCreated(String fileName, Long facilityId, LocalDateTime DateCreated);
 
     List<SyncQueue> findAllByTableNameAndOrganisationUnitIdAndProcessed(String tableName, Long facilityId, Integer processed);
+
+
+
 }

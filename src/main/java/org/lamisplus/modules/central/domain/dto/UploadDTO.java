@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -21,5 +22,7 @@ public class UploadDTO {
     private Long remoteAccessTokenId;
 
     private String name;
+//
+//    private List<String> tableList;
 
 }

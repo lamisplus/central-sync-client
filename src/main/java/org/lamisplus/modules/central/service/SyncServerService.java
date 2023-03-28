@@ -42,7 +42,7 @@ public class SyncServerService {
 
         SyncQueue syncQueue = queueManager.setQueue(bytes,table, facilityId);
         syncQueue.setProcessed(processed);
-        syncQueue.setCreatedBy(name);
+        //syncQueue.setCreatedBy(name);
         if(size != null)syncQueue.setReceivedSize(size);
 
         return syncQueueRepository.save(syncQueue);
