@@ -46,11 +46,6 @@ public class ServerRemoteAccessTokenService {
         ObjectInput in = new ObjectInputStream(bis);
         RemoteAccessToken remoteAccessToken = (RemoteAccessToken) in.readObject();
 
-        //RemoteAccessToken remoteAccessToken = (RemoteAccessToken)SerializationUtils.deserialize(bytes);
-        Optional<RemoteAccessToken> optionalRemoteAccessToken = remoteAccessTokenRepository.findByUsername(remoteAccessToken.getUsername());
-        optionalRemoteAccessToken.ifPresent(remoteAccessToken1 -> {
-            throw new RecordExistException(RemoteAccessToken.class, "username", ""+remoteAccessToken1.getUsername());
-        });
         String key = this.generateAESKey(remoteAccessToken);
 
         //Encrypt Server generated AESKey with client public key
@@ -66,6 +61,13 @@ public class ServerRemoteAccessTokenService {
 
         remoteAccessToken.setPrKey(key);
         remoteAccessToken.setPassword("x");
+
+        //Check if user exist
+        Optional<RemoteAccessToken> accessTokenOptional = remoteAccessTokenRepository
+                .findByUsername(remoteAccessToken.getUsername());
+        //set id
+        if(accessTokenOptional.isPresent())remoteAccessToken.setId(accessTokenOptional.get().getId());
+
         remoteAccessTokenRepository.save(remoteAccessToken);
         System.out.println("RemoteAccessToken done ---");
         remoteAccessToken.setStatus(0L);

@@ -48,8 +48,14 @@ public class SyncQueue implements Serializable {
     @Column(name = "processed_size")
     private Integer processedSize;
 
-//    @Basic
-//    @Column(name = "created_by")
-//    private String createdBy;
+    @Basic
+    @Column(name = "created_by")
+    private String createdBy;
+
+    /*@Basic
+    @Column(name = "uuid")
+    private String uuid;*/
+
+
 
 }

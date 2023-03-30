@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SyncQueueService {
 
+    public static final Integer PROCESSED = 1;
     private final SyncQueueRepository syncQueueRepository;
 
     public  void save(SyncQueue syncQueue) {
@@ -30,7 +31,7 @@ public class SyncQueueService {
 
     @Scheduled(fixedDelay = 300000)
     public void deleteProcessed(){
-        syncQueueRepository.getAllByProcessed(1).stream().map(syncQueue -> {
+        syncQueueRepository.getAllByProcessed(PROCESSED).stream().map(syncQueue -> {
             File file = new File(syncQueue.getFileName());
             if (file.exists()) {
                 file.delete();

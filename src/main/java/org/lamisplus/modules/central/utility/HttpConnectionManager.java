@@ -56,11 +56,15 @@ public class HttpConnectionManager {
                     .post(body)
                     .build();
         }
-
-        try (Response response = httpClient.newCall(request)
-                .execute()) {
+        try (Response response = httpClient.newBuilder()
+                .connectTimeout(300, TimeUnit.MINUTES)
+                .writeTimeout(300, TimeUnit.MINUTES)
+                .readTimeout(300, TimeUnit.SECONDS)
+                .build()
+                .newCall(request).execute()) {
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + Objects.requireNonNull(response.body()).string());
-           return Objects.requireNonNull(response.body()).string();
+
+            return Objects.requireNonNull(response.body()).string();
         }
     }
 }

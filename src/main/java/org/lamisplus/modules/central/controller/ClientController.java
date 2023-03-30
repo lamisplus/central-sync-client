@@ -3,6 +3,7 @@ package org.lamisplus.modules.central.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.central.domain.dto.FacilityDto;
 import org.lamisplus.modules.central.domain.dto.RemoteUrlDTO;
 import org.lamisplus.modules.central.domain.dto.UploadDTO;
@@ -70,6 +71,16 @@ public class ClientController {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public void sendToRemoteAccessToServer(@Valid @RequestBody RemoteAccessToken remoteAccessToken) throws GeneralSecurityException, IOException {
-        clientRemoteAccessTokenService.sendToRemoteAccessToServer(remoteAccessToken);
+        clientRemoteAccessTokenService.sendToRemoteAccessToServer(remoteAccessToken, false);
+    }
+
+    @RequestMapping(value = "/remote-access-token+ /{id}",
+            method = RequestMethod.PUT,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public void updateRemoteAccessToken(@PathVariable Long id, @Valid @RequestBody RemoteAccessToken remoteAccessToken) throws GeneralSecurityException, IOException {
+        remoteAccessTokenRepository
+                .findById(id)
+                .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "id", String.valueOf(id)));
+        clientRemoteAccessTokenService.sendToRemoteAccessToServer(remoteAccessToken, true);
     }
 }

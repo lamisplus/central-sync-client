@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
+import org.lamisplus.modules.base.controller.apierror.RecordExistException;
 import org.lamisplus.modules.base.domain.entities.User;
 import org.lamisplus.modules.base.service.UserService;
 import org.lamisplus.modules.central.domain.dto.RemoteUrlDTO;
@@ -37,13 +38,14 @@ public class ClientRemoteAccessTokenService {
     private final UserService userService;
     private final RSAUtils rsaUtils;
 
-    public void sendToRemoteAccessToServer(RemoteAccessToken clientRemoteAccessToken) throws IOException, GeneralSecurityException {
-        //check if username exist on client
+    public void sendToRemoteAccessToServer(RemoteAccessToken clientRemoteAccessToken, Boolean update) throws IOException, GeneralSecurityException {
+        //Check to update
+            //check if username exist on client and throw error
         remoteAccessTokenRepository
-                .findByUsername(clientRemoteAccessToken.getUsername())
-                .ifPresent(remoteAccessToken -> {
-            throw new EntityNotFoundException(RemoteAccessToken.class, "Username", clientRemoteAccessToken.getUsername());
-        });
+                    .findByUsername(clientRemoteAccessToken.getUsername())
+                    .ifPresent(remoteAccessToken -> {
+                        throw new RecordExistException(RemoteAccessToken.class, "Username", clientRemoteAccessToken.getUsername());
+                    });
         //generate RSA key
         final RemoteAccessToken remoteAccessToken = this.rsaUtils.keyGenerateAndReturnKey(clientRemoteAccessToken);
         String uuid = UUID.randomUUID().toString();
@@ -95,6 +97,11 @@ public class ClientRemoteAccessTokenService {
             //Decrypt to get key
             String aesKey = this.decryptWithPrivateKey(savedRemoteAccessToken.getAnyByteKey(), remoteAccessToken);
             savedRemoteAccessToken.setPrKey(aesKey);
+
+            //Check for existence of user and upadte
+            Optional<RemoteAccessToken> accessTokenOptional = remoteAccessTokenRepository
+                    .findByUsername(remoteAccessToken.getUsername());
+            if(accessTokenOptional.isPresent())remoteAccessToken.setId(accessTokenOptional.get().getId());
 
             remoteAccessTokenRepository.save(savedRemoteAccessToken);
         }catch (Exception e){

@@ -25,6 +25,7 @@ import java.util.Optional;
 @Slf4j
 public class QueueManager {
 
+    public static final int PROCESSED = 1;
     private final ObjectDeserializer objectDeserializer;
     private final SyncQueueRepository syncQueueRepository;
 
@@ -71,9 +72,13 @@ public class QueueManager {
             try {
                 targetStream = new FileInputStream(file);
                 byte[] bytes = ByteStreams.toByteArray(Objects.requireNonNull(targetStream));
-                List<?> list = objectDeserializer.deserialize(bytes, syncQueue.getTableName(), syncQueue.getOrganisationUnitId());
+                List<?> list = objectDeserializer
+                        .deserialize(bytes,
+                        syncQueue.getTableName(),
+                        syncQueue.getOrganisationUnitId());
+
                 if (!list.isEmpty()) {
-                    syncQueue.setProcessed(1);
+                    syncQueue.setProcessed(PROCESSED);
                     syncQueue.setProcessedSize(list.size());
                     syncQueueRepository.save(syncQueue);
                     FileUtils.deleteQuietly(file);

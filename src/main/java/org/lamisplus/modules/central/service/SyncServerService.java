@@ -33,6 +33,7 @@ public class SyncServerService {
 
         // Verify the hash value of the byte, if the do not values match set processed to -1
         Integer processed;
+        //TODO: send a message that file have been compromised if hashing not ok
         if (!hash.equals(Hashing.sha256().hashBytes(bytes).toString())) processed = -1;
         else processed = 0;
 
@@ -41,6 +42,7 @@ public class SyncServerService {
         bytes = this.decrypt(bytes, secretKey);
 
         SyncQueue syncQueue = queueManager.setQueue(bytes,table, facilityId);
+
         syncQueue.setProcessed(processed);
         //syncQueue.setCreatedBy(name);
         if(size != null)syncQueue.setReceivedSize(size);

@@ -1,8 +1,6 @@
 package org.lamisplus.modules.central.repository;
 
 import org.lamisplus.modules.central.domain.entity.SyncQueue;
-import org.lamisplus.modules.hiv.domain.entity.HivEnrollment;
-import org.lamisplus.modules.patient.domain.entity.Visit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -55,5 +53,6 @@ public interface SyncQueueRepository extends JpaRepository<SyncQueue, Long> {
     List<SyncQueue> findAllByTableNameAndOrganisationUnitIdAndProcessed(String tableName, Long facilityId, Integer processed);
 
 
-
+    @Query(value = "SELECT * FROM sync_queue WHERE table_name=?1 AND organisation_unit_id=?2 AND processed=?3", nativeQuery = true)
+    Optional<SyncQueue> findAllByTableNameAndFacilityIdAndProcessed(String tableName, Long facilityId, Integer processed);
 }

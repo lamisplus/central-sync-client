@@ -32,22 +32,6 @@ public interface RemoteAccessTokenRepository extends JpaRepository<RemoteAccessT
 
     void deleteById(Long id);
 
-    /*public int save(RemoteAccessToken remoteAccessToken) {
-        if(remoteAccessToken.getId() == null || remoteAccessToken.getId() == 0){
-            return jdbcTemplate.update("INSERT INTO remote_access_token (password, token, url, username, application_user_id, organisation_unit_id, pr_key, pub_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    remoteAccessToken.getPassword(), remoteAccessToken.getToken(), remoteAccessToken.getUrl(),
-                    remoteAccessToken.getUsername(), remoteAccessToken.getApplicationUserId(), remoteAccessToken.getOrganisationUnitId(),
-                    remoteAccessToken.getPrKey(), remoteAccessToken.getPubKey());
-
-        }
-        return jdbcTemplate.update("UPDATE remote_access_token SET password=?, token=?, url=?, username=?, " +
-                        "application_user_id=?, organisation_unit_id=?, pr_key=?, pub_key=? WHERE id=? ",
-                remoteAccessToken.getPassword(), remoteAccessToken.getToken(), remoteAccessToken.getUrl(),
-                remoteAccessToken.getUsername(), remoteAccessToken.getApplicationUserId(),
-                remoteAccessToken.getOrganisationUnitId(), remoteAccessToken.getPrKey(), remoteAccessToken.getPubKey(), remoteAccessToken.getId());
-    }*/
-
-
     List<RemoteAccessToken> findAllByApplicationUserId(Long applicationUserId);
 
     @Query(value ="INSERT INTO user (user_name, password, archived, " +
@@ -107,47 +91,6 @@ public interface RemoteAccessTokenRepository extends JpaRepository<RemoteAccessT
     @Query(value = "SELECT org.id, org.name FROM base_organisation_unit org WHERE " +
             "org.id IN (SELECT DISTINCT ps.facility_id FROM patient_person ps)", nativeQuery = true)
     List<FacilityDto> findFacilityWithRecords();
-
-//    @Query(value ="SELECT * FROM biometric WHERE last_modified_date > ?1 AND facility_id=?2 AND archived=?3", nativeQuery = true)
-//    public List<Biometric> getBiometricDueForServerUpload(LocalDateTime dateLastSync, Long facilityId, int archived);
-//
-//    @Query(value ="SELECT * FROM biometric WHERE facility_id=?1 AND archived=?2", nativeQuery = true)
-//    public List<Biometric> getBiometricDueForServerUpload(Long facilityId, int archived);
-
-    //==================================Dr Karim =========================================
-
-
-//    @Query(value ="SELECT * FROM triage_vital_sign WHERE last_modified_date > ?1", nativeQuery = true)
-//    public List<VitalSign> findAllVitalSignsDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
-//
-//    @Query(value ="SELECT * FROM triage_vital_sign", nativeQuery = true)
-//    List<VitalSign> findAllVitalSignslByFacilityId(Long facilityId);
-//
-//
-//    @Query(value ="SELECT * FROM hiv_enrollment WHERE last_modified_date > ?1", nativeQuery = true)
-//    List<HivEnrollment> findAllByHivEnrollmentsDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
-//
-//
-//    @Query(value ="SELECT * FROM hiv_enrollment", nativeQuery = true)
-//    List<HivEnrollment> findAllHivByFacilityId(Long facilityId);
-//
-//    @Query(value ="SELECT * FROM hiv_art_pharmacy WHERE last_modified_date > ?1", nativeQuery = true)
-//    List<ArtPharmacy> findAllByArtPharmacyDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
-//    @Query(value ="SELECT art_pharmacy_id FROM hiv_art_pharmacy", nativeQuery = true)
-//    List<Integer> findAllArtPharmacyByFacilityId2(Long facilityId);
-//    @Query(value ="SELECT art_pharmacy_id FROM hiv_art_pharmacy WHERE last_modified_date > ?1", nativeQuery = true)
-//    List<Integer> findAllByArtPharmacyDueForServerUpload2(LocalDateTime dateLastSync, Long facilityId);
-//    @Query(value ="SELECT * FROM hiv_art_pharmacy", nativeQuery = true)
-//    List<ArtPharmacy> findAllArtPharmacyByFacilityId(Long facilityId);
-//
-//    @Query(value ="SELECT * FROM hiv_art_clinical WHERE last_modified_date > ?1", nativeQuery = true)
-//    List<ARTClinical> findAllByARTClinicalDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
-//    @Query(value ="SELECT * FROM hiv_art_clinical", nativeQuery = true)
-//    List<ARTClinical> findAllByARTClinicalFacilityId(Long facilityId);
-
-//    @Query(value ="SELECT * FROM hiv_art_pharmacy_regimens WHERE art_pharmacy_id IN ?1", nativeQuery = true)
-//    List<Integer> findAllByARTClinicalDueForServerUpload2(List<Integer> pharmacyIdList);
-
 
 
 
