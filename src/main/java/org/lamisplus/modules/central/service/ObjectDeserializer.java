@@ -8,6 +8,14 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.Laboratory.domain.entity.LabOrder;
+import org.lamisplus.modules.Laboratory.domain.entity.Result;
+import org.lamisplus.modules.Laboratory.domain.entity.Sample;
+import org.lamisplus.modules.Laboratory.domain.entity.Test;
+import org.lamisplus.modules.Laboratory.repository.LabOrderRepository;
+import org.lamisplus.modules.Laboratory.repository.ResultRepository;
+import org.lamisplus.modules.Laboratory.repository.SampleRepository;
+import org.lamisplus.modules.Laboratory.repository.TestRepository;
 import org.lamisplus.modules.biometric.domain.Biometric;
 import org.lamisplus.modules.biometric.repository.BiometricRepository;
 import org.lamisplus.modules.central.domain.entity.SyncQueue;
@@ -46,31 +54,33 @@ public class ObjectDeserializer {
     public static final String TRIAGE_VITAL_SIGN = "triage_vital_sign";
     public static final String HIV_ART_CLINICAL = "hiv_art_clinical";
     public static final String HIV_ENROLLMENT = "hiv_enrollment";
-    public static final String HIV_ART_CLINICAL1 = "hiv_art_clinical";
+    public static final String LABORATORY_ORDER = "laboratory_order";
+    public static final String LABORATORY_SAMPLE = "laboratory_sample";
+    public static final String LABORATORY_TEST = "laboratory_test";
     private final PersonRepository personRepository;
-
     private final BiometricRepository biometricRepository;
-
     private final VisitRepository visitRepository;
-
     private final VitalSignRepository vitalSignRepository;
-
     private final ARTClinicalRepository artClinicalRepository;
-
     private final ArtPharmacyRepository artPharmacyRepository;
     private final HivEnrollmentRepository hivEnrollmentRepository;
-
     private final SyncQueueRepository syncQueueRepository;
-
-    private final RemoteAccessTokenRepository remoteAccessTokenRepository;
-
-
+    private final LabOrderRepository labOrderRepository;
+    private final ResultRepository resultRepository;
+    private final SampleRepository sampleRepository;
+    private final TestRepository testRepository;
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
 
-
+    /**
+     * Handles deserialization of data received on central server.
+     * @param bytes
+     * @param table
+     * @param facilityId
+     * @return a List of any table
+     */
     public List<?> deserialize(byte[] bytes, String table, Long facilityId) throws Exception {
         String data = new String(bytes, StandardCharsets.UTF_8);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -104,6 +114,22 @@ public class ObjectDeserializer {
             case "hiv_art_pharmacy":
                 log.info("Saving " + table + " on Server");
                 return processAndSavePharmacyOnServer(data, objectMapper, facilityId);
+
+            case "laboratory_order":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveLabOrderOnServer(data, objectMapper, facilityId);
+
+            case "laboratory_sample":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveLabSampleOnServer(data, objectMapper, facilityId);
+
+            case "laboratory_test":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveLabTestOnServer(data, objectMapper, facilityId);
+
+            case "laboratory_result":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveLabResultOnServer(data, objectMapper, facilityId);
         }
 
         List<String> msg = new LinkedList<>();
@@ -345,7 +371,7 @@ public class ObjectDeserializer {
                 .findAllByTableNameAndFacilityIdAndProcessed(HIV_ENROLLMENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalClinicQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(HIV_ART_CLINICAL1, facilityId, PROCESSED);
+                .findAllByTableNameAndFacilityIdAndProcessed(HIV_ART_CLINICAL, facilityId, PROCESSED);
 
         if(!optionalPatientQueue.isPresent()
                 && !optionalVisitQueue.isPresent()
@@ -376,6 +402,187 @@ public class ObjectDeserializer {
         //Return empty
         return artPharmacies;
     }
+
+    /**
+     * Handles patient Lab Order sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of patient Lab Order
+     */
+    private List<LabOrder> processAndSaveLabOrderOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<LabOrder> labOrders = new ArrayList<>();
+        //Sync related patient before syncing Lab Order
+        Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+
+        if(!optionalPatientQueue.isPresent()) {
+            List<LabOrder> clientLabOrders = objectMapper.readValue(data, new TypeReference<List<LabOrder>>() {});
+
+            clientLabOrders.forEach(clientLabOrder -> {
+                LabOrder labOrder = new LabOrder();
+                BeanUtils.copyProperties(clientLabOrder, labOrder);
+                Optional<LabOrder> foundLabOrder = labOrderRepository.findByUuid(clientLabOrder.getUuid());
+                //Set id for new or old Lab Order on the server
+                if(foundLabOrder.isPresent()){
+                    labOrder.setId(foundLabOrder.get().getId());
+                } else {
+                    labOrder.setId(null);
+                }
+                labOrders.add(labOrder);
+
+            });
+
+            List<LabOrder> savedLabOrder = labOrderRepository.saveAll(labOrders);
+            log.info("number of Lab Order save on server => : {}", savedLabOrder.size());
+            return savedLabOrder;
+        }
+        //Return empty
+        return labOrders;
+    }
+
+    /**
+     * Handles patient Lab Sample sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of patient Lab Sample
+     */
+    private List<Sample> processAndSaveLabSampleOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<Sample> samples = new ArrayList<>();
+        //Sync related patient before syncing pharmacy
+        Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalLabOrderQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_ORDER, facilityId, PROCESSED);
+
+        if(!optionalPatientQueue.isPresent()
+                && !optionalLabOrderQueue.isPresent()) {
+            List<Sample> clientLabSamples = objectMapper.readValue(data, new TypeReference<List<Sample>>() {});
+
+            clientLabSamples.forEach(clientLabSample -> {
+                Sample sample = new Sample();
+                BeanUtils.copyProperties(clientLabSample, sample);
+                Optional<Sample> foundLabSample = sampleRepository.findByUuid(clientLabSample.getUuid());
+                //Set id for new or old Lab Sample on the server
+                if(foundLabSample.isPresent()){
+                    sample.setId(foundLabSample.get().getId());
+                } else {
+                    sample.setId(null);
+                }
+                samples.add(sample);
+
+            });
+
+            List<Sample> savedLabSample = sampleRepository.saveAll(samples);
+            log.info("number of Lab Sample save on server => : {}", savedLabSample.size());
+            return savedLabSample;
+        }
+        //Return empty
+        return samples;
+    }
+
+    /**
+     * Handles patient Lab Sample sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of patient Lab Test
+     */
+    private List<Test> processAndSaveLabTestOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<Test> tests = new ArrayList<>();
+        //Sync related patient before syncing Lab test
+        Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalLabOrderQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_ORDER, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalLabSampleQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_SAMPLE, facilityId, PROCESSED);
+
+        if(!optionalPatientQueue.isPresent()
+                && !optionalLabOrderQueue.isPresent()
+                && !optionalLabSampleQueue.isPresent()) {
+            List<Test> clientLabTests = objectMapper.readValue(data, new TypeReference<List<Test>>() {});
+
+            clientLabTests.forEach(clientLabTest -> {
+                Test test = new Test();
+                BeanUtils.copyProperties(clientLabTest, test);
+                Optional<Test> foundLabSample = testRepository.findByUuid(clientLabTest.getUuid());
+                //Set id for new or old Lab Sample on the server
+                if(foundLabSample.isPresent()){
+                    test.setId(foundLabSample.get().getId());
+                } else {
+                    test.setId(null);
+                }
+                tests.add(test);
+
+            });
+
+            List<Test> savedLabTests = testRepository.saveAll(tests);
+            log.info("number of Lab Test save on server => : {}", savedLabTests.size());
+            return savedLabTests;
+        }
+        //Return empty
+        return tests;
+    }
+
+    /**
+     * Handles patient Lab Result sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of patient Lab Result
+     */
+    private List<Result> processAndSaveLabResultOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<Result> results = new ArrayList<>();
+        //Sync related patient before syncing Lab test
+        Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalLabOrderQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_ORDER, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalLabSampleQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_SAMPLE, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalLabResultQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_TEST, facilityId, PROCESSED);
+
+        if(!optionalPatientQueue.isPresent()
+                && !optionalLabOrderQueue.isPresent()
+                && !optionalLabSampleQueue.isPresent()
+                && !optionalLabResultQueue.isPresent()) {
+            List<Result> clientLabResults = objectMapper.readValue(data, new TypeReference<List<Result>>() {});
+
+            clientLabResults.forEach(clientLabResult -> {
+                Result result = new Result();
+                BeanUtils.copyProperties(clientLabResult, result);
+                Optional<Result> foundResult = resultRepository.findByUuid(clientLabResult.getUuid());
+                //Set id for new or old Lab Result on the server
+                if(foundResult.isPresent()){
+                    result.setId(foundResult.get().getId());
+                } else {
+                    result.setId(null);
+                }
+                results.add(result);
+
+            });
+
+            List<Result> savedLabResults = resultRepository.saveAll(results);
+            log.info("number of Lab Results save on server => : {}", savedLabResults.size());
+            return savedLabResults;
+        }
+        //Return empty
+        return results;
+    }
+
 
     /**
      * Handles biometrics sync to central server - considered as level .

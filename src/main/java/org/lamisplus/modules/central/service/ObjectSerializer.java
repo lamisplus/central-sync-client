@@ -2,6 +2,10 @@ package org.lamisplus.modules.central.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.Laboratory.repository.LabOrderRepository;
+import org.lamisplus.modules.Laboratory.repository.ResultRepository;
+import org.lamisplus.modules.Laboratory.repository.SampleRepository;
+import org.lamisplus.modules.Laboratory.repository.TestRepository;
 import org.lamisplus.modules.biometric.domain.Biometric;
 import org.lamisplus.modules.biometric.repository.BiometricRepository;
 import org.lamisplus.modules.central.domain.entity.Tables;
@@ -31,9 +35,6 @@ import java.util.List;
 public class ObjectSerializer {
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
     private final PersonRepository personRepository;
-
-    private final SyncQueueRepository syncQueueRepository;
-
     private final BiometricRepository biometricRepository;
 
     //HIV related repositories
@@ -42,6 +43,10 @@ public class ObjectSerializer {
     private final ArtPharmacyRepository artPharmacyRepository;
     private final VisitRepository visitRepository;
     private final VitalSignRepository vitalSignRepository;
+    private final LabOrderRepository labOrderRepository;
+    private final SampleRepository sampleRepository;
+    private final TestRepository testRepository;
+    private final ResultRepository resultRepository;
 
     public List<?> serialize(Tables table, long facilityId, LocalDateTime dateLastSync) {
 
@@ -105,6 +110,57 @@ public class ObjectSerializer {
             }
         }
 
+        //Level F - HIV Art Pharmacy
+        if (table.name().equalsIgnoreCase("hiv_art_pharmacy")) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   artPharmacyRepository.findAllByFacilityId(facilityId);
+            } else {
+                return artPharmacyRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level G - Laboratory Order
+        if (table.name().equalsIgnoreCase("laboratory_order")) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   labOrderRepository.findAllByFacilityId(facilityId);
+            } else {
+                return labOrderRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level H - Laboratory Sample
+        if (table.name().equalsIgnoreCase("laboratory_sample")) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   sampleRepository.findAllByFacilityId(facilityId);
+            } else {
+                return sampleRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level I - Laboratory test
+        if (table.name().equalsIgnoreCase("laboratory_test")) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   testRepository.findAllByFacilityId(facilityId);
+            } else {
+                return testRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level I - Laboratory test
+        if (table.name().equalsIgnoreCase("laboratory_result")) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   resultRepository.findAllByFacilityId(facilityId);
+            } else {
+                return resultRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level J - Biometrics
         if (table.name().equalsIgnoreCase("biometric")) {
             log.info(" Retrieving records from  {} ", table.name());
             if (dateLastSync == null) {

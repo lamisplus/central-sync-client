@@ -11,7 +11,7 @@
 
 	<groupId>org.lamisplus.modules</groupId>
 	<artifactId>central</artifactId>
-	<version>1.0.0.23.4</version>
+	<version>1.0.0.2023.4</version>
 	<packaging>jar</packaging>
 	<description>Central Sync Module</description>
 
@@ -235,6 +235,11 @@
 		<dependency>
 			<groupId>org.lamisplus.modules</groupId>
 			<artifactId>hiv</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.lamisplus.modules</groupId>
+			<artifactId>laboratory</artifactId>
 			<version>1.0.0</version>
 		</dependency>
 	</dependencies>

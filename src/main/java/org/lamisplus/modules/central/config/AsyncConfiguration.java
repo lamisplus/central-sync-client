@@ -21,11 +21,10 @@ import java.util.concurrent.Executors;
 
 @Configuration
 @EnableAsync
-@EnableScheduling
 @EnableTransactionManagement
 @RequiredArgsConstructor
 @Slf4j
-public class AsyncConfiguration implements AsyncConfigurer, SchedulingConfigurer {
+public class AsyncConfiguration implements AsyncConfigurer {
     private final JHipsterProperties properties;
 
     @Override
@@ -43,11 +42,6 @@ public class AsyncConfiguration implements AsyncConfigurer, SchedulingConfigurer
     @Override
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
         return new SimpleAsyncUncaughtExceptionHandler();
-    }
-
-    @Override
-    public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
-        taskRegistrar.setScheduler(scheduledTaskExecutor());
     }
 
     @Bean
