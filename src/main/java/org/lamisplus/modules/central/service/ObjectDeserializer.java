@@ -177,7 +177,7 @@ public class ObjectDeserializer {
     private List<Visit> processAndSaveVisitOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<Visit> visits = new ArrayList<>();
-        //Sync related patient before syncing vitalSign
+        //Sync related patient before syncing visit
         if (!syncQueueRepository.findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED).isPresent()) {
             List<Visit> clientVisits = objectMapper.readValue(data, new TypeReference<List<Visit>>() {
             });

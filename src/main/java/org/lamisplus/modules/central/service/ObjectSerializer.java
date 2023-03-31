@@ -111,14 +111,14 @@ public class ObjectSerializer {
         }
 
         //Level F - HIV Art Pharmacy
-        if (table.name().equalsIgnoreCase("hiv_art_pharmacy")) {
+        /*if (table.name().equalsIgnoreCase("hiv_art_pharmacy")) {
             log.info(" Retrieving records from  {} ", table.name());
             if (dateLastSync == null) {
                 return   artPharmacyRepository.findAllByFacilityId(facilityId);
             } else {
                 return artPharmacyRepository.getAllDueForServerUpload(dateLastSync, facilityId);
             }
-        }
+        }*/
 
         //Level G - Laboratory Order
         if (table.name().equalsIgnoreCase("laboratory_order")) {
@@ -150,7 +150,7 @@ public class ObjectSerializer {
             }
         }
 
-        //Level I - Laboratory test
+        //Level J - Laboratory Result
         if (table.name().equalsIgnoreCase("laboratory_result")) {
             log.info(" Retrieving records from  {} ", table.name());
             if (dateLastSync == null) {
@@ -160,7 +160,7 @@ public class ObjectSerializer {
             }
         }
 
-        //Level J - Biometrics
+        //Level K - Biometrics
         if (table.name().equalsIgnoreCase("biometric")) {
             log.info(" Retrieving records from  {} ", table.name());
             if (dateLastSync == null) {
