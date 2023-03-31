@@ -82,8 +82,15 @@ public class ClientRemoteAccessTokenService {
             objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
             final RemoteAccessToken savedRemoteAccessToken = objectMapper.readValue(response, RemoteAccessToken.class);
-            //Null the id to create a new record
-            savedRemoteAccessToken.setId(null);
+            //Check if RemoteAccessToken already exist else create one
+            RemoteAccessToken client = remoteAccessTokenRepository
+                    .findByUsername(savedRemoteAccessToken.getUsername())
+                    .orElse(null);
+            if(client != null && client.getId() != null){
+                savedRemoteAccessToken.setId(client.getId());
+            }else {
+                savedRemoteAccessToken.setId(null);
+            }
 
             User user = userService.getUserWithRoles().orElse(null);
             Long applicationUserId = 0L;
