@@ -417,29 +417,30 @@ public class ObjectDeserializer {
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
                 .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
-        if(!optionalPatientQueue.isPresent()) {
-            List<LabOrder> clientLabOrders = objectMapper.readValue(data, new TypeReference<List<LabOrder>>() {});
-
-            clientLabOrders.forEach(clientLabOrder -> {
-                LabOrder labOrder = new LabOrder();
-                BeanUtils.copyProperties(clientLabOrder, labOrder);
-                Optional<LabOrder> foundLabOrder = labOrderRepository.findByUuid(clientLabOrder.getUuid());
-                //Set id for new or old Lab Order on the server
-                if(foundLabOrder.isPresent()){
-                    labOrder.setId(foundLabOrder.get().getId());
-                } else {
-                    labOrder.setId(null);
-                }
-                labOrders.add(labOrder);
-
-            });
-
-            List<LabOrder> savedLabOrder = labOrderRepository.saveAll(labOrders);
-            log.info("number of Lab Order save on server => : {}", savedLabOrder.size());
-            return savedLabOrder;
+        if(optionalPatientQueue.isPresent()) {
+            //Return empty
+            return labOrders;
         }
-        //Return empty
-        return labOrders;
+        List<LabOrder> clientLabOrders = objectMapper.readValue(data, new TypeReference<List<LabOrder>>() {});
+
+        clientLabOrders.forEach(clientLabOrder -> {
+            LabOrder labOrder = new LabOrder();
+            BeanUtils.copyProperties(clientLabOrder, labOrder);
+            Optional<LabOrder> foundLabOrder = labOrderRepository.findByUuid(clientLabOrder.getUuid());
+            //Set id for new or old Lab Order on the server
+            if(foundLabOrder.isPresent()){
+                labOrder.setId(foundLabOrder.get().getId());
+
+            } else {
+                labOrder.setId(null);
+            }
+            labOrders.add(labOrder);
+
+        });
+
+        List<LabOrder> savedLabOrder = labOrderRepository.saveAll(labOrders);
+        log.info("number of Lab Order save on server => : {}", savedLabOrder.size());
+        return savedLabOrder;
     }
 
     /**
@@ -459,30 +460,29 @@ public class ObjectDeserializer {
         Optional<SyncQueue>  optionalLabOrderQueue = syncQueueRepository
                 .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_ORDER, facilityId, PROCESSED);
 
-        if(!optionalPatientQueue.isPresent()
-                && !optionalLabOrderQueue.isPresent()) {
-            List<Sample> clientLabSamples = objectMapper.readValue(data, new TypeReference<List<Sample>>() {});
-
-            clientLabSamples.forEach(clientLabSample -> {
-                Sample sample = new Sample();
-                BeanUtils.copyProperties(clientLabSample, sample);
-                Optional<Sample> foundLabSample = sampleRepository.findByUuid(clientLabSample.getUuid());
-                //Set id for new or old Lab Sample on the server
-                if(foundLabSample.isPresent()){
-                    sample.setId(foundLabSample.get().getId());
-                } else {
-                    sample.setId(null);
-                }
-                samples.add(sample);
-
-            });
-
-            List<Sample> savedLabSample = sampleRepository.saveAll(samples);
-            log.info("number of Lab Sample save on server => : {}", savedLabSample.size());
-            return savedLabSample;
+        if(optionalPatientQueue.isPresent() || optionalLabOrderQueue.isPresent()) {
+            //Return empty
+            return samples;
         }
-        //Return empty
-        return samples;
+        List<Sample> clientLabSamples = objectMapper.readValue(data, new TypeReference<List<Sample>>() {});
+
+        clientLabSamples.forEach(clientLabSample -> {
+            Sample sample = new Sample();
+            BeanUtils.copyProperties(clientLabSample, sample);
+            Optional<Sample> foundLabSample = sampleRepository.findByUuid(clientLabSample.getUuid());
+            //Set id for new or old Lab Sample on the server
+            if(foundLabSample.isPresent()){
+                sample.setId(foundLabSample.get().getId());
+            } else {
+                sample.setId(null);
+            }
+            samples.add(sample);
+
+        });
+
+        List<Sample> savedLabSample = sampleRepository.saveAll(samples);
+        log.info("number of Lab Sample save on server => : {}", savedLabSample.size());
+        return savedLabSample;
     }
 
     /**
@@ -505,31 +505,29 @@ public class ObjectDeserializer {
         Optional<SyncQueue>  optionalLabSampleQueue = syncQueueRepository
                 .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_SAMPLE, facilityId, PROCESSED);
 
-        if(!optionalPatientQueue.isPresent()
-                && !optionalLabOrderQueue.isPresent()
-                && !optionalLabSampleQueue.isPresent()) {
-            List<Test> clientLabTests = objectMapper.readValue(data, new TypeReference<List<Test>>() {});
-
-            clientLabTests.forEach(clientLabTest -> {
-                Test test = new Test();
-                BeanUtils.copyProperties(clientLabTest, test);
-                Optional<Test> foundLabSample = testRepository.findByUuid(clientLabTest.getUuid());
-                //Set id for new or old Lab Sample on the server
-                if(foundLabSample.isPresent()){
-                    test.setId(foundLabSample.get().getId());
-                } else {
-                    test.setId(null);
-                }
-                tests.add(test);
-
-            });
-
-            List<Test> savedLabTests = testRepository.saveAll(tests);
-            log.info("number of Lab Test save on server => : {}", savedLabTests.size());
-            return savedLabTests;
+        if(optionalPatientQueue.isPresent() || optionalLabOrderQueue.isPresent() || optionalLabSampleQueue.isPresent()) {
+            //Return empty
+            return tests;
         }
-        //Return empty
-        return tests;
+        List<Test> clientLabTests = objectMapper.readValue(data, new TypeReference<List<Test>>() {});
+
+        clientLabTests.forEach(clientLabTest -> {
+            Test test = new Test();
+            BeanUtils.copyProperties(clientLabTest, test);
+            Optional<Test> foundLabSample = testRepository.findByUuid(clientLabTest.getUuid());
+            //Set id for new or old Lab Sample on the server
+            if(foundLabSample.isPresent()){
+                test.setId(foundLabSample.get().getId());
+            } else {
+                test.setId(null);
+            }
+            tests.add(test);
+
+        });
+
+        List<Test> savedLabTests = testRepository.saveAll(tests);
+        log.info("number of Lab Test save on server => : {}", savedLabTests.size());
+        return savedLabTests;
     }
 
     /**
@@ -555,32 +553,33 @@ public class ObjectDeserializer {
         Optional<SyncQueue>  optionalLabResultQueue = syncQueueRepository
                 .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_TEST, facilityId, PROCESSED);
 
-        if(!optionalPatientQueue.isPresent()
-                && !optionalLabOrderQueue.isPresent()
-                && !optionalLabSampleQueue.isPresent()
-                && !optionalLabResultQueue.isPresent()) {
-            List<Result> clientLabResults = objectMapper.readValue(data, new TypeReference<List<Result>>() {});
-
-            clientLabResults.forEach(clientLabResult -> {
-                Result result = new Result();
-                BeanUtils.copyProperties(clientLabResult, result);
-                Optional<Result> foundResult = resultRepository.findByUuid(clientLabResult.getUuid());
-                //Set id for new or old Lab Result on the server
-                if(foundResult.isPresent()){
-                    result.setId(foundResult.get().getId());
-                } else {
-                    result.setId(null);
-                }
-                results.add(result);
-
-            });
-
-            List<Result> savedLabResults = resultRepository.saveAll(results);
-            log.info("number of Lab Results save on server => : {}", savedLabResults.size());
-            return savedLabResults;
+        if(optionalPatientQueue.isPresent()
+                || optionalLabOrderQueue.isPresent()
+                || optionalLabSampleQueue.isPresent()
+                || optionalLabResultQueue.isPresent()) {
+            //Return empty
+            return results;
         }
-        //Return empty
-        return results;
+
+        List<Result> clientLabResults = objectMapper.readValue(data, new TypeReference<List<Result>>() {});
+
+        clientLabResults.forEach(clientLabResult -> {
+            Result result = new Result();
+            BeanUtils.copyProperties(clientLabResult, result);
+            Optional<Result> foundResult = resultRepository.findByUuid(clientLabResult.getUuid());
+            //Set id for new or old Lab Result on the server
+            if(foundResult.isPresent()){
+                result.setId(foundResult.get().getId());
+            } else {
+                result.setId(null);
+            }
+            results.add(result);
+
+        });
+
+        List<Result> savedLabResults = resultRepository.saveAll(results);
+        log.info("number of Lab Results save on server => : {}", savedLabResults.size());
+        return savedLabResults;
     }
 
 

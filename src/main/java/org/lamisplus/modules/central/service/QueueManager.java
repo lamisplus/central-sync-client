@@ -59,7 +59,6 @@ public class QueueManager {
     }
 
 
-    /*Client processing...*/
     @Scheduled(fixedDelay = 30000)
     public void process() throws Exception {
         List<SyncQueue> filesNotProcessed = syncQueueRepository.getAllSyncQueueByFacilitiesNotProcessed();
@@ -85,6 +84,7 @@ public class QueueManager {
                     //log.info("deleting file : {}", file.getName());
                 }
             } catch (Exception e) {
+                log.error(e.getMessage());
                 e.printStackTrace();
             }finally {
                 if(targetStream != null) targetStream.close();
