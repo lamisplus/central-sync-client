@@ -238,8 +238,8 @@
             </sqlCheck>
         </preConditions>
         <sql>
-            ALTER TABLE sync_queue
-            ALTER COLUMN created_by TYPE character varying(100);
+            ALTER TABLE IF EXISTS sync_queue
+                ADD COLUMN created_by character varying;
         </sql>
     </changeSet>
 </databaseChangeLog>

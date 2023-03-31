@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -427,12 +428,31 @@ public class ObjectDeserializer {
             LabOrder labOrder = new LabOrder();
             BeanUtils.copyProperties(clientLabOrder, labOrder);
             Optional<LabOrder> foundLabOrder = labOrderRepository.findByUuid(clientLabOrder.getUuid());
+            List<Test> tests = new ArrayList<>();
             //Set id for new or old Lab Order on the server
             if(foundLabOrder.isPresent()){
                 labOrder.setId(foundLabOrder.get().getId());
+                clientLabOrder.getTests().forEach(test -> {
+                    Optional<Test> foundTest = testRepository.findByUuid(test.getUuid());
+
+                    //Set id for new or old Lab test on the server
+                    if(foundTest.isPresent()){
+                        test.setId(foundTest.get().getId());
+                    } else {
+                        test.setId(null);
+                    }
+                    test.setLabOrderId(foundLabOrder.get().getId());
+                    tests.add(test);
+                });
+                labOrder.setTests(tests);
 
             } else {
                 labOrder.setId(null);
+                labOrder.setTests(labOrder
+                        .getTests()
+                        .stream()
+                        .map(test -> {test.setId(null);return test;})
+                        .collect(Collectors.toList()));
             }
             labOrders.add(labOrder);
 
@@ -514,10 +534,10 @@ public class ObjectDeserializer {
         clientLabTests.forEach(clientLabTest -> {
             Test test = new Test();
             BeanUtils.copyProperties(clientLabTest, test);
-            Optional<Test> foundLabSample = testRepository.findByUuid(clientLabTest.getUuid());
+            Optional<Test> foundLabTest = testRepository.findByUuid(clientLabTest.getUuid());
             //Set id for new or old Lab Sample on the server
-            if(foundLabSample.isPresent()){
-                test.setId(foundLabSample.get().getId());
+            if(foundLabTest.isPresent()){
+                test.setId(foundLabTest.get().getId());
             } else {
                 test.setId(null);
             }
