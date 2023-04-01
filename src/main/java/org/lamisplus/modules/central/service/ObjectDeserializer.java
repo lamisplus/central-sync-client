@@ -179,29 +179,31 @@ public class ObjectDeserializer {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<Visit> visits = new ArrayList<>();
         //Sync related patient before syncing visit
-        if (!syncQueueRepository.findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED).isPresent()) {
-            List<Visit> clientVisits = objectMapper.readValue(data, new TypeReference<List<Visit>>() {
-            });
-            clientVisits.forEach(clientVisit -> {
-                Visit visit = new Visit();
-                BeanUtils.copyProperties(clientVisit, visit);
-                Optional<Visit> foundVisit = visitRepository.findByUuidAndFacilityId(clientVisit.getUuid(), facilityId);
-                //Set id for new or old visit on the server
-                if(foundVisit.isPresent()){
-                    visit.setId(foundVisit.get().getId());
-                } else {
-                    visit.setId(null);
-                }
-                visits.add(visit);
-
-            });
-            List<Visit> savedVisits;
-            savedVisits = visitRepository.saveAll(visits);
-            log.info("number of visits save on server => : {}", savedVisits.size());
-            return savedVisits;
+        Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+        if (optionalPatientQueue.isPresent()) {
+            //Return empty
+            return visits;
         }
-        //Return empty
-        return visits;
+        List<Visit> clientVisits = objectMapper.readValue(data, new TypeReference<List<Visit>>() {
+        });
+        clientVisits.forEach(clientVisit -> {
+            Visit visit = new Visit();
+            BeanUtils.copyProperties(clientVisit, visit);
+            Optional<Visit> foundVisit = visitRepository.findByUuidAndFacilityId(clientVisit.getUuid(), facilityId);
+            //Set id for new or old visit on the server
+            if(foundVisit.isPresent()){
+                visit.setId(foundVisit.get().getId());
+            } else {
+                visit.setId(null);
+            }
+            visits.add(visit);
+
+        });
+        List<Visit> savedVisits;
+        savedVisits = visitRepository.saveAll(visits);
+        log.info("number of visits save on server => : {}", savedVisits.size());
+        return savedVisits;
     }
 
     /**
@@ -221,30 +223,29 @@ public class ObjectDeserializer {
         Optional<SyncQueue>  optionalVisitQueue = syncQueueRepository
                 .findAllByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
 
-        if(!optionalPatientQueue.isPresent() && !optionalVisitQueue.isPresent()) {
-            List<HivEnrollment> clientEnrollments = objectMapper.readValue(data, new TypeReference<List<HivEnrollment>>() {});
-
-            clientEnrollments.forEach(clientEnrollment -> {
-                HivEnrollment hivEnrollment = new HivEnrollment();
-                BeanUtils.copyProperties(clientEnrollment, hivEnrollment);
-                Optional<HivEnrollment> foundEnrollment = hivEnrollmentRepository.findByUuid(clientEnrollment.getUuid());
-                //Set id for new or old enrollment on the server
-                if(foundEnrollment.isPresent()){
-                    hivEnrollment.setId(foundEnrollment.get().getId());
-                } else {
-                    hivEnrollment.setId(null);
-                }
-                hivEnrollments.add(hivEnrollment);
-
-            });
-
-            List<HivEnrollment> savedEnrollment;
-            savedEnrollment = hivEnrollmentRepository.saveAll(hivEnrollments);
-            log.info("number of Enrollment save on server => : {}", savedEnrollment.size());
-            return savedEnrollment;
+        if(optionalPatientQueue.isPresent() || optionalVisitQueue.isPresent()) {
+            //Return empty
+            return hivEnrollments;
         }
-        //Return empty
-        return hivEnrollments;
+        List<HivEnrollment> clientEnrollments = objectMapper.readValue(data, new TypeReference<List<HivEnrollment>>() {});
+        clientEnrollments.forEach(clientEnrollment -> {
+            HivEnrollment hivEnrollment = new HivEnrollment();
+            BeanUtils.copyProperties(clientEnrollment, hivEnrollment);
+            Optional<HivEnrollment> foundEnrollment = hivEnrollmentRepository.findByUuid(clientEnrollment.getUuid());
+            //Set id for new or old enrollment on the server
+            if(foundEnrollment.isPresent()){
+                hivEnrollment.setId(foundEnrollment.get().getId());
+            } else {
+                hivEnrollment.setId(null);
+            }
+            hivEnrollments.add(hivEnrollment);
+
+        });
+
+        List<HivEnrollment> savedEnrollment;
+        savedEnrollment = hivEnrollmentRepository.saveAll(hivEnrollments);
+        log.info("number of Enrollment save on server => : {}", savedEnrollment.size());
+        return savedEnrollment;
     }
 
     /**
@@ -267,32 +268,31 @@ public class ObjectDeserializer {
         Optional<SyncQueue>  optionalEnrollmentQueue = syncQueueRepository
                 .findAllByTableNameAndFacilityIdAndProcessed(HIV_ENROLLMENT, facilityId, PROCESSED);
 
-        if(!optionalPatientQueue.isPresent()
-                && !optionalVisitQueue.isPresent()
-                && !optionalEnrollmentQueue.isPresent()) {
-            List<VitalSign> clientVitalSigns = objectMapper.readValue(data, new TypeReference<List<VitalSign>>() {});
-
-            clientVitalSigns.forEach(clientVital -> {
-                VitalSign vitalSign = new VitalSign();
-                BeanUtils.copyProperties(clientVital, vitalSign);
-                Optional<VitalSign> foundVital = vitalSignRepository.findByUuidAndFacilityId(clientVital.getUuid(), facilityId);
-                //Set id for new or old vitals on the server
-                if(foundVital.isPresent()){
-                    vitalSign.setId(foundVital.get().getId());
-                } else {
-                    vitalSign.setId(null);
-                }
-                vitalSigns.add(vitalSign);
-
-            });
-
-            List<VitalSign> savedVitalSigns;
-            savedVitalSigns = vitalSignRepository.saveAll(vitalSigns);
-            log.info("number of vitalSign save on server => : {}", savedVitalSigns.size());
-            return savedVitalSigns;
+        if(optionalPatientQueue.isPresent() || optionalVisitQueue.isPresent()
+                || optionalEnrollmentQueue.isPresent()) {
+            //Return empty
+            return vitalSigns;
         }
-        //Return empty
-        return vitalSigns;
+        List<VitalSign> clientVitalSigns = objectMapper.readValue(data, new TypeReference<List<VitalSign>>() {});
+
+        clientVitalSigns.forEach(clientVital -> {
+            VitalSign vitalSign = new VitalSign();
+            BeanUtils.copyProperties(clientVital, vitalSign);
+            Optional<VitalSign> foundVital = vitalSignRepository.findByUuidAndFacilityId(clientVital.getUuid(), facilityId);
+            //Set id for new or old vitals on the server
+            if(foundVital.isPresent()){
+                vitalSign.setId(foundVital.get().getId());
+            } else {
+                vitalSign.setId(null);
+            }
+            vitalSigns.add(vitalSign);
+
+        });
+
+        List<VitalSign> savedVitalSigns;
+        savedVitalSigns = vitalSignRepository.saveAll(vitalSigns);
+        log.info("number of vitalSign save on server => : {}", savedVitalSigns.size());
+        return savedVitalSigns;
     }
 
 
@@ -319,33 +319,31 @@ public class ObjectDeserializer {
         Optional<SyncQueue>  optionalEnrollmentQueue = syncQueueRepository
                 .findAllByTableNameAndFacilityIdAndProcessed(HIV_ENROLLMENT, facilityId, PROCESSED);
 
-        if(!optionalPatientQueue.isPresent()
-                && !optionalVisitQueue.isPresent()
-                && !optionalVitals.isPresent()
-                && !optionalEnrollmentQueue.isPresent()) {
-            List<ARTClinical> clientArtClinics = objectMapper.readValue(data, new TypeReference<List<ARTClinical>>() {});
-
-            clientArtClinics.forEach(ClientClinical -> {
-                ARTClinical artClinical = new ARTClinical();
-                BeanUtils.copyProperties(ClientClinical, artClinical);
-                Optional<ARTClinical> foundClinical = artClinicalRepository.findByUuid(ClientClinical.getUuid());
-                //Set id for new or old clinics on the server
-                if(foundClinical.isPresent()){
-                    artClinical.setId(foundClinical.get().getId());
-                } else {
-                    artClinical.setId(null);
-                }
-                artClinicals.add(artClinical);
-
-            });
-
-            List<ARTClinical> savedArtClinical;
-            savedArtClinical = artClinicalRepository.saveAll(artClinicals);
-            log.info("number of Art Clinical save on server => : {}", savedArtClinical.size());
-            return savedArtClinical;
+        if(optionalPatientQueue.isPresent() || optionalVisitQueue.isPresent()
+                || optionalVitals.isPresent()  || optionalEnrollmentQueue.isPresent()) {
+            //Return empty
+            return artClinicals;
         }
-        //Return empty
-        return artClinicals;
+        List<ARTClinical> clientArtClinics = objectMapper.readValue(data, new TypeReference<List<ARTClinical>>() {});
+
+        clientArtClinics.forEach(ClientClinical -> {
+            ARTClinical artClinical = new ARTClinical();
+            BeanUtils.copyProperties(ClientClinical, artClinical);
+            Optional<ARTClinical> foundClinical = artClinicalRepository.findByUuid(ClientClinical.getUuid());
+            //Set id for new or old clinics on the server
+            if(foundClinical.isPresent()){
+                artClinical.setId(foundClinical.get().getId());
+            } else {
+                artClinical.setId(null);
+            }
+            artClinicals.add(artClinical);
+
+        });
+
+        List<ARTClinical> savedArtClinical;
+        savedArtClinical = artClinicalRepository.saveAll(artClinicals);
+        log.info("number of Art Clinical save on server => : {}", savedArtClinical.size());
+        return savedArtClinical;
     }
 
     /**
@@ -374,34 +372,36 @@ public class ObjectDeserializer {
         Optional<SyncQueue>  optionalClinicQueue = syncQueueRepository
                 .findAllByTableNameAndFacilityIdAndProcessed(HIV_ART_CLINICAL, facilityId, PROCESSED);
 
-        if(!optionalPatientQueue.isPresent()
-                && !optionalVisitQueue.isPresent()
-                && !optionalEnrollmentQueue.isPresent()
-                && !optionalVitals.isPresent()
-                && !optionalClinicQueue.isPresent()) {
-            List<ArtPharmacy> clientPharmacies = objectMapper.readValue(data, new TypeReference<List<ArtPharmacy>>() {});
-
-            clientPharmacies.forEach(clientPharmacy -> {
-                ArtPharmacy artPharmacy = new ArtPharmacy();
-                BeanUtils.copyProperties(clientPharmacy, artPharmacy);
-                Optional<ARTClinical> foundPharmacy = artClinicalRepository.findByUuid(clientPharmacy.getUuid());
-                //Set id for new or old Pharmacy on the server
-                if(foundPharmacy.isPresent()){
-                    artPharmacy.setId(foundPharmacy.get().getId());
-                } else {
-                    artPharmacy.setId(null);
-                }
-                artPharmacies.add(artPharmacy);
-
-            });
-
-            List<ArtPharmacy> savedArtPharmacy;
-            savedArtPharmacy = artPharmacyRepository.saveAll(artPharmacies);
-            log.info("number of Art Pharmacy save on server => : {}", savedArtPharmacy.size());
-            return savedArtPharmacy;
+        if(optionalPatientQueue.isPresent()
+                || optionalVisitQueue.isPresent()
+                || optionalEnrollmentQueue.isPresent()
+                || optionalVitals.isPresent()
+                || optionalClinicQueue.isPresent()) {
+            //Return empty
+            return artPharmacies;
         }
-        //Return empty
-        return artPharmacies;
+
+
+        List<ArtPharmacy> clientPharmacies = objectMapper.readValue(data, new TypeReference<List<ArtPharmacy>>() {});
+
+        clientPharmacies.forEach(clientPharmacy -> {
+            ArtPharmacy artPharmacy = new ArtPharmacy();
+            BeanUtils.copyProperties(clientPharmacy, artPharmacy);
+            Optional<ARTClinical> foundPharmacy = artClinicalRepository.findByUuid(clientPharmacy.getUuid());
+            //Set id for new or old Pharmacy on the server
+            if(foundPharmacy.isPresent()){
+                artPharmacy.setId(foundPharmacy.get().getId());
+            } else {
+                artPharmacy.setId(null);
+            }
+            artPharmacies.add(artPharmacy);
+
+        });
+
+        List<ArtPharmacy> savedArtPharmacy;
+        savedArtPharmacy = artPharmacyRepository.saveAll(artPharmacies);
+        log.info("number of Art Pharmacy save on server => : {}", savedArtPharmacy.size());
+        return savedArtPharmacy;
     }
 
     /**

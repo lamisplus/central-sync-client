@@ -46,6 +46,8 @@ public class SyncServerService {
         syncQueue.setProcessed(processed);
         //syncQueue.setCreatedBy(name);
         if(size != null)syncQueue.setReceivedSize(size);
+        //User pushing
+        syncQueue.setCreatedBy(name);
 
         return syncQueueRepository.save(syncQueue);
     }

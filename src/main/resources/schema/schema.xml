@@ -228,7 +228,22 @@
         </sql>
     </changeSet>-->
 
-    <changeSet failOnError="false" author="Emeka Ilozue" id="1649865054498-17-sync-emeka">
+    <!--<changeSet failOnError="false" author="Emeka Ilozue" id="1649865054498-17-sync-emeka">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM pg_attribute
+                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'sync_queue')
+                  AND attname = 'created_by';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE sync_queue
+            ALTER COLUMN created_by TYPE character varying(100);
+        </sql>
+    </changeSet>-->
+
+    <changeSet failOnError="false" author="Emeka Ilozue" id="1649865054498-20-sync-emeka">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(*)
