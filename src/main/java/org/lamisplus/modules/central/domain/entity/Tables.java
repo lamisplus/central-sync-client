@@ -11,6 +11,10 @@ public enum Tables{
     laboratory_test,
     laboratory_sample,
     laboratory_result,
-    //hiv_art_pharmacy_regimens,
-    biometric
+    biometric,
+    hiv_status_tracker,
+    hiv_eac,
+    hiv_eac_session,
+    hiv_eac_out_come,
+    hiv_observation
 };

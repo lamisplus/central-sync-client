@@ -20,12 +20,8 @@ import org.lamisplus.modules.biometric.domain.Biometric;
 import org.lamisplus.modules.biometric.repository.BiometricRepository;
 import org.lamisplus.modules.central.domain.entity.SyncQueue;
 import org.lamisplus.modules.central.repository.SyncQueueRepository;
-import org.lamisplus.modules.hiv.domain.entity.ARTClinical;
-import org.lamisplus.modules.hiv.domain.entity.ArtPharmacy;
-import org.lamisplus.modules.hiv.domain.entity.HivEnrollment;
-import org.lamisplus.modules.hiv.repositories.ARTClinicalRepository;
-import org.lamisplus.modules.hiv.repositories.ArtPharmacyRepository;
-import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
+import org.lamisplus.modules.hiv.domain.entity.*;
+import org.lamisplus.modules.hiv.repositories.*;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
 import org.lamisplus.modules.patient.repository.*;
@@ -58,6 +54,7 @@ public class ObjectDeserializer {
     public static final String LABORATORY_ORDER = "laboratory_order";
     public static final String LABORATORY_SAMPLE = "laboratory_sample";
     public static final String LABORATORY_TEST = "laboratory_test";
+    public static final String HIV_EAC = "hiv_eac";
     private final PersonRepository personRepository;
     private final BiometricRepository biometricRepository;
     private final VisitRepository visitRepository;
@@ -70,6 +67,11 @@ public class ObjectDeserializer {
     private final ResultRepository resultRepository;
     private final SampleRepository sampleRepository;
     private final TestRepository testRepository;
+    private final HIVStatusTrackerRepository hivStatusTrackerRepository;
+    private final HIVEacRepository hivEacRepository;
+    private final HIVEacSessionRepository hivEacSessionRepository;
+    private final EacOutComeRepository eacOutComeRepository;
+    private final ObservationRepository observationRepository;
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
@@ -131,6 +133,26 @@ public class ObjectDeserializer {
             case "laboratory_result":
                 log.info("Saving " + table + " on Server");
                 return processAndSaveLabResultOnServer(data, objectMapper, facilityId);
+
+            case "hiv_status_tracker":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveStatusTrackerOnServer(data, objectMapper, facilityId);
+
+            case "hiv_eac":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveEacOnServer(data, objectMapper, facilityId);
+
+            case "hiv_eac_session":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveEacSessionOnServer(data, objectMapper, facilityId);
+
+            case "hiv_eac_out_come":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveEacOutComeOnServer(data, objectMapper, facilityId);
+
+            case "hiv_observation":
+                log.info("Saving " + table + " on Server");
+                return processAndSaveHivObservationOnServer(data, objectMapper, facilityId);
         }
 
         List<String> msg = new LinkedList<>();
@@ -624,4 +646,208 @@ public class ObjectDeserializer {
         //Return empty
         return savedBiometrics;
     }
+
+    /**
+     * Handles HIVStatusTracker sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of HIVStatusTracker
+     */
+    private List<HIVStatusTracker> processAndSaveStatusTrackerOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<HIVStatusTracker> statusTrackers = new ArrayList<>();
+        //Sync related patient before syncing HIV Status Tracker
+        if(!syncQueueRepository.findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED).isPresent()) {
+            List<HIVStatusTracker> clientStatusTrackers = objectMapper.readValue(data, new TypeReference<List<HIVStatusTracker>>() {
+            });
+
+            clientStatusTrackers.forEach(clientStatus -> {
+                HIVStatusTracker statusTracker = new HIVStatusTracker();
+                BeanUtils.copyProperties(clientStatus, statusTracker);
+                Optional<HIVStatusTracker> foundStatus = hivStatusTrackerRepository.findByUuid(clientStatus.getUuid());
+                //Set id for new or old Lab Result on the server
+                if(foundStatus.isPresent()){
+                    statusTracker.setId(foundStatus.get().getId());
+                } else {
+                    statusTracker.setId(null);
+                }
+                statusTrackers.add(statusTracker);
+
+            });
+
+            List<HIVStatusTracker> savedStatus = hivStatusTrackerRepository.saveAll(statusTrackers);
+            log.info("number of Status Tracker save on server => : {}", savedStatus.size());
+            return savedStatus;
+        }
+        //Return empty
+        return statusTrackers;
+    }
+
+    /**
+     * Handles HIVEac sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of HIVEac
+     */
+    private List<HIVEac> processAndSaveEacOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<HIVEac> hivEacs = new ArrayList<>();
+        //Sync related patient before syncing HIV Eac
+        if(!syncQueueRepository.findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED).isPresent()) {
+            List<HIVEac> eacs = objectMapper.readValue(data, new TypeReference<List<HIVEac>>() {});
+
+            eacs.forEach(clientEac -> {
+                HIVEac eac = new HIVEac();
+                BeanUtils.copyProperties(clientEac, eac);
+                Optional<HIVEac> foundEac = hivEacRepository.findByUuid(clientEac.getUuid());
+                //Set id for new or old EAC on the server
+                if(foundEac.isPresent()){
+                    eac.setId(foundEac.get().getId());
+                } else {
+                    eac.setId(null);
+                }
+                hivEacs.add(eac);
+
+            });
+
+            List<HIVEac> savedEacs = hivEacRepository.saveAll(hivEacs);
+            log.info("number of Hiv EAC save on server => : {}", savedEacs.size());
+            return savedEacs;
+        }
+        //Return empty
+        return hivEacs;
+    }
+
+    /**
+     * Handles HIV Eac Session sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of HIV Eac Session
+     */
+    private List<HIVEacSession> processAndSaveEacSessionOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<HIVEacSession> hivEacSessions = new ArrayList<>();
+        //Sync related patient before syncing HIV Eac
+        Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalHivEacQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(HIV_EAC, facilityId, PROCESSED);
+
+        if(optionalPatientQueue.isPresent() || optionalHivEacQueue.isPresent()) {
+            //Return empty
+            return hivEacSessions;
+        }
+        List<HIVEacSession> clientEacSessions = objectMapper.readValue(data, new TypeReference<List<HIVEacSession>>() {});
+
+        clientEacSessions.forEach(clientEacSession -> {
+            HIVEacSession eacSession = new HIVEacSession();
+            BeanUtils.copyProperties(clientEacSession, eacSession);
+            Optional<HIVEacSession> foundSession = hivEacSessionRepository.findByUuid(clientEacSession.getUuid());
+            //Set id for new or old EAC on the server
+            if(foundSession.isPresent()){
+                eacSession.setId(foundSession.get().getId());
+            } else {
+                eacSession.setId(null);
+            }
+            hivEacSessions.add(eacSession);
+        });
+
+        List<HIVEacSession> savedEacSession = hivEacSessionRepository.saveAll(hivEacSessions);
+        log.info("number of Eac Session save on server => : {}", savedEacSession.size());
+        return savedEacSession;
+    }
+
+    /**
+     * Handles Eac Outcome sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of Eac Outcome
+     */
+    private List<EacOutCome> processAndSaveEacOutComeOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<EacOutCome> eacOutComes = new ArrayList<>();
+        //Sync related patient before syncing HIV Eac
+        Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalHivEacQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(HIV_EAC, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalVisitQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
+
+        if(optionalPatientQueue.isPresent()
+                || optionalHivEacQueue.isPresent()
+                || optionalVisitQueue.isPresent()) {
+            //Return empty
+            return eacOutComes;
+
+        }
+        List<EacOutCome> clientEacOutcomes = objectMapper.readValue(data, new TypeReference<List<EacOutCome>>() {});
+
+        clientEacOutcomes.forEach(clientEacOutcome -> {
+            EacOutCome eacOutCome = new EacOutCome();
+            BeanUtils.copyProperties(clientEacOutcome, eacOutCome);
+            Optional<EacOutCome> foundOutcomes = eacOutComeRepository.findByUuid(clientEacOutcome.getUuid());
+            //Set id for new or old EAC Outcome on the server
+            if(foundOutcomes.isPresent()){
+                eacOutCome.setId(foundOutcomes.get().getId());
+            } else {
+                eacOutCome.setId(null);
+            }
+            eacOutComes.add(eacOutCome);
+
+        });
+
+        List<EacOutCome> savedEacOutcome = eacOutComeRepository.saveAll(eacOutComes);
+        log.info("number of Eac Outcome save on server => : {}", savedEacOutcome.size());
+        return savedEacOutcome;
+    }
+
+    /**
+     * Handles patient Hiv Observation sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of Hiv Observation
+     */
+    private List<Observation> processAndSaveHivObservationOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<Observation> observations = new ArrayList<>();
+        //Sync related patient before syncing Observation
+        Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalVisitQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
+
+        if(optionalPatientQueue.isPresent() || optionalVisitQueue.isPresent()) {
+            //Return empty
+            return observations;
+        }
+        List<Observation> clientObservations = objectMapper.readValue(data, new TypeReference<List<Observation>>() {});
+        clientObservations.forEach(clientObservation -> {
+            Observation observation = new Observation();
+            BeanUtils.copyProperties(clientObservation, observation);
+            Optional<Observation> foundObservation = observationRepository.findByUuid(clientObservation.getUuid());
+            //Set id for new or old Observation on the server
+            if(foundObservation.isPresent()){
+                observation.setId(foundObservation.get().getId());
+            } else {
+                observation.setId(null);
+            }
+            observations.add(observation);
+
+        });
+
+        List<Observation> savedObservation = observationRepository.saveAll(observations);
+        log.info("number of Observation save on server => : {}", savedObservation.size());
+        return savedObservation;
+    }
+
 }

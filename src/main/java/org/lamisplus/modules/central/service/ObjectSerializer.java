@@ -11,9 +11,8 @@ import org.lamisplus.modules.biometric.repository.BiometricRepository;
 import org.lamisplus.modules.central.domain.entity.Tables;
 import org.lamisplus.modules.central.repository.SyncQueueRepository;
 import org.lamisplus.modules.hiv.domain.entity.ArtPharmacy;
-import org.lamisplus.modules.hiv.repositories.ARTClinicalRepository;
-import org.lamisplus.modules.hiv.repositories.ArtPharmacyRepository;
-import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
+import org.lamisplus.modules.hiv.domain.entity.HIVStatusTracker;
+import org.lamisplus.modules.hiv.repositories.*;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
 import org.lamisplus.modules.patient.repository.PersonRepository;
@@ -47,6 +46,11 @@ public class ObjectSerializer {
     private final SampleRepository sampleRepository;
     private final TestRepository testRepository;
     private final ResultRepository resultRepository;
+    private final HIVStatusTrackerRepository hivStatusTrackerRepository;
+    private final HIVEacRepository hivEacRepository;
+    private final HIVEacSessionRepository hivEacSessionRepository;
+    private final EacOutComeRepository eacOutComeRepository;
+    private final ObservationRepository observationRepository;
 
     public List<?> serialize(Tables table, long facilityId, LocalDateTime dateLastSync) {
 
@@ -110,16 +114,6 @@ public class ObjectSerializer {
             }
         }
 
-        //Level F - HIV Art Pharmacy
-        /*if (table.name().equalsIgnoreCase("hiv_art_pharmacy")) {
-            log.info(" Retrieving records from  {} ", table.name());
-            if (dateLastSync == null) {
-                return   artPharmacyRepository.findAllByFacilityId(facilityId);
-            } else {
-                return artPharmacyRepository.getAllDueForServerUpload(dateLastSync, facilityId);
-            }
-        }*/
-
         //Level G - Laboratory Order
         if (table.name().equalsIgnoreCase("laboratory_order")) {
             log.info(" Retrieving records from  {} ", table.name());
@@ -167,6 +161,57 @@ public class ObjectSerializer {
                 return   biometricRepository.findAllByFacilityId(facilityId);
             } else {
                 return biometricRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level L - Hiv Status Tracker
+        if (table.name().equalsIgnoreCase("hiv_status_tracker")) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   hivStatusTrackerRepository.findAllByFacilityId(facilityId);
+            } else {
+                return hivStatusTrackerRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+
+        //Level M - Hiv EAC
+        if (table.name().equalsIgnoreCase("hiv_eac")) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   hivEacRepository.findAllByFacilityId(facilityId);
+            } else {
+                return hivEacRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level N - HIV EAC Session
+        if (table.name().equalsIgnoreCase("hiv_eac_session")) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   hivEacSessionRepository.findAllByFacilityId(facilityId);
+            } else {
+                return hivEacSessionRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level O - HIV EAC Outcome
+        if (table.name().equalsIgnoreCase("hiv_eac_out_come")) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   eacOutComeRepository.findAllByFacilityId(facilityId);
+            } else {
+                return eacOutComeRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level P - HIV Art Pharmacy
+        if (table.name().equalsIgnoreCase("hiv_observation")) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   observationRepository.findAllByFacilityId(facilityId);
+            } else {
+                return observationRepository.getAllDueForServerUpload(dateLastSync, facilityId);
             }
         }
 

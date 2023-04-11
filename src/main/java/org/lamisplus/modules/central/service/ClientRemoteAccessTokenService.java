@@ -105,7 +105,7 @@ public class ClientRemoteAccessTokenService {
             String aesKey = this.decryptWithPrivateKey(savedRemoteAccessToken.getAnyByteKey(), remoteAccessToken);
             savedRemoteAccessToken.setPrKey(aesKey);
 
-            //Check for existence of user and upadte
+            //Check for existence of user and update
             Optional<RemoteAccessToken> accessTokenOptional = remoteAccessTokenRepository
                     .findByUsername(remoteAccessToken.getUsername());
             if(accessTokenOptional.isPresent())remoteAccessToken.setId(accessTokenOptional.get().getId());

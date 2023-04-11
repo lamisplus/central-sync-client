@@ -27,9 +27,7 @@ import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -40,6 +38,12 @@ public class SyncClientService {
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
     private final ObjectSerializer objectSerializer;
     private final UserService userService;
+
+    private final SendWebsocketService sendSyncWebsocketService;
+
+    private static String SYNC_ENDPOINT = "/central-topic/progress";
+    private static String SYNC_PAYLOAD_ENDPOINT = "/central-topic/table-progress";
+    private final ObjectMapper objectMapper;
 
 
     //@Async
@@ -63,12 +67,24 @@ public class SyncClientService {
         mapper.registerModule(new JavaTimeModule());
         mapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+        int i = 0;
         for (Tables table : Tables.values()) {
-            log.info("table.name() ", table.name());
-              SyncHistory syncHistory = syncHistoryService.getSyncHistory(table.name(), uploadDTO.getFacilityId());
+            //Web socket for progress bar
+            Map<String, Object> payload = new HashMap<>();
+            i +=1;
+            //Getting the percentage - (Value/Total value) × 100
+            payload.put("percentageSynced", (i/Tables.values().length) * 100);
+            payload.put("count", i);
+            payload.put("currentTable", table.name());
+            payload.put("total", Tables.values().length);
+            sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, i);
+            sendSyncWebsocketService.broadcastProgressUpdate(SYNC_PAYLOAD_ENDPOINT, objectMapper.writeValueAsString(payload));
+
+            SyncHistory syncHistory = syncHistoryService.getSyncHistory(table.name(), uploadDTO.getFacilityId());
             LocalDateTime dateLastSync = syncHistory.getDateLastSync();
-            log.info("last date sync 1 {}", dateLastSync);
             List<?> serializeTableRecords = objectSerializer.serialize(table, uploadDTO.getFacilityId(), dateLastSync);
+
+            //TODO: save attributes of data to be sent to server - name, size, uuid
 
             if (!serializeTableRecords.isEmpty()) {
                 Object serializeObject = serializeTableRecords.get(0);
@@ -83,22 +99,19 @@ public class SyncClientService {
                     String url = uploadDTO.getServerUrl().concat("/api/sync/").concat(pathVariable);
 
                     log.info("url : {}", url);
-                    log.info("remote token : {}", remoteAccessToken);
 
                     byte[] bytes = mapper.writeValueAsBytes(serializeTableRecords);
-                    log.info("finished mapping ---");
 
                     SecretKey secretKey = AESUtil.getPrivateAESKeyFromDB(remoteAccessToken);
-                    log.info("generated secret key  ---");
                     bytes = this.encrypt(bytes, secretKey);
-                    log.info("encrypted  ---");
 
                     String response = new HttpConnectionManager().post(bytes, token, url);
-                    log.info("Done : {}", response);
+                    log.info("Done");
 
                     syncHistory.setTableName(table.name());
                     syncHistory.setOrganisationUnitId(uploadDTO.getFacilityId());
                     syncHistory.setDateLastSync(LocalDateTime.now());
+
                     try {
                         //For serializing the date on the sync queue
                         ObjectMapper objectMapper = new ObjectMapper();

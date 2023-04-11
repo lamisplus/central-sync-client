@@ -54,10 +54,8 @@ public class ServerRemoteAccessTokenService {
 
         //Authenticate user & get token
         remoteAccessToken.setToken(this.authenticateToGetToken(remoteAccessToken));
-        System.out.println("Token gotten ---");
         // Server public & private key
         remoteAccessToken = this.rsaUtils.keyGenerateAndReturnKey(remoteAccessToken);
-        System.out.println("Encryption done ---");
 
         remoteAccessToken.setPrKey(key);
         remoteAccessToken.setPassword("x");
@@ -69,14 +67,14 @@ public class ServerRemoteAccessTokenService {
         if(accessTokenOptional.isPresent())remoteAccessToken.setId(accessTokenOptional.get().getId());
 
         remoteAccessTokenRepository.save(remoteAccessToken);
-        System.out.println("RemoteAccessToken done ---");
         remoteAccessToken.setStatus(0L);
-        System.out.println("RemoteAccessToken returned ---");
+        log.info("token generated");
         return remoteAccessToken;
     }
 
     //@SneakyThrows
-    public User createUserOnServer(RemoteAccessToken remoteAccessToken) {
+    //create token
+    /*public User createUserOnServer(RemoteAccessToken remoteAccessToken) {
         UserDTO userDTO = new UserDTO();
         userDTO.setFirstName(remoteAccessToken.getUsername());
         userDTO.setLastName(remoteAccessToken.getUsername());
@@ -91,7 +89,7 @@ public class ServerRemoteAccessTokenService {
         else userDTO.setCurrentOrganisationUnitId(0L);
 
         return userService.registerOrUpdateUser(userDTO, remoteAccessToken.getPassword(), true);
-    }
+    }*/
 
     private String authenticateToGetToken(RemoteAccessToken remoteAccessToken){
         LoginVM loginVM = new LoginVM();
