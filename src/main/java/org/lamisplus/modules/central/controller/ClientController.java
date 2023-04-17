@@ -39,12 +39,17 @@ public class ClientController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     //@CircuitBreaker(name = "service2", fallbackMethod = "getDefaultMessage")
     //@Retry(name = "retryService2", fallbackMethod = "retryFallback")
-    public @ResponseBody ResponseEntity sender(@Valid @RequestBody UploadDTO uploadDTO) throws Exception  {
-            syncClientService.sender(uploadDTO);
+    public @ResponseBody ResponseEntity sender(@RequestParam(required = false, defaultValue = "*") String tableName, @Valid @RequestBody UploadDTO uploadDTO) throws Exception  {
+            syncClientService.sender(uploadDTO, tableName);
             return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    //@GetMapping("/facilities")
+    @RequestMapping(value = "/table/{facilityId}",
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List> getTablesForSyncing(@PathVariable Long facilityId) {
+        return ResponseEntity.ok(syncClientService.getTablesForSyncing(facilityId));
+    }
     @RequestMapping(value = "/facilities",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)

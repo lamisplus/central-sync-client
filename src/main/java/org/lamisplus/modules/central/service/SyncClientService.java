@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.domain.entities.User;
 import org.lamisplus.modules.base.service.UserService;
@@ -17,6 +18,7 @@ import org.lamisplus.modules.central.domain.entity.SyncHistory;
 import org.lamisplus.modules.central.domain.entity.SyncQueue;
 import org.lamisplus.modules.central.domain.entity.Tables;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
+import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.utility.AESUtil;
 import org.lamisplus.modules.central.utility.HttpConnectionManager;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -38,6 +41,7 @@ public class SyncClientService {
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
     private final ObjectSerializer objectSerializer;
     private final UserService userService;
+    private final SyncHistoryRepository syncHistoryRepository;
 
     private final SendWebsocketService sendSyncWebsocketService;
 
@@ -47,7 +51,7 @@ public class SyncClientService {
 
 
     //@Async
-    public String sender(UploadDTO uploadDTO) throws Exception {
+    public String sender(UploadDTO uploadDTO, String tableName) throws Exception {
         log.info("path: {}", uploadDTO.getServerUrl());
         //Current login user
         User user = userService.getUserWithRoles().orElse(null);
@@ -67,8 +71,17 @@ public class SyncClientService {
         mapper.registerModule(new JavaTimeModule());
         mapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+
         int i = 0;
         for (Tables table : Tables.values()) {
+            //process only one table sent
+            if (tableName != null && !tableName.equals("*")) {
+                System.out.println("table Name - " + table.name());
+                if(!table.name().equalsIgnoreCase(tableName)){
+                    continue;
+                }
+            }
+            System.out.println("table to processed is - " + table.name());
             //Web socket for progress bar
             Map<String, Object> payload = new HashMap<>();
             i +=1;
@@ -134,8 +147,6 @@ public class SyncClientService {
                 }
             }
         }
-
-
         return "Successful";//CompletableFuture.completedFuture("Successful");
     }
 
@@ -149,6 +160,11 @@ public class SyncClientService {
             e.printStackTrace();
             throw e;
         }
+    }
+
+    public List getTablesForSyncing(Long facilityId){
+        return Arrays.stream(Tables.values()).collect(Collectors.toList());
+        //return syncHistoryRepository.findTableToSync(facilityId);
     }
 }
 
