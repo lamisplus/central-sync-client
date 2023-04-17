@@ -76,12 +76,10 @@ public class SyncClientService {
         for (Tables table : Tables.values()) {
             //process only one table sent
             if (tableName != null && !tableName.equals("*")) {
-                System.out.println("table Name - " + table.name());
                 if(!table.name().equalsIgnoreCase(tableName)){
                     continue;
                 }
             }
-            System.out.println("table to processed is - " + table.name());
             //Web socket for progress bar
             Map<String, Object> payload = new HashMap<>();
             i +=1;

@@ -57,9 +57,9 @@ public class HttpConnectionManager {
                     .build();
         }
         try (Response response = httpClient.newBuilder()
-                .connectTimeout(2800, TimeUnit.MINUTES)
-                .writeTimeout(2800, TimeUnit.MINUTES)
-                .readTimeout(2800, TimeUnit.MINUTES)
+                .connectTimeout(10000, TimeUnit.MINUTES)
+                .writeTimeout(10000, TimeUnit.MINUTES)
+                .readTimeout(10000, TimeUnit.MINUTES)
                 .build()
                 .newCall(request).execute()) {
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + Objects.requireNonNull(response.body()).string());
