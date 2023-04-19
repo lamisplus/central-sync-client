@@ -45,8 +45,8 @@ public class SyncClientService {
 
     private final SendWebsocketService sendSyncWebsocketService;
 
-    private static String SYNC_ENDPOINT = "/central-topic/progress";
-    private static String SYNC_PAYLOAD_ENDPOINT = "/central-topic/table-progress";
+    private static String SYNC_ENDPOINT = "topic/central-topic/progress";
+    private static String SYNC_PAYLOAD_ENDPOINT = "topic/central-topic/table-progress";
     private final ObjectMapper objectMapper;
 
 
@@ -82,9 +82,8 @@ public class SyncClientService {
             }
             //Web socket for progress bar
             Map<String, Object> payload = new HashMap<>();
-            i +=1;
             //Getting the percentage - (Value/Total value) × 100
-            payload.put("percentageSynced", (i/Tables.values().length) * 100);
+            payload.put("percentageSynced", (++i/Tables.values().length) * 100);
             payload.put("count", i);
             payload.put("currentTable", table.name());
             payload.put("total", Tables.values().length);

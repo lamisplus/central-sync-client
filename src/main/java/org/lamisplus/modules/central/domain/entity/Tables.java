@@ -16,5 +16,9 @@ public enum Tables{
     hiv_eac,
     hiv_eac_session,
     hiv_eac_out_come,
-    hiv_observation
+    hiv_observation,
+    prep_eligibility,
+    prep_enrollment,
+    prep_clinic,
+    prep_interruption
 };

@@ -22,6 +22,10 @@ import org.lamisplus.modules.central.domain.dto.PharmacySyncDto;
 import org.lamisplus.modules.central.domain.dto.TriageVitalSignSyncDto;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.patient.repository.VisitRepository;
+import org.lamisplus.modules.prep.repository.PrepClinicRepository;
+import org.lamisplus.modules.prep.repository.PrepEligibilityRepository;
+import org.lamisplus.modules.prep.repository.PrepEnrollmentRepository;
+import org.lamisplus.modules.prep.repository.PrepInterruptionRepository;
 import org.lamisplus.modules.triage.repository.VitalSignRepository;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -32,6 +36,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class ObjectSerializer {
+    public static final String PREP_ELIGIBILITY = "prep_eligibility";
+    public static final String PREP_ENROLLMENT = "prep_enrollment";
+    public static final String PREP_CLINIC = "prep_clinic";
+    public static final String PREP_INTERRUPTION = "prep_interruption";
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
     private final PersonRepository personRepository;
     private final BiometricRepository biometricRepository;
@@ -51,6 +59,11 @@ public class ObjectSerializer {
     private final HIVEacSessionRepository hivEacSessionRepository;
     private final EacOutComeRepository eacOutComeRepository;
     private final ObservationRepository observationRepository;
+    private final PrepEligibilityRepository prepEligibilityRepository;
+    private final PrepEnrollmentRepository prepEnrollmentRepository;
+    private final PrepClinicRepository prepClinicRepository;
+    private final PrepInterruptionRepository interruptionRepository;
+
 
     public List<?> serialize(Tables table, long facilityId, LocalDateTime dateLastSync) {
 
@@ -212,6 +225,46 @@ public class ObjectSerializer {
                 return   observationRepository.findAllByFacilityId(facilityId);
             } else {
                 return observationRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level  - PrEP Eligibility
+        if (table.name().equalsIgnoreCase(PREP_ELIGIBILITY)) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   prepEligibilityRepository.findAllByFacilityId(facilityId);
+            } else {
+                return prepEligibilityRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level  - PrEP Enrollment
+        if (table.name().equalsIgnoreCase(PREP_ENROLLMENT)) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   prepEnrollmentRepository.findAllByFacilityId(facilityId);
+            } else {
+                return prepEnrollmentRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level  - PrEP Clinic
+        if (table.name().equalsIgnoreCase(PREP_CLINIC)) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   prepClinicRepository.findAllByFacilityId(facilityId);
+            } else {
+                return prepClinicRepository.getAllDueForServerUpload(dateLastSync, facilityId);
+            }
+        }
+
+        //Level  - PrEP Interruption
+        if (table.name().equalsIgnoreCase(PREP_INTERRUPTION)) {
+            log.info(" Retrieving records from  {} ", table.name());
+            if (dateLastSync == null) {
+                return   interruptionRepository.findAllByFacilityId(facilityId);
+            } else {
+                return interruptionRepository.getAllDueForServerUpload(dateLastSync, facilityId);
             }
         }
 

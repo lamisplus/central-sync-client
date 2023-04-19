@@ -27,6 +27,14 @@ import org.lamisplus.modules.patient.domain.entity.Visit;
 import org.lamisplus.modules.patient.repository.*;
 import org.lamisplus.modules.patient.service.PersonService;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
+import org.lamisplus.modules.prep.domain.entity.PrepClinic;
+import org.lamisplus.modules.prep.domain.entity.PrepEligibility;
+import org.lamisplus.modules.prep.domain.entity.PrepEnrollment;
+import org.lamisplus.modules.prep.domain.entity.PrepInterruption;
+import org.lamisplus.modules.prep.repository.PrepClinicRepository;
+import org.lamisplus.modules.prep.repository.PrepEligibilityRepository;
+import org.lamisplus.modules.prep.repository.PrepEnrollmentRepository;
+import org.lamisplus.modules.prep.repository.PrepInterruptionRepository;
 import org.lamisplus.modules.triage.domain.entity.VitalSign;
 import org.lamisplus.modules.triage.repository.VitalSignRepository;
 import org.springframework.beans.BeanUtils;
@@ -55,6 +63,17 @@ public class ObjectDeserializer {
     public static final String LABORATORY_SAMPLE = "laboratory_sample";
     public static final String LABORATORY_TEST = "laboratory_test";
     public static final String HIV_EAC = "hiv_eac";
+    public static final String PREP_ELIGIBILITY = "prep_eligibility";
+    public static final String PREP_ENROLLMENT = "prep_enrollment";
+    public static final String PREP_CLINIC = "prep_clinic";
+    public static final String BIOMETRIC = "biometric";
+    public static final String HIV_ART_PHARMACY = "hiv_art_pharmacy";
+    public static final String LABORATORY_RESULT = "laboratory_result";
+    public static final String HIV_STATUS_TRACKER = "hiv_status_tracker";
+    public static final String HIV_EAC_SESSION = "hiv_eac_session";
+    public static final String HIV_EAC_OUT_COME = "hiv_eac_out_come";
+    public static final String HIV_OBSERVATION = "hiv_observation";
+    public static final String PREP_INTERRUPTION = "prep_interruption";
     private final PersonRepository personRepository;
     private final BiometricRepository biometricRepository;
     private final VisitRepository visitRepository;
@@ -72,6 +91,10 @@ public class ObjectDeserializer {
     private final HIVEacSessionRepository hivEacSessionRepository;
     private final EacOutComeRepository eacOutComeRepository;
     private final ObservationRepository observationRepository;
+    private final PrepEligibilityRepository prepEligibilityRepository;
+    private final PrepEnrollmentRepository prepEnrollmentRepository;
+    private final PrepClinicRepository prepClinicRepository;
+    private final PrepInterruptionRepository interruptionRepository;
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
@@ -90,69 +113,85 @@ public class ObjectDeserializer {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         switch (table){
-            case "patient":
+            case PATIENT:
                 log.info("Saving " + table + " on Server");
                 return processAndSavePatientsOnServer(data, objectMapper, facilityId);
 
-            case "biometric":
+            case BIOMETRIC:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveBiometricsOnServer(data, objectMapper, facilityId);
 
-            case "patient_visit":
+            case PATIENT_VISIT:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveVisitOnServer(data, objectMapper, facilityId);
 
-            case "triage_vital_sign":
+            case TRIAGE_VITAL_SIGN:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveVitalSignOnServer(data, objectMapper, facilityId);
 
-            case "hiv_enrollment":
+            case HIV_ENROLLMENT:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveHivEnrollmentOnServer(data, objectMapper, facilityId);
 
-            case "hiv_art_clinical":
+            case HIV_ART_CLINICAL:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveArtClinicalOnServer(data, objectMapper, facilityId);
 
-            case "hiv_art_pharmacy":
+            case HIV_ART_PHARMACY:
                 log.info("Saving " + table + " on Server");
                 return processAndSavePharmacyOnServer(data, objectMapper, facilityId);
 
-            case "laboratory_order":
+            case LABORATORY_ORDER:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveLabOrderOnServer(data, objectMapper, facilityId);
 
-            case "laboratory_sample":
+            case LABORATORY_SAMPLE:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveLabSampleOnServer(data, objectMapper, facilityId);
 
-            case "laboratory_test":
+            case LABORATORY_TEST:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveLabTestOnServer(data, objectMapper, facilityId);
 
-            case "laboratory_result":
+            case LABORATORY_RESULT:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveLabResultOnServer(data, objectMapper, facilityId);
 
-            case "hiv_status_tracker":
+            case HIV_STATUS_TRACKER:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveStatusTrackerOnServer(data, objectMapper, facilityId);
 
-            case "hiv_eac":
+            case HIV_EAC:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveEacOnServer(data, objectMapper, facilityId);
 
-            case "hiv_eac_session":
+            case HIV_EAC_SESSION:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveEacSessionOnServer(data, objectMapper, facilityId);
 
-            case "hiv_eac_out_come":
+            case HIV_EAC_OUT_COME:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveEacOutComeOnServer(data, objectMapper, facilityId);
 
-            case "hiv_observation":
+            case HIV_OBSERVATION:
                 log.info("Saving " + table + " on Server");
                 return processAndSaveHivObservationOnServer(data, objectMapper, facilityId);
+
+            case PREP_ELIGIBILITY:
+                log.info("Saving " + table + " on Server");
+                return processAndSavePrepEligibilityOnServer(data, objectMapper, facilityId);
+
+            case PREP_ENROLLMENT:
+                log.info("Saving " + table + " on Server");
+                return processAndSavePrepEnrollmentOnServer(data, objectMapper, facilityId);
+
+            case PREP_CLINIC:
+                log.info("Saving " + table + " on Server");
+                return processAndSavePrepClinicOnServer(data, objectMapper, facilityId);
+
+            case PREP_INTERRUPTION:
+                log.info("Saving " + table + " on Server");
+                return processAndSavePrepInterruptionOnServer(data, objectMapper, facilityId);
         }
 
         List<String> msg = new LinkedList<>();
@@ -848,6 +887,186 @@ public class ObjectDeserializer {
         List<Observation> savedObservation = observationRepository.saveAll(observations);
         log.info("number of Observation save on server => : {}", savedObservation.size());
         return savedObservation;
+    }
+
+
+    /**
+     * Handles PrEP Eligibility sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of Prep Eligibility
+     */
+    private List<PrepEligibility> processAndSavePrepEligibilityOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<PrepEligibility> eligibilities = new ArrayList<>();
+        //Sync related patient before syncing Observation
+        Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+
+        if(optionalPatientQueue.isPresent()) {
+            //Return empty
+            return eligibilities;
+        }
+        List<PrepEligibility> clientEligibilities = objectMapper.readValue(data, new TypeReference<List<PrepEligibility>>() {});
+        clientEligibilities.forEach(clientEligibility -> {
+            PrepEligibility eligibility = new PrepEligibility();
+            BeanUtils.copyProperties(clientEligibility, eligibility);
+            Optional<PrepEligibility> foundEligibility = prepEligibilityRepository
+                    .findByUuid(clientEligibility.getUuid());
+            //Set id for new or old Eligibility on the server
+            if(foundEligibility.isPresent()){
+                eligibility.setId(foundEligibility.get().getId());
+            } else {
+                eligibility.setId(null);
+            }
+            eligibilities.add(eligibility);
+
+        });
+
+        List<PrepEligibility> savedEligibilities = prepEligibilityRepository.saveAll(eligibilities);
+        log.info("number of Observation save on server => : {}", savedEligibilities.size());
+        return savedEligibilities;
+    }
+
+    /**
+     * Handles Prep Enrollment sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of Prep Enrollment
+     */
+    private List<PrepEnrollment> processAndSavePrepEnrollmentOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<PrepEnrollment> enrollments = new ArrayList<>();
+        //Sync related patient before syncing Observation
+        Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalEligibilityQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PREP_ELIGIBILITY, facilityId, PROCESSED);
+
+        if(optionalPatientQueue.isPresent() || optionalEligibilityQueue.isPresent()) {
+            //Return empty
+            return enrollments;
+        }
+        List<PrepEnrollment> clientEnrollments = objectMapper.readValue(data, new TypeReference<List<PrepEnrollment>>() {});
+        clientEnrollments.forEach(prepEnrollment -> {
+            PrepEnrollment enrollment = new PrepEnrollment();
+            BeanUtils.copyProperties(prepEnrollment, enrollment);
+            Optional<PrepEnrollment> foundEnrollment = prepEnrollmentRepository
+                    .findByUuid(prepEnrollment.getUuid());
+            //Set id for new or old Enrollment on the server
+            if(foundEnrollment.isPresent()){
+                enrollment.setId(foundEnrollment.get().getId());
+            } else {
+                enrollment.setId(null);
+            }
+            enrollments.add(enrollment);
+
+        });
+
+        List<PrepEnrollment> savedEnrollments = prepEnrollmentRepository.saveAll(enrollments);
+        log.info("number of Prep Enrollment save on server => : {}", savedEnrollments.size());
+        return savedEnrollments;
+    }
+
+    /**
+     * Handles Prep Clinic sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of Prep Clinic
+     */
+    private List<PrepClinic> processAndSavePrepClinicOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<PrepClinic> prepClinics = new ArrayList<>();
+        //Sync related patient before syncing Observation
+        Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalEligibilityQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PREP_ELIGIBILITY, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalEnrollmentQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PREP_ENROLLMENT, facilityId, PROCESSED);
+
+        if(optionalPatientQueue.isPresent()
+                || optionalEligibilityQueue.isPresent()
+                || optionalEnrollmentQueue.isPresent()) {
+            //Return empty
+            return prepClinics;
+        }
+        List<PrepClinic> clientClinics = objectMapper.readValue(data, new TypeReference<List<PrepClinic>>() {});
+        clientClinics.forEach(clientClinic -> {
+            PrepClinic clinic = new PrepClinic();
+            BeanUtils.copyProperties(clientClinic, clinic);
+            Optional<PrepClinic> foundClinic = prepClinicRepository
+                    .findByUuid(clientClinic.getUuid());
+            //Set id for new or old Prep Clinic on the server
+            if(foundClinic.isPresent()){
+                clinic.setId(foundClinic.get().getId());
+            } else {
+                clinic.setId(null);
+            }
+            prepClinics.add(clinic);
+
+        });
+
+        List<PrepClinic> savedClinics = prepClinicRepository.saveAll(prepClinics);
+        log.info("number of Prep Clinic save on server => : {}", savedClinics.size());
+        return savedClinics;
+    }
+
+    /**
+     * Handles Prep Interruption sync to central server - considered as level .
+     * @param data
+     * @param objectMapper
+     * @param facilityId
+     * @return the List of Prep Interruption
+     */
+    private List<PrepInterruption> processAndSavePrepInterruptionOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        List<PrepInterruption> interruptions = new ArrayList<>();
+        //Sync related patient before syncing Prep Interruption
+        Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalEligibilityQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PREP_ELIGIBILITY, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalEnrollmentQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PREP_ENROLLMENT, facilityId, PROCESSED);
+
+        Optional<SyncQueue>  optionalClinicQueue = syncQueueRepository
+                .findAllByTableNameAndFacilityIdAndProcessed(PREP_CLINIC, facilityId, PROCESSED);
+
+        if(optionalPatientQueue.isPresent()
+                || optionalEligibilityQueue.isPresent()
+                || optionalEnrollmentQueue.isPresent()
+                || optionalClinicQueue.isPresent()) {
+            //Return empty
+            return interruptions;
+        }
+        List<PrepInterruption> clientInterruptions = objectMapper.readValue(data, new TypeReference<List<PrepInterruption>>() {});
+        clientInterruptions.forEach(clientInterruption -> {
+            PrepInterruption interruption = new PrepInterruption();
+            BeanUtils.copyProperties(clientInterruption, interruption);
+            Optional<PrepInterruption> foundInterruption = interruptionRepository
+                    .findByUuid(clientInterruption.getUuid());
+            //Set id for new or old Prep Interruption on the server
+            if(foundInterruption.isPresent()){
+                interruption.setId(foundInterruption.get().getId());
+            } else {
+                interruption.setId(null);
+            }
+            interruptions.add(interruption);
+
+        });
+
+        List<PrepInterruption> savedInterruptions = interruptionRepository.saveAll(interruptions);
+        log.info("number of Prep Interruption save on server => : {}", savedInterruptions.size());
+        return savedInterruptions;
     }
 
 }
