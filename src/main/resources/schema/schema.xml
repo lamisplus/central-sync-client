@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
-    <changeSet failOnError="false" author="Chukwuemeka Ilozue" id="1648201114214-1-sync-drkarim">
+    <!--<changeSet failOnError="false" author="Chukwuemeka Ilozue" id="1648201114214-01-sync-drkarim">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
-                SELECT COUNT(*) FROM role WHERE name='User';
+                SELECT COUNT(*) FROM base_role WHERE name='User';
             </sqlCheck>
         </preConditions>
         <sqlFile dbms="postgresql"
@@ -11,7 +11,7 @@
                  relativeToChangelogFile="true"
                  splitStatements="false"
                  stripComments="true"/>
-    </changeSet>
+    </changeSet>-->
 
     <changeSet failOnError="false" author="Emeka Ilozue" id="1649865054498-2-sync-drkarim">
         <preConditions onFail="MARK_RAN">
