@@ -1,6 +1,6 @@
 basePackage: org.lamisplus.modules.central
 name: CentralSyncModule
-dependencies: {PatientModule: 2.0.2, TriageModule: 2.0.1, HivModule: 2.1.0, BiometricModule: 2.0.1, LaboratoryModule: 2.0.2}
+dependencies: {PatientModule: 2.0.2, TriageModule: 2.0.1, HivModule: 2.1.0, BiometricModule: 2.0.1, LaboratoryModule: 2.0.3}
 store: true
 menus:
   - icon: fa fa-bar-chart
