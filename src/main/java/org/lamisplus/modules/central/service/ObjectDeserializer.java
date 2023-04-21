@@ -167,9 +167,9 @@ public class ObjectDeserializer {
                 log.info("Saving " + table + " on Server");
                 return processAndSaveEacSessionOnServer(data, objectMapper, facilityId);
 
-            case HIV_EAC_OUT_COME:
+            /*case HIV_EAC_OUT_COME:
                 log.info("Saving " + table + " on Server");
-                return processAndSaveEacOutComeOnServer(data, objectMapper, facilityId);
+                return processAndSaveEacOutComeOnServer(data, objectMapper, facilityId);*/
 
             case HIV_OBSERVATION:
                 log.info("Saving " + table + " on Server");
