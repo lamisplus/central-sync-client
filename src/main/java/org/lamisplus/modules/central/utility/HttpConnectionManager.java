@@ -52,7 +52,7 @@ public class HttpConnectionManager {
                     .addHeader("User-Agent", "OkHttp Bot")
                     .addHeader("Hash-Value", hash)
                     .addHeader("token", "lamisplus")
-                    .addHeader("authorization", token)
+                    //.addHeader("authorization", token)
                     .post(body)
                     .build();
         }

@@ -25,6 +25,8 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import java.io.IOException;
+import java.net.SocketException;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -48,6 +50,7 @@ public class SyncClientService {
     private static String SYNC_ENDPOINT = "topic/central-topic/progress";
     private static String SYNC_PAYLOAD_ENDPOINT = "topic/central-topic/table-progress";
     private final ObjectMapper objectMapper;
+    int count=0;
 
 
     //@Async
@@ -101,6 +104,7 @@ public class SyncClientService {
                 Integer size = serializeTableRecords.size();
                 log.info("object size:  {} ", serializeTableRecords.size());
                 if (!serializeObject.toString().contains("No table records was retrieved for server sync")) {
+
                     String pathVariable = table.name().concat("/").concat(Long.toString(uploadDTO.getFacilityId()))
                             .concat("/").concat(remoteAccessToken.getUsername())
                             .concat("/")
@@ -115,7 +119,7 @@ public class SyncClientService {
                     SecretKey secretKey = AESUtil.getPrivateAESKeyFromDB(remoteAccessToken);
                     bytes = this.encrypt(bytes, secretKey);
 
-                    String response = new HttpConnectionManager().post(bytes, token, url);
+                    String response = sendTableDataToServer(bytes, token, url);
                     log.info("Done");
 
                     syncHistory.setTableName(table.name());
@@ -162,6 +166,22 @@ public class SyncClientService {
     public List getTablesForSyncing(Long facilityId){
         return Arrays.stream(Tables.values()).collect(Collectors.toList());
         //return syncHistoryRepository.findTableToSync(facilityId);
+    }
+
+    private String sendTableDataToServer(byte[] bytes, String token, String url) throws IOException{
+        try {
+            ++count;
+            return new HttpConnectionManager().post(bytes, token, url);
+        } catch (SocketException e) {
+            if(count < 11){
+                log.info("client reset");
+                sendTableDataToServer(bytes, token, url);
+            }else {
+                e.printStackTrace();
+                throw new RuntimeException(e.getMessage());
+            }
+        }
+        return null;
     }
 }
 
