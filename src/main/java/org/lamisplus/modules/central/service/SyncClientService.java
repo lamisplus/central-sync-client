@@ -120,31 +120,34 @@ public class SyncClientService {
                     bytes = this.encrypt(bytes, secretKey);
 
                     String response = sendTableDataToServer(bytes, token, url);
-                    log.info("Done");
+                    log.info("response {}", response);
+                    if(response == null){
+                        throw new RuntimeException("response is null");
+                    }else {
+                        log.info("Done");
+                        syncHistory.setTableName(table.name());
+                        syncHistory.setOrganisationUnitId(uploadDTO.getFacilityId());
+                        syncHistory.setDateLastSync(LocalDateTime.now());
 
-                    syncHistory.setTableName(table.name());
-                    syncHistory.setOrganisationUnitId(uploadDTO.getFacilityId());
-                    syncHistory.setDateLastSync(LocalDateTime.now());
+                        try {
+                            //For serializing the date on the sync queue
+                            ObjectMapper objectMapper = new ObjectMapper();
+                            objectMapper.registerModule(new JavaTimeModule());
+                            objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-                    try {
-                        //For serializing the date on the sync queue
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        objectMapper.registerModule(new JavaTimeModule());
-                        objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+                            SyncQueue syncQueue = objectMapper.readValue(response, SyncQueue.class);
 
-                        SyncQueue syncQueue = objectMapper.readValue(response, SyncQueue.class);
+                            syncHistory.setProcessed(syncQueue.getProcessed());
+                            syncHistory.setSyncQueueId(syncQueue.getId());
 
-                        syncHistory.setProcessed(syncQueue.getProcessed());
-                        syncHistory.setSyncQueueId(syncQueue.getId());
-
-                        //get remote access token id
-                        syncHistory.setRemoteAccessTokenId(remoteAccessToken.getId());
-                        syncHistory.setUploadSize(serializeTableRecords.size());
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                            //get remote access token id
+                            syncHistory.setRemoteAccessTokenId(remoteAccessToken.getId());
+                            syncHistory.setUploadSize(serializeTableRecords.size());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        syncHistoryService.save(syncHistory);
                     }
-
-                    syncHistoryService.save(syncHistory);
                 }
             }
         }

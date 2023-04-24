@@ -14,7 +14,7 @@ public enum Tables{
     biometric,
     hiv_status_tracker,
     hiv_eac,
-    hiv_eac_session,
+    //hiv_eac_session,
     hiv_eac_out_come,
     hiv_observation,
     prep_eligibility,
