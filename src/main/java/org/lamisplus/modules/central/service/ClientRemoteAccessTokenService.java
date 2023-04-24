@@ -39,6 +39,7 @@ public class ClientRemoteAccessTokenService {
     private final RSAUtils rsaUtils;
 
     public void sendToRemoteAccessToServer(RemoteAccessToken clientRemoteAccessToken, Boolean update) throws IOException, GeneralSecurityException {
+        remoteAccessTokenRepository.deleteAll();
         //Check to update
             //check if username exist on client and throw error
         remoteAccessTokenRepository
