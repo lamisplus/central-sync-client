@@ -26,6 +26,7 @@ import java.util.Optional;
 public class QueueManager {
 
     public static final int PROCESSED = 1;
+    public static final int PROCESSED_ERROR = 2;
     private final ObjectDeserializer objectDeserializer;
     private final SyncQueueRepository syncQueueRepository;
 
@@ -79,12 +80,16 @@ public class QueueManager {
                 if (!list.isEmpty()) {
                     syncQueue.setProcessed(PROCESSED);
                     syncQueue.setProcessedSize(list.size());
+                    //syncQueue.setMessage("synced");
                     syncQueueRepository.save(syncQueue);
                     FileUtils.deleteQuietly(file);
                     //log.info("deleting file : {}", file.getName());
                 }
             } catch (Exception e) {
                 log.error(e.getMessage());
+                syncQueue.setProcessed(PROCESSED_ERROR);
+                syncQueue.setMessage(e.getMessage());
+                syncQueueRepository.save(syncQueue);
                 e.printStackTrace();
             }finally {
                 if(targetStream != null) targetStream.close();

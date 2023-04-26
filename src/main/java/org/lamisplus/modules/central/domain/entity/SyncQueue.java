@@ -3,6 +3,7 @@ package org.lamisplus.modules.central.domain.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
@@ -52,10 +53,8 @@ public class SyncQueue implements Serializable {
     @Column(name = "created_by")
     private String createdBy;
 
-    /*@Basic
-    @Column(name = "uuid")
-    private String uuid;*/
-
-
+    @Basic
+    @Column(name = "message")
+    private String message;
 
 }

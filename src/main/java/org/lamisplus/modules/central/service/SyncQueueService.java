@@ -2,8 +2,10 @@ package org.lamisplus.modules.central.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.central.domain.dto.SyncQueueDto;
 import org.lamisplus.modules.central.domain.entity.SyncQueue;
 import org.lamisplus.modules.central.repository.SyncQueueRepository;
+import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +25,15 @@ public class SyncQueueService {
         syncQueueRepository.save(syncQueue);
     }
 
-    public SyncQueue getAllSyncQueueById(Long id) {
+    public SyncQueueDto getAllSyncQueueById(Long id) {
+        SyncQueueDto syncQueueDto = new SyncQueueDto();
         Optional<SyncQueue> optionalSyncQueue = syncQueueRepository.findTopByIdOrderByIdDesc(id);
-        if(optionalSyncQueue.isPresent())return optionalSyncQueue.get();
-        return new SyncQueue();
+
+        if(optionalSyncQueue.isPresent()){
+            BeanUtils.copyProperties(optionalSyncQueue.get(), syncQueueDto);
+            return syncQueueDto;
+        }
+        return syncQueueDto;
     }
 
     @Scheduled(fixedDelay = 300000)

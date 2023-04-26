@@ -1,6 +1,5 @@
 package org.lamisplus.modules.central.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -204,7 +203,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of Persons
      */
-    private List<Person> processAndSavePatientsOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<Person> processAndSavePatientsOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         List<Person> persons = new LinkedList<>();
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<Person> clientPersonList = objectMapper.readValue(data, new TypeReference<List<Person>>() {
@@ -234,7 +233,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of Patient visit
      */
-    private List<Visit> processAndSaveVisitOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<Visit> processAndSaveVisitOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<Visit> visits = new ArrayList<>();
         //Sync related patient before syncing visit
@@ -272,7 +271,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of Hiv Enrollment
      */
-    private List<HivEnrollment> processAndSaveHivEnrollmentOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<HivEnrollment> processAndSaveHivEnrollmentOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<HivEnrollment> hivEnrollments = new ArrayList<>();
         //Sync related patient before syncing hiv enrollment
@@ -314,7 +313,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of Vital Sign
      */
-    private List<VitalSign> processAndSaveVitalSignOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<VitalSign> processAndSaveVitalSignOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<VitalSign> vitalSigns = new ArrayList<>();
         //Sync related patient before syncing vitalSign
@@ -362,7 +361,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of ART Clinic
      */
-    private List<ARTClinical> processAndSaveArtClinicalOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<ARTClinical> processAndSaveArtClinicalOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<ARTClinical> artClinicals = new ArrayList<>();
         //Sync related patient before syncing vitalSign
@@ -412,7 +411,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of patient Pharmacy
      */
-    private List<ArtPharmacy> processAndSavePharmacyOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<ArtPharmacy> processAndSavePharmacyOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<ArtPharmacy> artPharmacies = new ArrayList<>();
         //Sync related patient before syncing pharmacy
@@ -470,7 +469,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of patient Lab Order
      */
-    private List<LabOrder> processAndSaveLabOrderOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<LabOrder> processAndSaveLabOrderOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<LabOrder> labOrders = new ArrayList<>();
         //Sync related patient before syncing Lab Order
@@ -529,7 +528,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of patient Lab Sample
      */
-    private List<Sample> processAndSaveLabSampleOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<Sample> processAndSaveLabSampleOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<Sample> samples = new ArrayList<>();
         //Sync related patient before syncing pharmacy
@@ -571,7 +570,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of patient Lab Test
      */
-    private List<Test> processAndSaveLabTestOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<Test> processAndSaveLabTestOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<Test> tests = new ArrayList<>();
         //Sync related patient before syncing Lab test
@@ -616,7 +615,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of patient Lab Result
      */
-    private List<Result> processAndSaveLabResultOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<Result> processAndSaveLabResultOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<Result> results = new ArrayList<>();
         //Sync related patient before syncing Lab test
@@ -669,7 +668,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of Biometrics
      */
-    private List<Biometric> processAndSaveBiometricsOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<Biometric> processAndSaveBiometricsOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<Biometric> savedBiometrics = new ArrayList<>();
         //Sync related patient before syncing biometrics
@@ -691,7 +690,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of HIVStatusTracker
      */
-    private List<HIVStatusTracker> processAndSaveStatusTrackerOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<HIVStatusTracker> processAndSaveStatusTrackerOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<HIVStatusTracker> statusTrackers = new ArrayList<>();
         //Sync related patient before syncing HIV Status Tracker
@@ -728,7 +727,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of HIVEac
      */
-    private List<HIVEac> processAndSaveEacOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<HIVEac> processAndSaveEacOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<HIVEac> hivEacs = new ArrayList<>();
         //Sync related patient before syncing HIV Eac
@@ -764,7 +763,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of HIV Eac Session
      */
-    private List<HIVEacSession> processAndSaveEacSessionOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<HIVEacSession> processAndSaveEacSessionOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<HIVEacSession> hivEacSessions = new ArrayList<>();
         //Sync related patient before syncing HIV Eac
@@ -805,7 +804,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of Eac Outcome
      */
-    private List<EacOutCome> processAndSaveEacOutComeOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<EacOutCome> processAndSaveEacOutComeOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<EacOutCome> eacOutComes = new ArrayList<>();
         //Sync related patient before syncing HIV Eac
@@ -853,7 +852,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of Hiv Observation
      */
-    private List<Observation> processAndSaveHivObservationOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<Observation> processAndSaveHivObservationOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<Observation> observations = new ArrayList<>();
         //Sync related patient before syncing Observation
@@ -895,7 +894,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of Prep Eligibility
      */
-    private List<PrepEligibility> processAndSavePrepEligibilityOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<PrepEligibility> processAndSavePrepEligibilityOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<PrepEligibility> eligibilities = new ArrayList<>();
         //Sync related patient before syncing Observation
@@ -934,7 +933,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of Prep Enrollment
      */
-    private List<PrepEnrollment> processAndSavePrepEnrollmentOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<PrepEnrollment> processAndSavePrepEnrollmentOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<PrepEnrollment> enrollments = new ArrayList<>();
         //Sync related patient before syncing Observation
@@ -976,7 +975,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of Prep Clinic
      */
-    private List<PrepClinic> processAndSavePrepClinicOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<PrepClinic> processAndSavePrepClinicOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<PrepClinic> prepClinics = new ArrayList<>();
         //Sync related patient before syncing Observation
@@ -1023,7 +1022,7 @@ public class ObjectDeserializer {
      * @param facilityId
      * @return the List of Prep Interruption
      */
-    private List<PrepInterruption> processAndSavePrepInterruptionOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws JsonProcessingException {
+    private List<PrepInterruption> processAndSavePrepInterruptionOnServer(String data, ObjectMapper objectMapper, Long facilityId) throws Exception {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<PrepInterruption> interruptions = new ArrayList<>();
         //Sync related patient before syncing Prep Interruption

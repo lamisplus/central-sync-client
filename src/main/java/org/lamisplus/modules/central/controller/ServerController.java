@@ -3,6 +3,7 @@ package org.lamisplus.modules.central.controller;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.central.domain.dto.SyncQueueDto;
 import org.lamisplus.modules.central.domain.entity.SyncQueue;
 import org.lamisplus.modules.central.service.ServerRemoteAccessTokenService;
 import org.lamisplus.modules.central.service.SyncQueueService;
@@ -40,7 +41,7 @@ public class ServerController {
     @RequestMapping(value = "/sync-queue/{id}",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<SyncQueue> getSyncQueue(@PathVariable Long id){
+    public ResponseEntity<SyncQueueDto> getSyncQueue(@PathVariable Long id){
         return ResponseEntity.ok(syncQueueService.getAllSyncQueueById(id));
     }
 

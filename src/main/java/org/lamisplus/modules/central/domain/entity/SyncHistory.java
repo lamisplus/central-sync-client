@@ -51,6 +51,10 @@ public class SyncHistory implements Serializable {
     @Column(name = "processedSize")
     private Integer processedSize;
 
+    @Basic
+    @Column(name = "message")
+    private String message;
+
     @Transient
     private String facilityName;
 
