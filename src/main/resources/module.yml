@@ -1,6 +1,6 @@
 basePackage: org.lamisplus.modules.central
 name: CentralSyncModule
-dependencies: {HivModule: 2.1.0, BiometricModule: 2.0.1}
+dependencies: {HivModule: 2.1.0, BiometricModule: 2.0.1, PrepModule: 2.0.2}
 store: true
 menus:
   - icon: fa fa-bar-chart

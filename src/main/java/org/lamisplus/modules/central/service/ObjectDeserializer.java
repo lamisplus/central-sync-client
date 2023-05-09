@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.base.controller.apierror.IllegalTypeException;
+import org.lamisplus.modules.base.domain.entities.OrganisationUnit;
 import org.lamisplus.modules.laboratory.domain.entity.LabOrder;
 import org.lamisplus.modules.laboratory.domain.entity.Result;
 import org.lamisplus.modules.laboratory.domain.entity.Sample;
@@ -197,6 +199,17 @@ public class ObjectDeserializer {
     }
 
     /**
+     * Check Facility id to prevent incorrect processing
+     * @param facilityId1
+     * @param facilityId2
+     * @return void
+     */
+    private void checkFacilityId(Long facilityId1, Long facilityId2){
+        if(facilityId1 != facilityId2)throw new IllegalTypeException(OrganisationUnit.class,
+                "Facility id mis-match", "wrong facility id import, possibly during export & import");
+    }
+
+    /**
      * Handles patient sync to central server - considered as level A.
      * @param data
      * @param objectMapper
@@ -210,6 +223,7 @@ public class ObjectDeserializer {
         });
 
         clientPersonList.forEach(clientPerson -> {
+            checkFacilityId(clientPerson.getFacilityId(), facilityId);
             Person person = new Person();
             BeanUtils.copyProperties(clientPerson, person);
             Optional<Person> foundPerson = personRepository.findByUuidAndFacilityId(clientPerson.getUuid(), facilityId);
@@ -246,6 +260,7 @@ public class ObjectDeserializer {
         List<Visit> clientVisits = objectMapper.readValue(data, new TypeReference<List<Visit>>() {
         });
         clientVisits.forEach(clientVisit -> {
+            checkFacilityId(clientVisit.getFacilityId(), facilityId);
             Visit visit = new Visit();
             BeanUtils.copyProperties(clientVisit, visit);
             Optional<Visit> foundVisit = visitRepository.findByUuidAndFacilityId(clientVisit.getUuid(), facilityId);
@@ -287,6 +302,7 @@ public class ObjectDeserializer {
         }
         List<HivEnrollment> clientEnrollments = objectMapper.readValue(data, new TypeReference<List<HivEnrollment>>() {});
         clientEnrollments.forEach(clientEnrollment -> {
+            checkFacilityId(clientEnrollment.getFacilityId(), facilityId);
             HivEnrollment hivEnrollment = new HivEnrollment();
             BeanUtils.copyProperties(clientEnrollment, hivEnrollment);
             Optional<HivEnrollment> foundEnrollment = hivEnrollmentRepository.findByUuid(clientEnrollment.getUuid());
@@ -334,6 +350,7 @@ public class ObjectDeserializer {
         List<VitalSign> clientVitalSigns = objectMapper.readValue(data, new TypeReference<List<VitalSign>>() {});
 
         clientVitalSigns.forEach(clientVital -> {
+            checkFacilityId(clientVital.getFacilityId(), facilityId);
             VitalSign vitalSign = new VitalSign();
             BeanUtils.copyProperties(clientVital, vitalSign);
             Optional<VitalSign> foundVital = vitalSignRepository.findByUuidAndFacilityId(clientVital.getUuid(), facilityId);
@@ -385,6 +402,7 @@ public class ObjectDeserializer {
         List<ARTClinical> clientArtClinics = objectMapper.readValue(data, new TypeReference<List<ARTClinical>>() {});
 
         clientArtClinics.forEach(ClientClinical -> {
+            checkFacilityId(ClientClinical.getFacilityId(), facilityId);
             ARTClinical artClinical = new ARTClinical();
             BeanUtils.copyProperties(ClientClinical, artClinical);
             Optional<ARTClinical> foundClinical = artClinicalRepository.findByUuid(ClientClinical.getUuid());
@@ -443,6 +461,7 @@ public class ObjectDeserializer {
         List<ArtPharmacy> clientPharmacies = objectMapper.readValue(data, new TypeReference<List<ArtPharmacy>>() {});
 
         clientPharmacies.forEach(clientPharmacy -> {
+            checkFacilityId(clientPharmacy.getFacilityId(), facilityId);
             ArtPharmacy artPharmacy = new ArtPharmacy();
             BeanUtils.copyProperties(clientPharmacy, artPharmacy);
             Optional<ARTClinical> foundPharmacy = artClinicalRepository.findByUuid(clientPharmacy.getUuid());
@@ -483,6 +502,7 @@ public class ObjectDeserializer {
         List<LabOrder> clientLabOrders = objectMapper.readValue(data, new TypeReference<List<LabOrder>>() {});
 
         clientLabOrders.forEach(clientLabOrder -> {
+            checkFacilityId(clientLabOrder.getFacilityId(), facilityId);
             LabOrder labOrder = new LabOrder();
             BeanUtils.copyProperties(clientLabOrder, labOrder);
             Optional<LabOrder> foundLabOrder = labOrderRepository.findByUuid(clientLabOrder.getUuid());
@@ -545,6 +565,7 @@ public class ObjectDeserializer {
         List<Sample> clientLabSamples = objectMapper.readValue(data, new TypeReference<List<Sample>>() {});
 
         clientLabSamples.forEach(clientLabSample -> {
+            checkFacilityId(clientLabSample.getFacilityId(), facilityId);
             Sample sample = new Sample();
             BeanUtils.copyProperties(clientLabSample, sample);
             Optional<Sample> foundLabSample = sampleRepository.findByUuid(clientLabSample.getUuid());
@@ -590,6 +611,7 @@ public class ObjectDeserializer {
         List<Test> clientLabTests = objectMapper.readValue(data, new TypeReference<List<Test>>() {});
 
         clientLabTests.forEach(clientLabTest -> {
+            checkFacilityId(clientLabTest.getFacilityId(), facilityId);
             Test test = new Test();
             BeanUtils.copyProperties(clientLabTest, test);
             Optional<Test> foundLabTest = testRepository.findByUuid(clientLabTest.getUuid());
@@ -642,6 +664,7 @@ public class ObjectDeserializer {
         List<Result> clientLabResults = objectMapper.readValue(data, new TypeReference<List<Result>>() {});
 
         clientLabResults.forEach(clientLabResult -> {
+            checkFacilityId(clientLabResult.getFacilityId(), facilityId);
             Result result = new Result();
             BeanUtils.copyProperties(clientLabResult, result);
             Optional<Result> foundResult = resultRepository.findByUuid(clientLabResult.getUuid());
@@ -699,6 +722,7 @@ public class ObjectDeserializer {
             });
 
             clientStatusTrackers.forEach(clientStatus -> {
+                checkFacilityId(clientStatus.getFacilityId(), facilityId);
                 HIVStatusTracker statusTracker = new HIVStatusTracker();
                 BeanUtils.copyProperties(clientStatus, statusTracker);
                 Optional<HIVStatusTracker> foundStatus = hivStatusTrackerRepository.findByUuid(clientStatus.getUuid());
@@ -735,6 +759,7 @@ public class ObjectDeserializer {
             List<HIVEac> eacs = objectMapper.readValue(data, new TypeReference<List<HIVEac>>() {});
 
             eacs.forEach(clientEac -> {
+                checkFacilityId(clientEac.getFacilityId(), facilityId);
                 HIVEac eac = new HIVEac();
                 BeanUtils.copyProperties(clientEac, eac);
                 Optional<HIVEac> foundEac = hivEacRepository.findByUuid(clientEac.getUuid());
@@ -780,6 +805,7 @@ public class ObjectDeserializer {
         List<HIVEacSession> clientEacSessions = objectMapper.readValue(data, new TypeReference<List<HIVEacSession>>() {});
 
         clientEacSessions.forEach(clientEacSession -> {
+            checkFacilityId(clientEacSession.getFacilityId(), facilityId);
             HIVEacSession eacSession = new HIVEacSession();
             BeanUtils.copyProperties(clientEacSession, eacSession);
             Optional<HIVEacSession> foundSession = hivEacSessionRepository.findByUuid(clientEacSession.getUuid());
@@ -827,6 +853,7 @@ public class ObjectDeserializer {
         List<EacOutCome> clientEacOutcomes = objectMapper.readValue(data, new TypeReference<List<EacOutCome>>() {});
 
         clientEacOutcomes.forEach(clientEacOutcome -> {
+            checkFacilityId(clientEacOutcome.getFacilityId(), facilityId);
             EacOutCome eacOutCome = new EacOutCome();
             BeanUtils.copyProperties(clientEacOutcome, eacOutCome);
             Optional<EacOutCome> foundOutcomes = eacOutComeRepository.findByUuid(clientEacOutcome.getUuid());
@@ -868,6 +895,7 @@ public class ObjectDeserializer {
         }
         List<Observation> clientObservations = objectMapper.readValue(data, new TypeReference<List<Observation>>() {});
         clientObservations.forEach(clientObservation -> {
+            checkFacilityId(clientObservation.getFacilityId(), facilityId);
             Observation observation = new Observation();
             BeanUtils.copyProperties(clientObservation, observation);
             Optional<Observation> foundObservation = observationRepository.findByUuid(clientObservation.getUuid());
@@ -907,6 +935,7 @@ public class ObjectDeserializer {
         }
         List<PrepEligibility> clientEligibilities = objectMapper.readValue(data, new TypeReference<List<PrepEligibility>>() {});
         clientEligibilities.forEach(clientEligibility -> {
+            checkFacilityId(clientEligibility.getFacilityId(), facilityId);
             PrepEligibility eligibility = new PrepEligibility();
             BeanUtils.copyProperties(clientEligibility, eligibility);
             Optional<PrepEligibility> foundEligibility = prepEligibilityRepository
@@ -949,6 +978,7 @@ public class ObjectDeserializer {
         }
         List<PrepEnrollment> clientEnrollments = objectMapper.readValue(data, new TypeReference<List<PrepEnrollment>>() {});
         clientEnrollments.forEach(prepEnrollment -> {
+            checkFacilityId(prepEnrollment.getFacilityId(), facilityId);
             PrepEnrollment enrollment = new PrepEnrollment();
             BeanUtils.copyProperties(prepEnrollment, enrollment);
             Optional<PrepEnrollment> foundEnrollment = prepEnrollmentRepository
@@ -996,6 +1026,7 @@ public class ObjectDeserializer {
         }
         List<PrepClinic> clientClinics = objectMapper.readValue(data, new TypeReference<List<PrepClinic>>() {});
         clientClinics.forEach(clientClinic -> {
+            checkFacilityId(clientClinic.getFacilityId(), facilityId);
             PrepClinic clinic = new PrepClinic();
             BeanUtils.copyProperties(clientClinic, clinic);
             Optional<PrepClinic> foundClinic = prepClinicRepository
@@ -1047,6 +1078,7 @@ public class ObjectDeserializer {
         }
         List<PrepInterruption> clientInterruptions = objectMapper.readValue(data, new TypeReference<List<PrepInterruption>>() {});
         clientInterruptions.forEach(clientInterruption -> {
+            checkFacilityId(clientInterruption.getFacilityId(), facilityId);
             PrepInterruption interruption = new PrepInterruption();
             BeanUtils.copyProperties(clientInterruption, interruption);
             Optional<PrepInterruption> foundInterruption = interruptionRepository

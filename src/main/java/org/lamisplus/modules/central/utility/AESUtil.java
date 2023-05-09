@@ -161,4 +161,24 @@ public class AESUtil {
         SecretKey secret = new SecretKeySpec(Arrays.copyOf(keyBytes, 16), "AES");
         return secret;
     }
+
+    public static byte[] decrypt(byte[] bytes, SecretKey secretKey) throws GeneralSecurityException, IOException {
+
+        Cipher decryptCipher = Cipher.getInstance("AES");
+        decryptCipher.init(Cipher.DECRYPT_MODE, secretKey);
+        byte[] decryptedMessageBytes = decryptCipher.doFinal(bytes);
+        return decryptedMessageBytes;
+    }
+
+    public static byte[] encrypt(byte[] bytes, SecretKey secretKey) throws GeneralSecurityException, Exception {
+        try{
+            Cipher encryptCipher = Cipher.getInstance("AES");
+            encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            byte[] encryptedMessageBytes = encryptCipher.doFinal(bytes);
+            return encryptedMessageBytes;
+        } catch (Exception e){
+            e.printStackTrace();
+            throw e;
+        }
+    }
 }

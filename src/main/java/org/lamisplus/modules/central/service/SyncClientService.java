@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SyncClientService {
+    public static final int PROCESSED = 3;
+    public static final int PROCESSING = 0;
     private final ObjectMapper mapper = new ObjectMapper();
     private final SyncHistoryService syncHistoryService;
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
@@ -185,6 +187,22 @@ public class SyncClientService {
             }
         }
         return null;
+    }
+
+    public SyncHistory confirmUpload(String userName, String tableName, Long facilityId, Long queueId){
+
+        RemoteAccessToken remoteAccessToken = remoteAccessTokenRepository
+                .findByUsername(userName)
+                .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "User", "does not exist"));
+
+        SyncHistory syncHistory =  syncHistoryRepository
+                .findByRemoteAccessTokenIdAndTableNameAndOrganisationUnitIdAndSyncQueueIdAndProcessed(remoteAccessToken.getId(),
+                        tableName, facilityId, queueId, PROCESSED)
+                .orElseThrow(()-> new EntityNotFoundException(SyncHistory.class,
+                        "Incorrect tableName or facilityId or QueueId", tableName + " or " + queueId));
+        syncHistory.setSyncQueueId(queueId);
+        syncHistory.setProcessed(PROCESSING);
+        return syncHistoryRepository.save(syncHistory);
     }
 }
 

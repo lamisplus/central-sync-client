@@ -55,6 +55,7 @@ public class SyncQueue implements Serializable {
 
     @Basic
     @Column(name = "message")
+    @JsonIgnore
     private String message;
 
 }

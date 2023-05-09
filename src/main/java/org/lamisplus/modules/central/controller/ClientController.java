@@ -37,8 +37,6 @@ public class ClientController {
     @RequestMapping(value = "/upload",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    //@CircuitBreaker(name = "service2", fallbackMethod = "getDefaultMessage")
-    //@Retry(name = "retryService2", fallbackMethod = "retryFallback")
     public @ResponseBody ResponseEntity sender(@RequestParam(required = false, defaultValue = "*") String tableName, @Valid @RequestBody UploadDTO uploadDTO) throws Exception  {
             syncClientService.sender(uploadDTO, tableName);
             return ResponseEntity.status(HttpStatus.OK).build();
@@ -87,5 +85,16 @@ public class ClientController {
                 .findById(id)
                 .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "id", String.valueOf(id)));
         clientRemoteAccessTokenService.sendToRemoteAccessToServer(remoteAccessToken, true);
+    }
+
+    @RequestMapping(value = "/upload-confirmation",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public @ResponseBody ResponseEntity confirmUpload(@RequestParam String userName,
+                                                      @RequestParam String tableName,
+                                                      @RequestParam Long facilityId,
+                                                      @RequestParam Long queueId) {
+        syncClientService.confirmUpload(userName, tableName, facilityId, queueId);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

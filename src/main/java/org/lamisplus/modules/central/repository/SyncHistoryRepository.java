@@ -68,4 +68,6 @@ public interface SyncHistoryRepository extends JpaRepository<SyncHistory, Long> 
             "WHERE facility_id=?1 AND last_modified_date > (SELECT date_last_sync FROM sync_history  " +
             " WHERE table_name='hiv_observation' AND organisation_unit_id=?1)) hiv_observation", nativeQuery = true)
     List<SyncTable> findTableToSync(Long facility);
+
+    Optional<SyncHistory> findByRemoteAccessTokenIdAndTableNameAndOrganisationUnitIdAndSyncQueueIdAndProcessed(Long remoteAccessTokenId, String tableName, Long facilityId, Long queueId, int processed);
 }
