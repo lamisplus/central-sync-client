@@ -53,4 +53,8 @@ public interface SyncQueueRepository extends JpaRepository<SyncQueue, Long> {
 
     @Query(value = "SELECT * FROM sync_queue WHERE table_name=?1 AND organisation_unit_id=?2 AND processed=?3", nativeQuery = true)
     Optional<SyncQueue> findAllByTableNameAndFacilityIdAndProcessed(String tableName, Long facilityId, Integer processed);
+
+
+    @Query(value = "SELECT * FROM sync_queue WHERE table_name=?1 AND organisation_unit_id=?2 AND processed=?3 LIMIT 1", nativeQuery = true)
+    Optional<SyncQueue> findOneByTableNameAndFacilityIdAndProcessed(String tableName, Long facilityId, Integer processed);
 }
