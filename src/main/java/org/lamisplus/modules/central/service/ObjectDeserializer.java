@@ -205,8 +205,8 @@ public class ObjectDeserializer {
      * @return void
      */
     private void checkFacilityId(Long facilityId1, Long facilityId2){
-        if(facilityId1 != facilityId2)throw new IllegalTypeException(OrganisationUnit.class,
-                "Facility id mis-match", "wrong facility id import, possibly during export & import");
+        /*if(facilityId1 != facilityId2)throw new IllegalTypeException(OrganisationUnit.class,
+                "Facility id mis-match", "wrong facility id import, possibly during export & import");*/
     }
 
     /**
@@ -227,10 +227,22 @@ public class ObjectDeserializer {
             Person person = new Person();
             BeanUtils.copyProperties(clientPerson, person);
             Optional<Person> foundPerson = personRepository.findByUuidAndFacilityId(clientPerson.getUuid(), facilityId);
+            Optional<Person> foundReConstructedPersonUuid = personRepository.findByUuidAndFacilityId(clientPerson.getUuid()+'-'+facilityId, facilityId);
+
+            Optional<Person> foundPersonUuid = personRepository.findByUuid(clientPerson.getUuid());
+
             //Set id for new or old person on the server
             if(foundPerson.isPresent()){
                 person.setId(foundPerson.get().getId());
-            } else {
+            }
+            if(foundReConstructedPersonUuid.isPresent()){
+                person.setId(foundPerson.get().getId());
+            }
+            //Same uuid different facility - we concatenate the uuid & facility_id
+            if(foundPersonUuid.isPresent()){
+                person.setUuid(clientPerson.getUuid()+'-'+facilityId);
+            }
+            else {
                 person.setId(null);
             }
             persons.add(person);
@@ -252,7 +264,7 @@ public class ObjectDeserializer {
         List<Visit> visits = new ArrayList<>();
         //Sync related patient before syncing visit
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
         if (optionalPatientQueue.isPresent()) {
             //Return empty
             return visits;
@@ -291,10 +303,10 @@ public class ObjectDeserializer {
         List<HivEnrollment> hivEnrollments = new ArrayList<>();
         //Sync related patient before syncing hiv enrollment
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalVisitQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent() || optionalVisitQueue.isPresent()) {
             //Return empty
@@ -334,13 +346,13 @@ public class ObjectDeserializer {
         List<VitalSign> vitalSigns = new ArrayList<>();
         //Sync related patient before syncing vitalSign
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalVisitQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalEnrollmentQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(HIV_ENROLLMENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(HIV_ENROLLMENT, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent() || optionalVisitQueue.isPresent()
                 || optionalEnrollmentQueue.isPresent()) {
@@ -383,16 +395,16 @@ public class ObjectDeserializer {
         List<ARTClinical> artClinicals = new ArrayList<>();
         //Sync related patient before syncing vitalSign
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalVisitQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalVitals = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(TRIAGE_VITAL_SIGN, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(TRIAGE_VITAL_SIGN, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalEnrollmentQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(HIV_ENROLLMENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(HIV_ENROLLMENT, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent() || optionalVisitQueue.isPresent()
                 || optionalVitals.isPresent()  || optionalEnrollmentQueue.isPresent()) {
@@ -434,19 +446,19 @@ public class ObjectDeserializer {
         List<ArtPharmacy> artPharmacies = new ArrayList<>();
         //Sync related patient before syncing pharmacy
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalVisitQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalVitals = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(TRIAGE_VITAL_SIGN, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(TRIAGE_VITAL_SIGN, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalEnrollmentQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(HIV_ENROLLMENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(HIV_ENROLLMENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalClinicQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(HIV_ART_CLINICAL, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(HIV_ART_CLINICAL, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent()
                 || optionalVisitQueue.isPresent()
@@ -493,7 +505,7 @@ public class ObjectDeserializer {
         List<LabOrder> labOrders = new ArrayList<>();
         //Sync related patient before syncing Lab Order
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent()) {
             //Return empty
@@ -553,10 +565,10 @@ public class ObjectDeserializer {
         List<Sample> samples = new ArrayList<>();
         //Sync related patient before syncing pharmacy
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalLabOrderQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_ORDER, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(LABORATORY_ORDER, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent() || optionalLabOrderQueue.isPresent()) {
             //Return empty
@@ -596,13 +608,13 @@ public class ObjectDeserializer {
         List<Test> tests = new ArrayList<>();
         //Sync related patient before syncing Lab test
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalLabOrderQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_ORDER, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(LABORATORY_ORDER, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalLabSampleQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_SAMPLE, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(LABORATORY_SAMPLE, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent() || optionalLabOrderQueue.isPresent() || optionalLabSampleQueue.isPresent()) {
             //Return empty
@@ -642,16 +654,16 @@ public class ObjectDeserializer {
         List<Result> results = new ArrayList<>();
         //Sync related patient before syncing Lab test
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalLabOrderQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_ORDER, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(LABORATORY_ORDER, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalLabSampleQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_SAMPLE, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(LABORATORY_SAMPLE, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalLabResultQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(LABORATORY_TEST, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(LABORATORY_TEST, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent()
                 || optionalLabOrderQueue.isPresent()
@@ -695,7 +707,7 @@ public class ObjectDeserializer {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<Biometric> savedBiometrics = new ArrayList<>();
         //Sync related patient before syncing biometrics
-        if(!syncQueueRepository.findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED).isPresent()) {
+        if(!syncQueueRepository.findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED).isPresent()) {
             List<Biometric> clientBiometrics = objectMapper.readValue(data, new TypeReference<List<Biometric>>() {
             });
             savedBiometrics = biometricRepository.saveAll(clientBiometrics);
@@ -717,7 +729,7 @@ public class ObjectDeserializer {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<HIVStatusTracker> statusTrackers = new ArrayList<>();
         //Sync related patient before syncing HIV Status Tracker
-        if(!syncQueueRepository.findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED).isPresent()) {
+        if(!syncQueueRepository.findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED).isPresent()) {
             List<HIVStatusTracker> clientStatusTrackers = objectMapper.readValue(data, new TypeReference<List<HIVStatusTracker>>() {
             });
 
@@ -755,7 +767,7 @@ public class ObjectDeserializer {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<HIVEac> hivEacs = new ArrayList<>();
         //Sync related patient before syncing HIV Eac
-        if(!syncQueueRepository.findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED).isPresent()) {
+        if(!syncQueueRepository.findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED).isPresent()) {
             List<HIVEac> eacs = objectMapper.readValue(data, new TypeReference<List<HIVEac>>() {});
 
             eacs.forEach(clientEac -> {
@@ -793,10 +805,10 @@ public class ObjectDeserializer {
         List<HIVEacSession> hivEacSessions = new ArrayList<>();
         //Sync related patient before syncing HIV Eac
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalHivEacQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(HIV_EAC, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(HIV_EAC, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent() || optionalHivEacQueue.isPresent()) {
             //Return empty
@@ -835,13 +847,13 @@ public class ObjectDeserializer {
         List<EacOutCome> eacOutComes = new ArrayList<>();
         //Sync related patient before syncing HIV Eac
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalHivEacQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(HIV_EAC, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(HIV_EAC, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalVisitQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent()
                 || optionalHivEacQueue.isPresent()
@@ -884,10 +896,10 @@ public class ObjectDeserializer {
         List<Observation> observations = new ArrayList<>();
         //Sync related patient before syncing Observation
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalVisitQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT_VISIT, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent() || optionalVisitQueue.isPresent()) {
             //Return empty
@@ -927,7 +939,7 @@ public class ObjectDeserializer {
         List<PrepEligibility> eligibilities = new ArrayList<>();
         //Sync related patient before syncing Observation
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent()) {
             //Return empty
@@ -967,10 +979,10 @@ public class ObjectDeserializer {
         List<PrepEnrollment> enrollments = new ArrayList<>();
         //Sync related patient before syncing Observation
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalEligibilityQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PREP_ELIGIBILITY, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PREP_ELIGIBILITY, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent() || optionalEligibilityQueue.isPresent()) {
             //Return empty
@@ -1010,13 +1022,13 @@ public class ObjectDeserializer {
         List<PrepClinic> prepClinics = new ArrayList<>();
         //Sync related patient before syncing Observation
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalEligibilityQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PREP_ELIGIBILITY, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PREP_ELIGIBILITY, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalEnrollmentQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PREP_ENROLLMENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PREP_ENROLLMENT, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent()
                 || optionalEligibilityQueue.isPresent()
@@ -1058,16 +1070,16 @@ public class ObjectDeserializer {
         List<PrepInterruption> interruptions = new ArrayList<>();
         //Sync related patient before syncing Prep Interruption
         Optional<SyncQueue>  optionalPatientQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PATIENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalEligibilityQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PREP_ELIGIBILITY, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PREP_ELIGIBILITY, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalEnrollmentQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PREP_ENROLLMENT, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PREP_ENROLLMENT, facilityId, PROCESSED);
 
         Optional<SyncQueue>  optionalClinicQueue = syncQueueRepository
-                .findAllByTableNameAndFacilityIdAndProcessed(PREP_CLINIC, facilityId, PROCESSED);
+                .findOneByTableNameAndFacilityIdAndProcessed(PREP_CLINIC, facilityId, PROCESSED);
 
         if(optionalPatientQueue.isPresent()
                 || optionalEligibilityQueue.isPresent()
