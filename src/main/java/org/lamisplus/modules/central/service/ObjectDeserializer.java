@@ -237,10 +237,11 @@ public class ObjectDeserializer {
             }
             if(foundReConstructedPersonUuid.isPresent()){
                 person.setId(foundPerson.get().getId());
+                person.setUuid(clientPerson.getUuid()+'-'+clientPerson.getFacilityId());
             }
             //Same uuid different facility - we concatenate the uuid & facility_id
             if(foundPersonUuid.isPresent()){
-                person.setUuid(clientPerson.getUuid()+'-'+facilityId);
+                person.setUuid(clientPerson.getUuid()+'-'+clientPerson.getFacilityId());
             }
             else {
                 person.setId(null);
@@ -476,11 +477,23 @@ public class ObjectDeserializer {
             checkFacilityId(clientPharmacy.getFacilityId(), facilityId);
             ArtPharmacy artPharmacy = new ArtPharmacy();
             BeanUtils.copyProperties(clientPharmacy, artPharmacy);
-            Optional<ARTClinical> foundPharmacy = artClinicalRepository.findByUuid(clientPharmacy.getUuid());
+            Optional<ArtPharmacy> foundPharmacy = artPharmacyRepository.findByUuidAndFacilityId(clientPharmacy.getUuid(), clientPharmacy.getFacilityId());
+            Optional<ArtPharmacy> foundPharmacyUuid = artPharmacyRepository.findByUuid(clientPharmacy.getUuid());
+            Optional<ArtPharmacy> foundReconstructedPharmacy = artPharmacyRepository
+                    .findByUuidAndFacilityId(clientPharmacy.getUuid()+"-"+clientPharmacy.getFacilityId(), clientPharmacy.getFacilityId());
             //Set id for new or old Pharmacy on the server
             if(foundPharmacy.isPresent()){
                 artPharmacy.setId(foundPharmacy.get().getId());
-            } else {
+            }
+            if(foundReconstructedPharmacy.isPresent()){
+                artPharmacy.setId(foundPharmacy.get().getId());
+                artPharmacy.setUuid(foundReconstructedPharmacy.get().getUuid());
+            }
+            if(foundPharmacyUuid.isPresent()){
+                artPharmacy.setUuid(clientPharmacy.getUuid()+"-"+clientPharmacy.getFacilityId());
+                artPharmacy.setId(null);
+            }
+            else {
                 artPharmacy.setId(null);
             }
             artPharmacies.add(artPharmacy);
