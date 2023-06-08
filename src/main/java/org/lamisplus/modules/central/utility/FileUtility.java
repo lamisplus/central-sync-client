@@ -37,12 +37,14 @@ public class FileUtility {
                         }
                         zipOutputStream.closeEntry();
                     }catch (IOException e) {
+                        System.out.println("I got here 1");
                         e.printStackTrace();
                     }
                 }
 
             }
         } catch (IOException e) {
+            System.out.println("I got here 2");
             e.printStackTrace();
 
         }
@@ -73,6 +75,7 @@ public class FileUtility {
             zipOutputStream.closeEntry();
 
         } catch (IOException e) {
+            System.out.println("I got here 3");
             e.printStackTrace();
         }
 

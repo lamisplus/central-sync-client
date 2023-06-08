@@ -124,7 +124,7 @@ function HomePage(props) {
           textColor="primary"
           aria-label="scrollable force tabs example"
         >
-           <Tab className={classes.title} label="Generate & Upload JSON FIle" icon={<CloudSyncIcon />} {...a11yProps(0)} />
+           <Tab className={classes.title} label="Generate & Upload JSON Files" icon={<CloudSyncIcon />} {...a11yProps(0)} />
          
           {/* <Tab className={classes.title} label="WebSocket  " icon={<SettingsIcon />} {...a11yProps(1)}/> 
           <Tab className={classes.title} label="Generate & Upload  " icon={<SettingsIcon />} {...a11yProps(2)}/>  */}

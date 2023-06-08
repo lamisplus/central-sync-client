@@ -112,6 +112,8 @@ const SyncList = (props) => {
   const [facilities, setFacilities] = useState( [])
   const [modal, setModal] = useState(false);
   const toggle = () => setModal(!modal);
+  const [modal2, setModal2] = useState(false);
+  const toggle2 = () => setModal2(!modal2);
   const defaultValues = { facilityId: "", startDate : "", endDate:"",}
   const [uploadDetails, setUploadDetails] = useState(defaultValues);
   const [saving, setSaving] = useState(false);
@@ -123,18 +125,18 @@ useEffect(() => {
     Facilities()
     }, []);
     
-useEffect(() => {
-    const interval = setInterval(() => {
-        syncHistory()
-    }, 5000);
-    return () => clearInterval(interval);
-    }, []);
+// useEffect(() => {
+//     const interval = setInterval(() => {
+//         syncHistory()
+//     }, 5000);
+//     return () => clearInterval(interval);
+// }, []);
     /*****  Validation */
     const validate = () => {
         let temp = { ...errors };
-        temp.facilityId = uploadDetails.facilityId
-            ? ""
-            : "Facility is required";
+        // temp.facilityId = uploadDetails.facilityId
+        //     ? ""
+        //     : "Facility is required";
             temp.startDate  = uploadDetails.startDate 
             ? ""
             : "Start Date is required";
@@ -150,11 +152,11 @@ useEffect(() => {
     async function syncHistory() {
 
         axios
-            .get(`${baseUrl}sync/sync-history`,
+            .get(`${baseUrl}account`,
            { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {
-                setSyncList(response.data);
+                setSyncList(response.data.applicationUserOrganisationUnits);
             })
             .catch((error) => {
 
@@ -164,15 +166,15 @@ useEffect(() => {
     ///GET LIST OF Facilities
     async function Facilities() {
         axios
-            .get(`${baseUrl}sync/facilities`,
+            .get(`${baseUrl}account`,
             { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {
                 
                 setFacilities(
-                    Object.entries(response.data).map(([key, value]) => ({
-                        label: value.name,
-                        value: value.id,
+                    Object.entries(response.data.applicationUserOrganisationUnits).map(([key, value]) => ({
+                        label: value.organisationUnitName,
+                        value: value.organisationUnitId,
                       }))
                 );
             })
@@ -201,10 +203,10 @@ useEffect(() => {
                         setTimeout(() => setUploadPercentage(0), 10000);
                     }
                 });
-
+                toast.success("JSON Extraction was successful!");
+                toggle();
             } catch (err) {
-                // console.log(err)
-                
+                // console.log(err) 
                 }  
         }else{
             toast.error("All Fields are required");
@@ -214,6 +216,10 @@ useEffect(() => {
     const generateJsonFile =()=> {        
         setModal(!modal)
     }
+    const syncedToServer =()=> {        
+        setModal2(!modal2)
+    }
+    //
     const downloadFile = (fileName) => {
         axios
             .get(`${baseUrl}files/download/${fileName}`,
@@ -238,8 +244,17 @@ useEffect(() => {
             //startIcon={<FaUserPlus />}
             onClick={generateJsonFile}
           >
-            <span style={{ textTransform: "capitalize", color:"#fff" }}>Generate JSON File </span>
-        </Button>        
+            <span style={{ textTransform: "capitalize", color:"#fff" }}>Generate JSON Files </span>
+        </Button> 
+        <Button
+            variant="contained"
+            style={{backgroundColor:"#014d88", }}
+            className=" float-right mr-1"
+            //startIcon={<FaUserPlus />}
+            onClick={syncedToServer}
+          >
+            <span style={{ textTransform: "capitalize", color:"#fff" }}>Synced To Server</span>
+        </Button>       
         <br/><br/>
         <MaterialTable
          icons={tableIcons}
@@ -250,14 +265,11 @@ useEffect(() => {
                 title: "Facility Name",
                 field: "facilityName",
             },
-            { title: "File Name", field: "name", filtering: false },
-            { title: "Files", field: "url", filtering: false },
-            { title: "File Size", field: "uploadSize", filtering: false },
-            { title: "Date of Upload ", field: "date", filtering: false },
+            { title: "Date Generated ", field: "date", filtering: false },
             { title: "Status", field: "status", filtering: false },        
             { title: "Action", field: "actions", filtering: false }, 
             ]}
-            data={ syncList.map((row) => ({
+            data={ [].map((row) => ({
                 //Id: manager.id,
                 facilityName: row.facilityName,
                 name: row.name,
@@ -399,6 +411,75 @@ useEffect(() => {
                             variant='contained'
                             color='default'
                             onClick={toggle}
+                            className={classes.button}
+                            style={{backgroundColor:'#992E62'}}
+                            startIcon={<CancelIcon />}
+                        >
+                            <span style={{ textTransform: "capitalize ", color:"#fff" }}>cancel</span>
+                        </MatButton>
+                    </CardBody>
+                </Card> 
+            </ModalBody>
+        </Form>
+    </Modal>
+    <Modal isOpen={modal} toggle={toggle} className={props.className} size="lg"  backdrop="static">
+        <Form >
+        <ModalHeader toggle={toggle}>Sync To Server</ModalHeader>
+            <ModalBody>   
+                <Card >
+                    <CardBody>
+                        <Row >                                  
+                        <Col md={12}>
+                        <FormGroup>
+                        <Label >Facility *</Label>
+                            <Input
+                                type="select"
+                                name="facilityId"
+                                id="facilityId"
+                                onChange={handleInputChange}
+                                style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
+                                vaulue={uploadDetails.facilityId}
+                                >
+                                <option > </option>
+                                {facilities.map(({ label, value }) => (
+                                    <option key={value} value={value}>
+                                    {label}
+                                    </option>
+                                ))}
+                            </Input>
+                            {errors.facilityId !=="" ? (
+                                <span className={classes.error}>{errors.facilityId}</span>
+                            ) : "" } 
+                        </FormGroup>
+                        </Col> 
+                        </Row>
+                        <br/>
+                        {saving ?
+                         <Progress percentage={uploadPercentage} /> 
+                         : ""}
+                        <br />
+                        
+                        <MatButton
+                            type='submit'
+                            variant='contained'
+                            color='primary'
+                            className={classes.button}
+                            style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
+                            startIcon={<SettingsBackupRestoreIcon />}
+                            onClick={handleSubmit2}
+                            
+                        >   
+                            {!saving ? (
+                            <span style={{ textTransform: "capitalize" }}>Generate</span>
+                            ) : (
+                            <span style={{ textTransform: "capitalize" }}>Generating Please Wait...</span>
+                            )
+                        } 
+                        </MatButton>                                          
+                        <MatButton
+                            variant='contained'
+                            color='default'
+                            onClick={toggle2}
                             className={classes.button}
                             style={{backgroundColor:'#992E62'}}
                             startIcon={<CancelIcon />}
