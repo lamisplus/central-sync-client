@@ -46,7 +46,6 @@ public class ExportServiceImpl implements ExportService {
     private static final String CLIENT_CODE = "clientCode";
     private static final String PATIENT_ID = "patientId";
 
-    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Override
     public String bulkExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate) {
