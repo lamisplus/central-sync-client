@@ -6,15 +6,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.lamisplus.modules.central.service.SyncService;
 import org.lamisplus.modules.central.utility.ConstantUtility;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 @RequiredArgsConstructor
@@ -25,9 +24,9 @@ public class SyncController {
     private final SyncService syncService;
 
     @PostMapping(value = "/import")
-    public ResponseEntity<String> importData(MultipartFile multipartFile,  @RequestParam("facilityId") Long facilityId, @RequestParam("fy") Long fy, @RequestParam("qt") String qt ) throws IOException {
+    public ResponseEntity<String> importData(@RequestParam("multipartFile") MultipartFile multipartFile,  @RequestParam("facilityId") Long facilityId ) throws IOException {
         String datimId = syncService.getDatimId(facilityId);
-        syncService .bulkImport(multipartFile,  datimId, fy, qt);
+        syncService .bulkImport(multipartFile,  datimId);
         //syncService.bulkImport(multipartFile);
         return ResponseEntity.ok().body("Data imported successfully");
     }
@@ -43,5 +42,18 @@ public class SyncController {
         } else {
             FileUtils.cleanDirectory(directory);
         }
+    }
+    @PostMapping("/receive-data/{facilityId}")
+    public ResponseEntity<String> receiveDataFromAPI(@RequestBody byte[] data, @PathVariable Long facilityId ) throws IOException {
+        String datimId = syncService.getDatimId(facilityId);
+        final String filePath = ConstantUtility.TEMP_SERVER_DIR + "import.zip";
+        try (FileOutputStream fileOutputStream = new FileOutputStream(filePath);){
+            fileOutputStream.write(data);
+            syncService.bulkImport(filePath, datimId);
+        } catch (IOException e) {
+            return new ResponseEntity("Error writing data to file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return new ResponseEntity<>("Data received and saved to file successfully.", HttpStatus.OK);
     }
 }

@@ -54,15 +54,15 @@ const TabExampleMenuPositionRight = (props) => {
      // { headers: {"Authorization" : `Bearer ${token}`}},
       patDetails
       )
-                  .then(response => {
-                      setSaving(false);
-                      toast.success("Token Generated Successful");
+        .then(response => {
+            setSaving(false);
+            toast.success("Token Generated Successful");
 
-                  })
-                  .catch(error => {
-                      setSaving(false);
-                      toast.error("Something went wrong");
-                  });
+        })
+        .catch(error => {
+            setSaving(false);
+            toast.error("Something went wrong");
+        });
     };
 
 
