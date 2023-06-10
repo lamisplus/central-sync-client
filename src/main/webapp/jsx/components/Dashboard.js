@@ -128,7 +128,7 @@ function HomePage(props) {
          
           {/* <Tab className={classes.title} label="WebSocket  " icon={<SettingsIcon />} {...a11yProps(1)}/> 
           <Tab className={classes.title} label="Generate & Upload  " icon={<SettingsIcon />} {...a11yProps(2)}/>  */}
-          {/* <Tab className={classes.title} label="Configuration  " icon={<SettingsIcon />} {...a11yProps(3)}/>  */}
+          {/* <Tab className={classes.title} label="Configuration  " icon={<SettingsIcon />} {...a11yProps(1)}/>  */}
       </Tabs>
       </AppBar>
 
@@ -136,13 +136,7 @@ function HomePage(props) {
         <TabPanel value={value} index={0}>
           <SyncList />
         </TabPanel>
-        {/* <TabPanel value={value} index={1}>
-          <Websocket />
-        </TabPanel> */}
-        {/* <TabPanel value={value} index={2}>
-          <NewList />
-        </TabPanel> */}
-        <TabPanel value={value} index={3}>
+        <TabPanel value={value} index={1}>
           <Setting />
         </TabPanel>
        

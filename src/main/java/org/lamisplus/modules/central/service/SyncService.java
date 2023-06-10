@@ -10,11 +10,13 @@ public interface SyncService {
 
     //void importRadet(String jsonFilePath) throws IOException;
 
-    void importRadet(String jsonFilePath,  String datimId, Long yr, String qt) throws IOException;
+    void importRadet(String jsonFilePath,  String datimId) throws IOException;
 
-    boolean bulkImport(MultipartFile file, String datimId, Long yr, String qt) throws IOException;
+    boolean bulkImport(MultipartFile file, String datimId) throws IOException;
 
     String getDatimId(Long facilityId);
+
+    boolean bulkImport(String fileName, String datimId) throws IOException;
 //    void importPrep(String jsonFilePath) throws IOException;
 //    void importHts(String jsonFilePath) throws IOException;
 }

@@ -55,7 +55,7 @@ public class SyncServiceImpl implements SyncService {
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Override
-    public boolean bulkImport(MultipartFile multipartFile, String datimId, Long yr, String qt) throws IOException {
+    public boolean bulkImport(MultipartFile multipartFile, String datimId) throws IOException {
         boolean isProcessed = false;
         log.info("Initializing data import");
         // ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
@@ -88,7 +88,7 @@ public class SyncServiceImpl implements SyncService {
             if (Files.exists(Paths.get(filePath))) {
                 log.info("Importing RADET file");
                 // List<Radet> radetList = objectMapper.readValue(new File(filePath), new TypeReference<List<Radet>>() {});
-                importRadet(filePath, datimId, yr, qt);
+                importRadet(filePath, datimId);
             }
 //            filePath = ConstantUtility.TEMP_SERVER_DIR + ConstantUtility.HTS_FILENAME;
 //            if (Files.exists(Paths.get(filePath))) {
@@ -121,7 +121,7 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    public void importRadet(String jsonFilePath,  String datimId, Long yr, String qt) throws IOException {
+    public void importRadet(String jsonFilePath,  String datimId) throws IOException {
 
         try (JsonParser parser = new JsonFactory().createParser(new FileReader(jsonFilePath))) {
             List<CentralRadet> radetList = new ArrayList<>();
@@ -131,12 +131,12 @@ public class SyncServiceImpl implements SyncService {
                         throw new RuntimeException("Expected content to be a RADET object");
                     }
                     CentralRadet radet = new CentralRadet();
-                    mapRadet(radet, parser, datimId, yr, qt);
+                    mapRadet(radet, parser, datimId);
                     radetList.add(radet);
                 }
             }
             radetRepository.saveAll(radetList);
-            creatRadetUploadTracker(datimId, LocalDate.now() + " @" + LocalTime.now(), yr, qt);
+            creatRadetUploadTracker(datimId, LocalDate.now() + " @" + LocalTime.now());
         } catch (Exception e) {
             log.error("Error importing RADET data: {}", e.getMessage());
             e.printStackTrace();
@@ -185,12 +185,15 @@ public class SyncServiceImpl implements SyncService {
 //        }
 //    }
 
-    void mapRadet(CentralRadet radet, JsonParser parser, String datimId, Long yr, String qt) throws IOException {
+    void mapRadet(CentralRadet radet, JsonParser parser, String datimId) throws IOException {
 
         String personUuid = "";
-        String period = yr+qt;
+        String period = "2023Q2";
 
-        while (parser.nextToken() != JsonToken.END_OBJECT) {
+        while (parser.nextToken() != JsonToken.END_OBJECT)
+        {
+            try
+            {
             String fieldName = parser.getCurrentName();
             parser.nextToken();
             if (fieldName.equals(STATE)) {
@@ -461,7 +464,7 @@ public class SyncServiceImpl implements SyncService {
                 radet.setIptCompletionStatus(parser.getText());
             }
             try {
-                String radetUniqueNo = personUuid + "-" + datimId + "-" + period;
+                String radetUniqueNo = personUuid + "-" + datimId;
                 radet.setPeriod(period);
                 radet.setRadetUniqueNo(radetUniqueNo);
                 radet.setSubmissionTime(LocalDate.now() + " @" + LocalTime.now());
@@ -470,7 +473,9 @@ public class SyncServiceImpl implements SyncService {
                     radet.setId(centralRadetOptional.get().getId());
                     //continue;
                 } else radet.setId(null);
+            } catch (Exception e) {  }
             } catch (Exception e) {
+                creatRadetUploadIssueTracker(datimId, (LocalDate.now() + " @" + LocalTime.now()));// to be done later;
             }
         }
 
@@ -529,7 +534,7 @@ public class SyncServiceImpl implements SyncService {
 //        }
 //    }
 
-    public void creatRadetUploadTracker(String datimId, String submissionTime, Long fy, String qt) {
+    public void creatRadetUploadTracker(String datimId, String submissionTime) {
         RadetUploaders radetUploaders = radetRepository.getRadetUploaders(datimId);
         RadetUploadTrackers radetUploadTrackers = new RadetUploadTrackers();
         radetUploadTrackers.setIpCode(radetUploaders.getIpcode());
@@ -538,8 +543,8 @@ public class SyncServiceImpl implements SyncService {
         radetUploadTrackers.setFacilityName(radetUploaders.getFacility());
         radetUploadTrackers.setState(radetUploaders.getState());
         radetUploadTrackers.setLga(radetUploaders.getLga());
-        radetUploadTrackers.setFiscalYear(fy);
-        radetUploadTrackers.setReportingQuarter(qt);
+//        radetUploadTrackers.setFiscalYear(fy);
+//        radetUploadTrackers.setReportingQuarter(qt);
         radetUploadTrackers.setCreatedDate(submissionTime);
         List<RadetUploadTrackers> radetUploadTrackersList = radetUploadTrackersRepository.getRadetUploadTrackersByFacilityId(radetUploaders.getId());
         if (radetUploadTrackersList.isEmpty()) {
@@ -559,7 +564,7 @@ public class SyncServiceImpl implements SyncService {
 
 
 
-    public void creatRadetUploadIssueTracker(String datimId, String submissionTime, Long fy, String qt) {
+    public void creatRadetUploadIssueTracker(String datimId, String submissionTime) {
         try {
             System.out.println("datimId = " + datimId);
             RadetUploaders radetUploaders = radetRepository.getRadetUploaders(datimId);
@@ -570,8 +575,8 @@ public class SyncServiceImpl implements SyncService {
             radetUploadTrackers.setFacilityName(radetUploaders.getFacility());
             radetUploadTrackers.setState(radetUploaders.getState());
             radetUploadTrackers.setLga(radetUploaders.getLga());
-            radetUploadTrackers.setFiscalYear(fy);
-            radetUploadTrackers.setReportingQuarter(qt);
+//            radetUploadTrackers.setFiscalYear(fy);
+//            radetUploadTrackers.setReportingQuarter(qt);
             radetUploadTrackers.setCreatedDate(submissionTime);
             List<RadetUploadIssueTrackers> radetUploadTrackersList = radetUploadIssueTrackersRepository.findRadetUploadIssueTrackersByFacilityId(radetUploaders.getId());
             if (radetUploadTrackersList.isEmpty()) {
@@ -589,6 +594,46 @@ public class SyncServiceImpl implements SyncService {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public boolean bulkImport(String sourceFileName, String datimId) throws IOException {
+        boolean isProcessed = false;
+        log.info("Initializing data import");
+
+        try {
+            log.info("Unzipping the compressed file");
+            Path target = Paths.get(ConstantUtility.TEMP_SERVER_DIR);
+            Path source = Paths.get(sourceFileName);
+            fileUtility.unzipFile(source, target);
+
+            String filePath = ConstantUtility.TEMP_SERVER_DIR + ConstantUtility.RADET_FILENAME;
+            if (Files.exists(Paths.get(filePath))) {
+                log.info("Importing RADET file");
+                // List<Radet> radetList = objectMapper.readValue(new File(filePath), new TypeReference<List<Radet>>() {});
+                importRadet(filePath, datimId);
+            }
+//            filePath = ConstantUtility.TEMP_SERVER_DIR + ConstantUtility.HTS_FILENAME;
+//            if (Files.exists(Paths.get(filePath))) {
+//                log.info("Importing HTS file");
+//                //  List<HtsReportDto> htsReportDtoList = objectMapper.readValue(new File(filePath), new TypeReference<List<HtsReportDto>>() {});
+//                importHts(filePath);
+//            }
+//            filePath = ConstantUtility.TEMP_SERVER_DIR + ConstantUtility.PREP_FILENAME;
+//            if (Files.exists(Paths.get(filePath))) {
+//                log.info("Importing PREP file");
+//                //List<PrepReportDto> radetList = objectMapper.readValue(new File(filePath), new TypeReference<List<PrepReportDto>>() {});
+//                importPrep(filePath);
+//            }
+            isProcessed = true;
+            //  FileUtils.forceDelete(new File(sourceFileName));
+            log.info("Data import completed successfully.");
+        } catch (Exception exception) {
+            log.info(exception.getMessage());
+        }
+
+        return isProcessed;
+    }
+
 
 
 }

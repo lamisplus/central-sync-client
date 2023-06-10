@@ -4,6 +4,7 @@ import axios from "axios";
 import { token as token,  url as baseUrl } from "./../../../api";
 import { forwardRef } from 'react';
 import Progress from './Progress';
+import CloudUpload from '@material-ui/icons/CloudUpload';
 import moment from "moment";
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowUpward from '@material-ui/icons/ArrowUpward';
@@ -121,8 +122,9 @@ const SyncList = (props) => {
   const [uploadPercentage, setUploadPercentage] = useState(0);
 
 useEffect(() => {
-    syncHistory()
-    Facilities()
+    syncHistory();
+    Facilities();
+    JsonSyncHistory();
     }, []);
     
 // useEffect(() => {
@@ -157,6 +159,19 @@ useEffect(() => {
             )
             .then((response) => {
                 setSyncList(response.data.applicationUserOrganisationUnits);
+            })
+            .catch((error) => {
+
+            });
+    
+    }
+    async function JsonSyncHistory() {
+        axios
+            .get(`${baseUrl}export/sync-histories`,
+           { headers: {"Authorization" : `Bearer ${token}`} }
+            )
+            .then((response) => {
+                setSyncList(response.data);
             })
             .catch((error) => {
 
@@ -205,6 +220,7 @@ useEffect(() => {
                 });
                 toast.success("JSON Extraction was successful!");
                 toggle();
+                JsonSyncHistory();
             } catch (err) {
                 // console.log(err) 
                 }  
@@ -216,13 +232,10 @@ useEffect(() => {
     const generateJsonFile =()=> {        
         setModal(!modal)
     }
-    const syncedToServer =()=> {        
-        setModal2(!modal2)
-    }
-    //
+
     const downloadFile = (fileName) => {
         axios
-            .get(`${baseUrl}files/download/${fileName}`,
+            .get(`${baseUrl}export/download/${fileName}`,
                 {headers: {"Authorization": `Bearer ${token}`}, responseType: 'blob'}
             )
             .then((response) => {
@@ -232,6 +245,34 @@ useEffect(() => {
             })
             .catch((error) => {
             });
+    }
+    const  sendToServerAction = (fileName,facilityId) => {
+        setModal2(!modal2)
+         //SENDING A POST REQUEST 
+         axios.post(`${baseUrl}export/send-data?fileName=${fileName}&facilityId=${facilityId}`,
+                     { headers: {"Authorization" : `Bearer ${token}`} }
+                   )
+            .then(response => {
+            window.setTimeout(() => {
+                toast.success(" Uploading To server Successful!");
+                toggle2();
+                JsonSyncHistory()
+            }, 1000);
+            })
+            .catch(error => {
+             setModal(false)
+            //toast.error(" Something went wrong!");
+            if(error.response && error.response.data){
+                let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+                toast.error(errorMessage);
+                setModal(false)
+            }
+            else{
+                toggle2();
+                toast.error("Something went wrong. Please try again...");
+            }
+        });
+
     }
  
   return (
@@ -245,15 +286,6 @@ useEffect(() => {
             onClick={generateJsonFile}
           >
             <span style={{ textTransform: "capitalize", color:"#fff" }}>Generate JSON Files </span>
-        </Button> 
-        <Button
-            variant="contained"
-            style={{backgroundColor:"#014d88", }}
-            className=" float-right mr-1"
-            //startIcon={<FaUserPlus />}
-            onClick={syncedToServer}
-          >
-            <span style={{ textTransform: "capitalize", color:"#fff" }}>Synced To Server</span>
         </Button>       
         <br/><br/>
         <MaterialTable
@@ -265,17 +297,19 @@ useEffect(() => {
                 title: "Facility Name",
                 field: "facilityName",
             },
+            { title: "File Name ", field: "tableName", filtering: false },
+            { title: "Upload Size ", field: "uploadSize", filtering: false },
             { title: "Date Generated ", field: "date", filtering: false },
             { title: "Status", field: "status", filtering: false },        
             { title: "Action", field: "actions", filtering: false }, 
             ]}
-            data={ [].map((row) => ({
+            data={ syncList.map((row) => ({
                 //Id: manager.id,
                 facilityName: row.facilityName,
-                name: row.name,
+                tableName: row.tableName,
                 url: row.tableName,
                 uploadSize: row.uploadSize,
-                date:  row.dateLastSync,
+                date:  moment(row.dateLastSync).format("LLLL"),
                 status: row.processed===0 ? "Processing" : "Completed",
                 actions:(<div>
                     <Menu.Menu position='right'  >
@@ -284,11 +318,10 @@ useEffect(() => {
                         <Dropdown item text='Action'>
 
                         <Dropdown.Menu style={{ marginTop:"10px", }}>
-                            <Dropdown.Item  onClick={() => downloadFile(row.fileName)}><CloudDownloadIcon color="primary"/> Download File
+                            <Dropdown.Item  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
                             </Dropdown.Item>
-                            {/*{!row.completelyPushed && (<Dropdown.Item  onClick= {() => generateAction(row.id)}><CloudUpload color="primary"/> Upload To NDR*/}
-                            {/*</Dropdown.Item>*/}
-                            {/*)}*/}
+                            <Dropdown.Item  onClick={() => sendToServerAction(row.tableName, row.organisationUnitId)}><CloudUpload color="primary"/> Send To Server
+                            </Dropdown.Item>
                         </Dropdown.Menu>
                     </Dropdown>
                         </Buuton2>
@@ -422,75 +455,11 @@ useEffect(() => {
             </ModalBody>
         </Form>
     </Modal>
-    <Modal isOpen={modal} toggle={toggle} className={props.className} size="lg"  backdrop="static">
-        <Form >
-        <ModalHeader toggle={toggle}>Sync To Server</ModalHeader>
-            <ModalBody>   
-                <Card >
-                    <CardBody>
-                        <Row >                                  
-                        <Col md={12}>
-                        <FormGroup>
-                        <Label >Facility *</Label>
-                            <Input
-                                type="select"
-                                name="facilityId"
-                                id="facilityId"
-                                onChange={handleInputChange}
-                                style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                vaulue={uploadDetails.facilityId}
-                                >
-                                <option > </option>
-                                {facilities.map(({ label, value }) => (
-                                    <option key={value} value={value}>
-                                    {label}
-                                    </option>
-                                ))}
-                            </Input>
-                            {errors.facilityId !=="" ? (
-                                <span className={classes.error}>{errors.facilityId}</span>
-                            ) : "" } 
-                        </FormGroup>
-                        </Col> 
-                        </Row>
-                        <br/>
-                        {saving ?
-                         <Progress percentage={uploadPercentage} /> 
-                         : ""}
-                        <br />
-                        
-                        <MatButton
-                            type='submit'
-                            variant='contained'
-                            color='primary'
-                            className={classes.button}
-                            style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
-                            startIcon={<SettingsBackupRestoreIcon />}
-                            onClick={handleSubmit2}
-                            
-                        >   
-                            {!saving ? (
-                            <span style={{ textTransform: "capitalize" }}>Generate</span>
-                            ) : (
-                            <span style={{ textTransform: "capitalize" }}>Generating Please Wait...</span>
-                            )
-                        } 
-                        </MatButton>                                          
-                        <MatButton
-                            variant='contained'
-                            color='default'
-                            onClick={toggle2}
-                            className={classes.button}
-                            style={{backgroundColor:'#992E62'}}
-                            startIcon={<CancelIcon />}
-                        >
-                            <span style={{ textTransform: "capitalize ", color:"#fff" }}>cancel</span>
-                        </MatButton>
-                    </CardBody>
-                </Card> 
-            </ModalBody>
-        </Form>
-    </Modal>
+    <Modal isOpen={modal2} toggle={toggle2} backdrop={false} fade={true} style={{marginTop:"250px"}} size='lg'>            
+        <ModalBody>
+            <h1>Uploading File To Server. Please wait...</h1>
+        </ModalBody>
+    </Modal> 
     </div>
   );
 }
