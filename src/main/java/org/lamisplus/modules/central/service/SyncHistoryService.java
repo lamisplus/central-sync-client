@@ -56,7 +56,7 @@ public class SyncHistoryService {
     }
 
     public List<SyncHistoryResponse> getSyncHistories() {
-        List<SyncHistoryResponse> syncHistories = syncHistoryRepository.findAll().stream()
+        List<SyncHistory> syncHistories = syncHistoryRepository.findAll().stream()
                 .sorted(Comparator.comparing(SyncHistory::getDateLastSync).reverse())
                 .collect(Collectors.toList());
 
