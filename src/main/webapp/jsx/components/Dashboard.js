@@ -128,7 +128,7 @@ function HomePage(props) {
          
           {/* <Tab className={classes.title} label="WebSocket  " icon={<SettingsIcon />} {...a11yProps(1)}/> 
           <Tab className={classes.title} label="Generate & Upload  " icon={<SettingsIcon />} {...a11yProps(2)}/>  */}
-          {/* <Tab className={classes.title} label="Configuration  " icon={<SettingsIcon />} {...a11yProps(1)}/>  */}
+          <Tab className={classes.title} label="Configuration  " icon={<SettingsIcon />} {...a11yProps(1)}/> 
       </Tabs>
       </AppBar>
 
