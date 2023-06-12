@@ -241,7 +241,7 @@ useEffect(() => {
             .then((response) => {
                 const responseData = response.data
                 let blob = new Blob([responseData], {type: "application/octet-stream"});
-                FileSaver.saveAs(blob, `${fileName}.zip`);
+                FileSaver.saveAs(blob, `${fileName}`);
             })
             .catch((error) => {
             });
@@ -378,44 +378,6 @@ useEffect(() => {
                             ) : "" } 
                         </FormGroup>
                         </Col> 
-                        <Col md={12}>
-                        <FormGroup>
-                        <Label >Start Date</Label>
-                            <Input
-                                type="date"
-                                name="startDate"
-                                id="startDate"
-                                vaulue={uploadDetails.startDate}
-                                onChange={handleInputChange}
-                                style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                max= {moment(new Date()).format("YYYY-MM-DD") }
-                                >
-                                
-                            </Input>
-                            {errors.startDate !=="" ? (
-                                <span className={classes.error}>{errors.startDate}</span>
-                            ) : "" } 
-                        </FormGroup>
-                        </Col>
-                        <Col md={12}>
-                        <FormGroup>
-                        <Label >End Date</Label>
-                            <Input
-                                type="date"
-                                name="endDate"
-                                id="endDate"
-                                vaulue={uploadDetails.endDate}
-                                onChange={handleInputChange}
-                                style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                min= {moment(uploadDetails.startDate).format("YYYY-MM-DD") }
-                                max= {moment(new Date()).format("YYYY-MM-DD") }
-                                >
-                            </Input>
-                            {errors.endDate !=="" ? (
-                                <span className={classes.error}>{errors.endDate}</span>
-                            ) : "" } 
-                        </FormGroup>
-                        </Col>
                         </Row>
                         <br/>
                         {saving ?
