@@ -17,6 +17,8 @@ public interface SyncService {
     String getDatimId(Long facilityId);
 
     boolean bulkImport(String fileName, String datimId) throws IOException;
-//    void importPrep(String jsonFilePath) throws IOException;
-//    void importHts(String jsonFilePath) throws IOException;
+    void importHts(String jsonFilePath, String datimId) throws IOException;
+
+    void importPrep(String jsonFilePath, String datimId) throws IOException;
+
 }
