@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,7 +56,11 @@ public class SyncHistoryService {
     }
 
     public List<SyncHistoryResponse> getSyncHistories() {
-        return entitiesToDtos(syncHistoryRepository.findAll());
+        List<SyncHistoryResponse> syncHistories = syncHistoryRepository.findAll().stream()
+                .sorted(Comparator.comparing(SyncHistory::getDateLastSync).reverse())
+                .collect(Collectors.toList());
+
+        return entitiesToDtos(syncHistories);
     }
 
     public List<SyncHistoryResponse> entitiesToDtos(List<SyncHistory> syncHistoryList) {

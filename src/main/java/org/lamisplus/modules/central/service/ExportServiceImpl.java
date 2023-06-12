@@ -152,13 +152,6 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public String bulkExport(Long facilityId) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyy-MM-dd");
-        //String date = "16/08/2016";
-
-        //convert String to LocalDate
-
-//        LocalDate reportStartDate = LocalDate.parse("2023-04-01", formatter);
-//        LocalDate reportEndDate = LocalDate.parse("2023-06-30", formatter);
-
         LocalDate reportStartDate = LocalDate.parse("1980-01-01", formatter);
         LocalDate reportEndDate = LocalDate.now();
         String zipFileName = "None";
