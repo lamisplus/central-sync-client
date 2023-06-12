@@ -136,15 +136,9 @@ useEffect(() => {
     /*****  Validation */
     const validate = () => {
         let temp = { ...errors };
-        // temp.facilityId = uploadDetails.facilityId
-        //     ? ""
-        //     : "Facility is required";
-            temp.startDate  = uploadDetails.startDate 
+        temp.facilityId = uploadDetails.facilityId
             ? ""
-            : "Start Date is required";
-            temp.endDate  = uploadDetails.endDate 
-            ? ""
-            : "End Date is required";
+            : "Facility is required";
             setErrors({
                 ...temp,
             });
@@ -206,7 +200,7 @@ useEffect(() => {
         setSaving(true);
         if(validate()){
             try {
-                const res = await axios.get(`${baseUrl}export/all?facilityId=${uploadDetails.facilityId}&startDate=${uploadDetails.startDate}&endDate=${uploadDetails.endDate}`, {
+                const res = await axios.get(`${baseUrl}export/all?facilityId=${uploadDetails.facilityId}`, {
                     headers: {"Authorization" : `Bearer ${token}`},
                     onUploadProgress: progressEvent => {
                         setUploadPercentage(
