@@ -6,9 +6,6 @@ import com.foreach.across.modules.hibernate.provider.HibernatePackageConfigurer;
 import com.foreach.across.modules.hibernate.provider.HibernatePackageRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.central.domain.SyncDomain;
-import org.lamisplus.modules.hiv.domain.HIVDomain;
-import org.lamisplus.modules.patient.domain.PatientDomain;
-import org.lamisplus.modules.triage.domain.TriageDomain;
 
 
 /**
@@ -24,6 +21,6 @@ import org.lamisplus.modules.triage.domain.TriageDomain;
 public class EntityScanConfiguration implements HibernatePackageConfigurer {
     @Override
     public void configureHibernatePackage(HibernatePackageRegistry hibernatePackageRegistry) {
-        hibernatePackageRegistry.addPackageToScan(SyncDomain.class, PatientDomain.class, TriageDomain.class, HIVDomain.class);
+        hibernatePackageRegistry.addPackageToScan(SyncDomain.class);
     }
 }
