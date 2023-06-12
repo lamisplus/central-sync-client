@@ -16,6 +16,10 @@ import java.util.Optional;
 public class SyncHistoryService {
     private final SyncHistoryRepository syncHistoryRepository;
 
+    private String getFacilityNameById(Long facilityId) {
+        Optional<String> optional = syncHistoryRepository.getFacilityNameById(facilityId);
+        return optional.orElse("None");
+    }
     public SyncHistoryResponse saveSyncHistory(SyncHistoryRequest request) {
         SyncHistory syncHistory = new SyncHistory();
         syncHistory.setOrganisationUnitId(request.getOrganisationUnitId());
@@ -64,12 +68,15 @@ public class SyncHistoryService {
 
     public SyncHistoryResponse entityToDto(SyncHistory entity) {
         SyncHistoryResponse response = new SyncHistoryResponse();
+        String facilityName = getFacilityNameById(entity.getOrganisationUnitId());
+        response.setFacilityName(facilityName);
         response.setId(entity.getId());
         response.setOrganisationUnitId(entity.getOrganisationUnitId());
         response.setUploadSize(entity.getUploadSize());
         response.setProcessed(entity.getProcessed());
         response.setProcessedSize(entity.getProcessedSize());
         response.setDateLastSync(entity.getDateLastSync());
+        response.setTableName(entity.getTableName());
 
         return response;
     }

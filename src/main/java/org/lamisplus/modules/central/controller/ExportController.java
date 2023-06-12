@@ -44,17 +44,11 @@ public class ExportController {
     private final SyncHistoryService syncHistoryService;
 
     @GetMapping("/all")
-    public ResponseEntity<String> generate(@RequestParam Long facilityId,
-                                           @RequestParam String startDate,
-                                           @RequestParam String endDate,
-                                           HttpServletResponse response) throws IllegalAccessException {
-        if (facilityId == null || startDate == null || endDate == null)   {
+    public ResponseEntity<String> generate(@RequestParam Long facilityId, HttpServletResponse response) throws IllegalAccessException {
+        if (facilityId == null)   {
             throw new IllegalAccessException("Invalid request parameters");
         }
-
-        LocalDate reportStartDate = LocalDate.parse(startDate);
-        LocalDate reportEndDate =  LocalDate.parse(endDate);
-        String zipFileName = exportService.bulkExport(facilityId, reportStartDate, reportEndDate);
+        String zipFileName = exportService.bulkExport(facilityId);
         if (!zipFileName.equals("None") && !zipFileName.equals("NO_RECORD")) {
             return new ResponseEntity<>("Record generated successfully.", HttpStatus.OK);
         } else if (zipFileName.equals("NO_RECORD")) {

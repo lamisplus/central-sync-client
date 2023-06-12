@@ -15,5 +15,5 @@ public class SyncHistoryResponse {
     private Long remoteAccessTokenId;
     private Integer uploadSize;
     private Integer processedSize;
-
+    private String facilityName;
 }

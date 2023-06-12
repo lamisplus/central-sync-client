@@ -6,12 +6,8 @@ import com.fasterxml.jackson.core.JsonToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.central.domain.dto.RadetUploaders;
-import org.lamisplus.modules.central.domain.entity.CentralRadet;
-import org.lamisplus.modules.central.domain.entity.RadetUploadIssueTrackers;
-import org.lamisplus.modules.central.domain.entity.RadetUploadTrackers;
-import org.lamisplus.modules.central.repository.CentralRadetRepository;
-import org.lamisplus.modules.central.repository.RadetUploadIssueTrackersRepository;
-import org.lamisplus.modules.central.repository.RadetUploadTrackersRepository;
+import org.lamisplus.modules.central.domain.entity.*;
+import org.lamisplus.modules.central.repository.*;
 import org.lamisplus.modules.central.utility.ConstantUtility;
 import org.lamisplus.modules.central.utility.FileUtility;
 import org.springframework.stereotype.Service;
@@ -35,6 +31,8 @@ import java.util.Optional;
 public class SyncServiceImpl implements SyncService {
 
     private final CentralRadetRepository radetRepository;
+    private final CentralHtsRepository htsRepository;
+    private final CentralPrepRepository prepRepository;
     private final RadetUploadIssueTrackersRepository radetUploadIssueTrackersRepository;
     //private final CentralDataElementRepository centralDataElementRepository;
     private final RadetUploadTrackersRepository radetUploadTrackersRepository;
@@ -51,6 +49,7 @@ public class SyncServiceImpl implements SyncService {
     private static final String DATIM_CODE = "datimCode";
     private static final String CLIENT_CODE = "clientCode";
     private static final String PATIENT_ID = "patientId";
+    private static final String PERIOD = "2023Q2";
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -72,16 +71,18 @@ public class SyncServiceImpl implements SyncService {
 //            log.info("3");
 //            fileUtility.unzipFile(source, target);
 //            log.info("4");
-                try{
-                    byte[] data = multipartFile.getBytes();
-                    bos.write(data);
-                    bos.close();
-                    Path target = Paths.get(ConstantUtility.TEMP_SERVER_DIR);
-                    Path source = Paths.get(sourceFileName);
-                    fileUtility.unzipFile(source, target);
-                    log.info("We got here");
+            try {
+                byte[] data = multipartFile.getBytes();
+                bos.write(data);
+                bos.close();
+                Path target = Paths.get(ConstantUtility.TEMP_SERVER_DIR);
+                Path source = Paths.get(sourceFileName);
+                fileUtility.unzipFile(source, target);
+                log.info("We got here");
 
-                }catch(Exception e){e.printStackTrace();}
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
 
             String filePath = ConstantUtility.TEMP_SERVER_DIR + ConstantUtility.RADET_FILENAME;
@@ -113,15 +114,14 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    public String getDatimId(Long facilityId)
-    {
+    public String getDatimId(Long facilityId) {
         String datimId = radetUploadTrackersRepository.getDatimCode(facilityId);
         return datimId;
 
     }
 
     @Override
-    public void importRadet(String jsonFilePath,  String datimId) throws IOException {
+    public void importRadet(String jsonFilePath, String datimId) throws IOException {
 
         try (JsonParser parser = new JsonFactory().createParser(new FileReader(jsonFilePath))) {
             List<CentralRadet> radetList = new ArrayList<>();
@@ -143,398 +143,301 @@ public class SyncServiceImpl implements SyncService {
         }
     }
 
-//    @Override
-//    public void importHts(String jsonFilePath) throws IOException {
-//        try (JsonParser parser = new JsonFactory().createParser(new FileReader(jsonFilePath))) {
-//            List<HtsReport> htsReportList = new ArrayList<>();
-//            if (parser.nextToken() == JsonToken.START_ARRAY) {
-//                while (parser.nextToken() != JsonToken.END_ARRAY) {
-//                    if (parser.currentToken() != JsonToken.START_OBJECT) {
-//                        throw new RuntimeException("Expected content to be a  object");
-//                    }
-//                    HtsReport hts = new HtsReport();
-//                    mapHts(hts, parser);
-//                    htsReportList.add(hts);
-//                }
-//            }
-//            htsRepository.saveAll(htsReportList);
-//        } catch (Exception e) {
-//            log.error("Error importing HTS data: {}", e.getMessage());
-//            e.printStackTrace();
-//        }
-//    }
-
-    //   @Override
-//    public void importPrep(String jsonFilePath) throws IOException {
-//        try (JsonParser parser = new JsonFactory().createParser(new FileReader(jsonFilePath))) {
-//            List<PrepReport> prepList = new ArrayList<>();
-//            if (parser.nextToken() == JsonToken.START_ARRAY) {
-//                while (parser.nextToken() != JsonToken.END_ARRAY) {
-//                    if (parser.currentToken() != JsonToken.START_OBJECT) {
-//                        throw new RuntimeException("Expected content to be an object");
-//                    }
-//                    PrepReport prepReport = new PrepReport();
-//                    mapPrep(prepReport, parser);
-//                    prepList.add(prepReport);
-//                }
-//            }
-//            prepRepository.saveAll(prepList);
-//        } catch (Exception e) {
-//            log.error("Error importing RADET data: {}", e.getMessage());
-//            e.printStackTrace();
-//        }
-//    }
-
     void mapRadet(CentralRadet radet, JsonParser parser, String datimId) throws IOException {
 
         String personUuid = "";
-        String period = "2023Q2";
+        //String period = "2023Q2";
 
-        while (parser.nextToken() != JsonToken.END_OBJECT)
-        {
-            try
-            {
-            String fieldName = parser.getCurrentName();
-            parser.nextToken();
-            if (fieldName.equals(STATE)) {
-                radet.setState(parser.getText());
-            }
-            if (fieldName.equals(LGA)) {
-                radet.setLga(parser.getText());
-            }
-            if (fieldName.equals(FACILITY_NAME)) {
-                radet.setFacilityName(parser.getText());
-            }
-            if (fieldName.equals(DATIM_ID)) {
-                radet.setDatimId(parser.getText());
-            }
-            if (fieldName.equals(HOSPITAL_NUMBER)) {
-                radet.setHospitalNumber(parser.getText());
-            }
-            if (fieldName.equals(PERSON_UUID)) {
-                personUuid = parser.getText();
-                radet.setPersonUuid(personUuid);
-            }
-
-            if (fieldName.equals("DateOfBirth")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfBirth(date2);
-            }
-            if (fieldName.equals("Age")) {
-                String value = parser.getText();
-                if (value != null) radet.setAge(Double.valueOf(parser.getText()));
-            }
-            if (fieldName.equals("Gender")) {
-                radet.setGender(parser.getText());
-            }
-            if (fieldName.equals("TargetGroup")) {
-                radet.setTargetGroup(parser.getText());
-            }
-
-            if (fieldName.equals("EnrollmentSetting")) {
-                radet.setEnrollmentSetting(parser.getText());
-            }
-            if (fieldName.equals("ArtStartDate")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setArtStartDate(date2);
-            }
-            if (fieldName.equals("RegimenAtStart")) {
-                radet.setRegimenAtStart(parser.getText());
-            }
-            if (fieldName.equals("RegimenLineAtStart")) {
-                radet.setRegimenLineAtStart(parser.getText());
-            }
-            if (fieldName.equals("PregnancyStatus")) {
-                radet.setPregnancyStatus(parser.getText());
-            }
-            if (fieldName.equals("CurrentClinicalStage")) {
-                radet.setCurrentClinicalStage(parser.getText());
-            }
-            if (fieldName.equals("CurrentWeight")) {
-                radet.setCurrentWeight(new Double(parser.getText()));
-            }
-            if (fieldName.equals("ViralLoadIndication")) {
-                radet.setViralLoadIndication(parser.getText());
-            }
-            if (fieldName.equals("DateOfViralLoadSampleCollection")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfViralLoadSampleCollection(date2);
-            }
-            if (fieldName.equals("CurrentViralLoad")) {
-                radet.setCurrentViralLoad(parser.getText());
-            }
-            System.out.println(1);
-            if (fieldName.equals("DateOfCurrentViralLoad")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfCurrentViralLoad(date2);
-            }
-            System.out.println(2);
-            if (fieldName.equals("DateOfCurrentViralLoadSample")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfCurrentViralLoadSample(date2);
-            }
-            if (fieldName.equals("LastCd4Count")) {
-                radet.setLastCd4Count(parser.getText());
-            }
-            if (fieldName.equals("DateOfLastCd4Count")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfLastCd4Count(date2);
-            }
-            if (fieldName.equals("CurrentRegimenLine")) {
-                radet.setCurrentRegimenLine(parser.getText());
-            }
-            if (fieldName.equals("CurrentARTRegimen")) {
-                radet.setCurrentArtRegimen(parser.getText());
-            }
-            if (fieldName.equals("MonthsOfARVRefill")) {
-                radet.setMonthsOfArvRefill(Double.valueOf(parser.getText()));
-            }
-            if (fieldName.equals("LastPickupDate")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setLastPickupDate(date2);
-            }
-            if (fieldName.equals("NextPickupDate")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setNextPickupDate(date2);
-            }
-            if (fieldName.equals("CurrentStatusDate")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setCurrentStatusDate(date2);
-            }
-            if (fieldName.equals("setCurrentStatus")) {
-                radet.setCurrentStatus(parser.getText());
-            }
-            if (fieldName.equals("PreviousStatusDate")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setPreviousStatusDate(date2);
-            }
-            if (fieldName.equals("PreviousStatus")) {
-                radet.setPreviousStatus(parser.getText());
-            }
-            if (fieldName.equals("DateBiometricsEnrolled")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateBiometricsEnrolled(date2);
-            }
-            if (fieldName.equals("NumberOfFingersCaptured")) {
-                String value = parser.getText();
-                if (value != null) radet.setNumberOfFingersCaptured(Double.valueOf(value));
-            }
-            if (fieldName.equals("DateOfCommencementOfEAC")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfCommencementOfEac(date2);
-            }
-            if (fieldName.equals("NumberOfEACSessionCompleted")) {
-                String value = parser.getText();
-                if (value != null) radet.setNumberOfEacSessionCompleted(Double.valueOf(value));
-            }
-            if (fieldName.equals("DateOfLastEACSessionCompleted")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfLastEacSessionCompleted(date2);
-            }
-            if (fieldName.equals("DateOfExtendEACCompletion")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfExtendEacCompletion(date2);
-            }
-            if (fieldName.equals("DateOfRepeatViralLoadResult")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfRepeatViralLoadResult(date2);
-            }
-            if (fieldName.equals("DateOfRepeatViralLoadEACSampleCollection")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfViralLoadSampleCollection(date2);
-            }
-            if (fieldName.equals("RepeatViralLoadResult")) {
-                radet.setRepeatViralLoadResult(parser.getText());
-            }
-            if (fieldName.equals("TbStatus")) {
-                radet.setTbStatus(parser.getText());
-            }
-            if (fieldName.equals("DateOfTbScreened")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfTbScreened(date2);
-            }
-            if (fieldName.equals("DateOfCurrentRegimen")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfCurrentRegimen(date2);
-            }
-            if (fieldName.equals("DateOfIptStart")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfIptStart(date2);
-            }
-            if (fieldName.equals("IptCompletionDate")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setIptCompletionDate(date2);
-            }
-            if (fieldName.equals("IptType")) {
-                radet.setIptType(parser.getText());
-            }
-            if (fieldName.equals("ResultOfCervicalCancerScreening")) {
-                radet.setResultOfCervicalCancerScreening(parser.getText());
-            }
-            if (fieldName.equals("CervicalCancerScreeningType")) {
-                radet.setCervicalCancerScreeningType(parser.getText());
-            }
-            if (fieldName.equals("CervicalCancerScreeningMethod")) {
-                radet.setCervicalCancerScreeningMethod(parser.getText());
-            }
-            if (fieldName.equals("CervicalCancerTreatmentScreened")) {
-                radet.setCervicalCancerTreatmentScreened(parser.getText());
-            }
-            if (fieldName.equals("DateOfCervicalCancerScreening")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfCervicalCancerScreening(date2);
-            }
-            if (fieldName.equals("OvcNumber")) {
-                radet.setOvcNumber(parser.getText());
-            }
-            if (fieldName.equals("HouseholdNumber")) {
-                radet.setHouseHoldNumber(parser.getText());
-            }
-            if (fieldName.equals("CareEntry")) {
-                radet.setCareEntry(parser.getText());
-            }
-            if (fieldName.equals("CauseOfDeath")) {
-                radet.setCauseOfDeath(parser.getText());
-            }
-            if (fieldName.equals("VlEligibilityStatus")) {
-                radet.setVlEligibilityStatus(Boolean.valueOf(parser.getText()));
-            }
-            if (fieldName.equals("DateOfVlEligibilityStatu")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfVlEligibilityStatus(date2);
-            }
-            if (fieldName.equals("TbDiagnosticTestType")) {
-                radet.setTbDiagnosticTestType(parser.getText());
-            }
-            if (fieldName.equals("DateOfTbSampleCollection")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfTbSampleCollection(date2);
-            }
-            if (fieldName.equals("TbDiagnosticResult")) {
-                radet.setTbDiagnosticResult(parser.getText());
-            }
-            if (fieldName.equals("DsdModel")) {
-                radet.setDsdModel(parser.getText());
-            }
-            if (fieldName.equals("DateOfTbDiagnosticResultReceived")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setDateOfTbDiagnosticResultReceived(date2);
-            }
-            if (fieldName.equals("TbTreatementType")) {
-                radet.setTbTreatementType(parser.getText());
-            }
-            if (fieldName.equals("TbTreatmentOutcome")) {
-                radet.setTbTreatmentOutcome(parser.getText());
-            }
-            if (fieldName.equals("TbTreatmentStartDate")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setTbTreatmentStartDate(date2);
-            }
-            if (fieldName.equals("TbCompletionDate")) {
-                String date = parser.getText();
-                LocalDate date2 = LocalDate.parse(date, formatter);
-                if (date != null) radet.setTbCompletionDate(date2);
-            }
-            if (fieldName.equals("IptCompletionStatus()")) {
-                radet.setIptCompletionStatus(parser.getText());
-            }
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
             try {
-                String radetUniqueNo = personUuid + "-" + datimId;
-                radet.setPeriod(period);
-                radet.setRadetUniqueNo(radetUniqueNo);
-                radet.setSubmissionTime(LocalDate.now() + " @" + LocalTime.now());
-                Optional<CentralRadet> centralRadetOptional = radetRepository.getCentralRadetByRadetUniqueNo(radetUniqueNo);
-                if (centralRadetOptional.isPresent()) {
-                    radet.setId(centralRadetOptional.get().getId());
-                    //continue;
-                } else radet.setId(null);
-            } catch (Exception e) {  }
+                String fieldName = parser.getCurrentName();
+                parser.nextToken();
+                if (fieldName.equals(STATE)) {
+                    radet.setState(parser.getText());
+                }
+                if (fieldName.equals(LGA)) {
+                    radet.setLga(parser.getText());
+                }
+                if (fieldName.equals(FACILITY_NAME)) {
+                    radet.setFacilityName(parser.getText());
+                }
+                if (fieldName.equals(DATIM_ID)) {
+                    radet.setDatimId(parser.getText());
+                }
+                if (fieldName.equals(HOSPITAL_NUMBER)) {
+                    radet.setHospitalNumber(parser.getText());
+                }
+                if (fieldName.equals(PERSON_UUID)) {
+                    personUuid = parser.getText();
+                    radet.setPersonUuid(personUuid);
+                }
+
+                if (fieldName.equals("DateOfBirth")) {
+                    String date = parser.getText();
+                    if (date != null) radet.setDateOfBirth(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("Age")) {
+                    String value = parser.getText();
+                    if (value != null) radet.setAge(Double.valueOf(parser.getText()));
+                }
+                if (fieldName.equals("Gender")) {
+                    radet.setGender(parser.getText());
+                }
+                if (fieldName.equals("TargetGroup")) {
+                    radet.setTargetGroup(parser.getText());
+                }
+
+                if (fieldName.equals("EnrollmentSetting")) {
+                    radet.setEnrollmentSetting(parser.getText());
+                }
+                if (fieldName.equals("ArtStartDate")) {
+                    String date = parser.getText();
+                    if (date != null) radet.setArtStartDate(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("RegimenAtStart")) {
+                    radet.setRegimenAtStart(parser.getText());
+                }
+                if (fieldName.equals("RegimenLineAtStart")) {
+                    radet.setRegimenLineAtStart(parser.getText());
+                }
+                if (fieldName.equals("PregnancyStatus")) {
+                    radet.setPregnancyStatus(parser.getText());
+                }
+                if (fieldName.equals("CurrentClinicalStage")) {
+                    radet.setCurrentClinicalStage(parser.getText());
+                }
+                if (fieldName.equals("CurrentWeight")) {
+                    radet.setCurrentWeight(new Double(parser.getText()));
+                }
+                if (fieldName.equals("ViralLoadIndication")) {
+                    radet.setViralLoadIndication(parser.getText());
+                }
+                if (fieldName.equals("DateOfViralLoadSampleCollection")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfViralLoadSampleCollection(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("CurrentViralLoad")) {
+                    radet.setCurrentViralLoad(parser.getText());
+                }
+                System.out.println(1);
+                if (fieldName.equals("DateOfCurrentViralLoad")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfCurrentViralLoad(LocalDate.parse(date, formatter));
+                }
+                System.out.println(2);
+                if (fieldName.equals("DateOfCurrentViralLoadSample")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfCurrentViralLoadSample(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("LastCd4Count")) {
+                    radet.setLastCd4Count(parser.getText());
+                }
+                if (fieldName.equals("DateOfLastCd4Count")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfLastCd4Count(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("CurrentRegimenLine")) {
+                    radet.setCurrentRegimenLine(parser.getText());
+                }
+                if (fieldName.equals("CurrentARTRegimen")) {
+                    radet.setCurrentArtRegimen(parser.getText());
+                }
+                if (fieldName.equals("MonthsOfARVRefill")) {
+                    radet.setMonthsOfArvRefill(Double.valueOf(parser.getText()));
+                }
+                if (fieldName.equals("LastPickupDate")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setLastPickupDate(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("NextPickupDate")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setNextPickupDate(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("CurrentStatusDate")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setCurrentStatusDate(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("setCurrentStatus")) {
+                    radet.setCurrentStatus(parser.getText());
+                }
+                if (fieldName.equals("PreviousStatusDate")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setPreviousStatusDate(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("PreviousStatus")) {
+                    radet.setPreviousStatus(parser.getText());
+                }
+                if (fieldName.equals("DateBiometricsEnrolled")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateBiometricsEnrolled(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("NumberOfFingersCaptured")) {
+                    String value = parser.getText();
+                    if (value != null) radet.setNumberOfFingersCaptured(Double.valueOf(value));
+                }
+                if (fieldName.equals("DateOfCommencementOfEAC")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfCommencementOfEac(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("NumberOfEACSessionCompleted")) {
+                    String value = parser.getText();
+                    if (value != null) radet.setNumberOfEacSessionCompleted(Double.valueOf(value));
+                }
+                if (fieldName.equals("DateOfLastEACSessionCompleted")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfLastEacSessionCompleted(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("DateOfExtendEACCompletion")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfExtendEacCompletion(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("DateOfRepeatViralLoadResult")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfRepeatViralLoadResult(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("DateOfRepeatViralLoadEACSampleCollection")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfViralLoadSampleCollection(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("RepeatViralLoadResult")) {
+                    radet.setRepeatViralLoadResult(parser.getText());
+                }
+                if (fieldName.equals("TbStatus")) {
+                    radet.setTbStatus(parser.getText());
+                }
+                if (fieldName.equals("DateOfTbScreened")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfTbScreened(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("DateOfCurrentRegimen")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfCurrentRegimen(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("DateOfIptStart")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfIptStart(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("IptCompletionDate")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setIptCompletionDate(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("IptType")) {
+                    radet.setIptType(parser.getText());
+                }
+                if (fieldName.equals("ResultOfCervicalCancerScreening")) {
+                    radet.setResultOfCervicalCancerScreening(parser.getText());
+                }
+                if (fieldName.equals("CervicalCancerScreeningType")) {
+                    radet.setCervicalCancerScreeningType(parser.getText());
+                }
+                if (fieldName.equals("CervicalCancerScreeningMethod")) {
+                    radet.setCervicalCancerScreeningMethod(parser.getText());
+                }
+                if (fieldName.equals("CervicalCancerTreatmentScreened")) {
+                    radet.setCervicalCancerTreatmentScreened(parser.getText());
+                }
+                if (fieldName.equals("DateOfCervicalCancerScreening")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfCervicalCancerScreening(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("OvcNumber")) {
+                    radet.setOvcNumber(parser.getText());
+                }
+                if (fieldName.equals("HouseholdNumber")) {
+                    radet.setHouseHoldNumber(parser.getText());
+                }
+                if (fieldName.equals("CareEntry")) {
+                    radet.setCareEntry(parser.getText());
+                }
+                if (fieldName.equals("CauseOfDeath")) {
+                    radet.setCauseOfDeath(parser.getText());
+                }
+                if (fieldName.equals("VlEligibilityStatus")) {
+                    radet.setVlEligibilityStatus(Boolean.valueOf(parser.getText()));
+                }
+                if (fieldName.equals("DateOfVlEligibilityStatu")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfVlEligibilityStatus(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("TbDiagnosticTestType")) {
+                    radet.setTbDiagnosticTestType(parser.getText());
+                }
+                if (fieldName.equals("DateOfTbSampleCollection")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfTbSampleCollection(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("TbDiagnosticResult")) {
+                    radet.setTbDiagnosticResult(parser.getText());
+                }
+                if (fieldName.equals("DsdModel")) {
+                    radet.setDsdModel(parser.getText());
+                }
+                if (fieldName.equals("DateOfTbDiagnosticResultReceived")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setDateOfTbDiagnosticResultReceived(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("TbTreatementType")) {
+                    radet.setTbTreatementType(parser.getText());
+                }
+                if (fieldName.equals("TbTreatmentOutcome")) {
+                    radet.setTbTreatmentOutcome(parser.getText());
+                }
+                if (fieldName.equals("TbTreatmentStartDate")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setTbTreatmentStartDate(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("TbCompletionDate")) {
+                    String date = parser.getText();
+
+                    if (date != null) radet.setTbCompletionDate(LocalDate.parse(date, formatter));
+                }
+                if (fieldName.equals("IptCompletionStatus()")) {
+                    radet.setIptCompletionStatus(parser.getText());
+                }
+                try {
+                    String radetUniqueNo = personUuid + "-" + datimId + "-" + PERIOD;
+                    radet.setPeriod(PERIOD);
+                    radet.setRadetUniqueNo(radetUniqueNo);
+                    radet.setSubmissionTime(LocalDate.now() + " @" + LocalTime.now());
+                    Optional<CentralRadet> centralRadetOptional = radetRepository.getCentralRadetByRadetUniqueNo(radetUniqueNo);
+                    if (centralRadetOptional.isPresent()) {
+                        radet.setId(centralRadetOptional.get().getId());
+                        //continue;
+                    } else radet.setId(null);
+                } catch (Exception e) {
+                }
+
             } catch (Exception e) {
                 creatRadetUploadIssueTracker(datimId, (LocalDate.now() + " @" + LocalTime.now()));// to be done later;
             }
-        }
+
 
         }
-        //    private void mapHts(HtsReport hts, JsonParser parser) throws IOException {
-//        while (parser.nextToken() != JsonToken.END_OBJECT) {
-//            String fieldName = parser.getCurrentName();
-//            parser.nextToken();
-//            if (fieldName.equals(STATE)) {
-//                hts.setState(parser.getText());
-//            }
-//            if (fieldName.equals(LGA)) {
-//                hts.setLga(parser.getText());
-//            }
-//            if (fieldName.equals(FACILITY)) {
-//                hts.setFacility(parser.getText());
-//            }
-//            if (fieldName.equals(DATIM_CODE)) {
-//                hts.setDatimCode(parser.getText());
-//            }
-//            if (fieldName.equals(PATIENT_ID)) {
-//                hts.setPatientId(parser.getText());
-//            }
-//            if (fieldName.equals(CLIENT_CODE)) {
-//                hts.setClientCode(parser.getText());
-//            }
-//        }
-//    }
-
-//    private void mapPrep(PrepReport prep, JsonParser parser) throws IOException {
-//        while (parser.nextToken() != JsonToken.END_OBJECT) {
-//            String fieldName = parser.getCurrentName();
-//            parser.nextToken();
-//            if (fieldName.equals(STATE)) {
-//                prep.setState(parser.getText());
-//            }
-//            if (fieldName.equals(LGA)) {
-//                prep.setLga(parser.getText());
-//            }
-//            if (fieldName.equals(FACILITY_NAME)) {
-//                prep.setFacilityName(parser.getText());
-//            }
-//            if (fieldName.equals(DATIM_ID)) {
-//                prep.setDatimId(parser.getText());
-//            }
-//            if (fieldName.equals(HOSPITAL_NUMBER)) {
-//                prep.setHospitalNumber(parser.getText());
-//            }
-//            if (fieldName.equals(PERSON_UUID)) {
-//                prep.setPersonUuid(parser.getText());
-//            }
-//            if (fieldName.equals("firstName")) {
-//                prep.setFirstName(parser.getText());
-//            }
-//
-//        }
-//    }
-
-    public void creatRadetUploadTracker(String datimId, String submissionTime) {
+    }
+      public void creatRadetUploadTracker(String datimId, String submissionTime) {
         RadetUploaders radetUploaders = radetRepository.getRadetUploaders(datimId);
         RadetUploadTrackers radetUploadTrackers = new RadetUploadTrackers();
         radetUploadTrackers.setIpCode(radetUploaders.getIpcode());
@@ -561,7 +464,6 @@ public class SyncServiceImpl implements SyncService {
 
 
     }
-
 
 
     public void creatRadetUploadIssueTracker(String datimId, String submissionTime) {
@@ -612,18 +514,18 @@ public class SyncServiceImpl implements SyncService {
                 // List<Radet> radetList = objectMapper.readValue(new File(filePath), new TypeReference<List<Radet>>() {});
                 importRadet(filePath, datimId);
             }
-//            filePath = ConstantUtility.TEMP_SERVER_DIR + ConstantUtility.HTS_FILENAME;
-//            if (Files.exists(Paths.get(filePath))) {
-//                log.info("Importing HTS file");
-//                //  List<HtsReportDto> htsReportDtoList = objectMapper.readValue(new File(filePath), new TypeReference<List<HtsReportDto>>() {});
-//                importHts(filePath);
-//            }
-//            filePath = ConstantUtility.TEMP_SERVER_DIR + ConstantUtility.PREP_FILENAME;
-//            if (Files.exists(Paths.get(filePath))) {
-//                log.info("Importing PREP file");
-//                //List<PrepReportDto> radetList = objectMapper.readValue(new File(filePath), new TypeReference<List<PrepReportDto>>() {});
-//                importPrep(filePath);
-//            }
+            filePath = ConstantUtility.TEMP_SERVER_DIR + ConstantUtility.HTS_FILENAME;
+            if (Files.exists(Paths.get(filePath))) {
+                log.info("Importing HTS file");
+                //  List<HtsReportDto> htsReportDtoList = objectMapper.readValue(new File(filePath), new TypeReference<List<HtsReportDto>>() {});
+                importHts(filePath, datimId);
+            }
+            filePath = ConstantUtility.TEMP_SERVER_DIR + ConstantUtility.PREP_FILENAME;
+            if (Files.exists(Paths.get(filePath))) {
+                log.info("Importing PREP file");
+                //List<PrepReportDto> radetList = objectMapper.readValue(new File(filePath), new TypeReference<List<PrepReportDto>>() {});
+                importPrep(filePath, datimId);
+            }
             isProcessed = true;
             //  FileUtils.forceDelete(new File(sourceFileName));
             log.info("Data import completed successfully.");
@@ -633,7 +535,586 @@ public class SyncServiceImpl implements SyncService {
 
         return isProcessed;
     }
+//----------------------------------Kennedy-------------------------------------------
+@Override
+      public void importHts(String jsonFilePath, String datimId) throws IOException {
+        try (JsonParser parser = new JsonFactory().createParser(new FileReader(jsonFilePath))) {
+            List<CentralHts> htsList = new ArrayList<>();
+            if (parser.nextToken() == JsonToken.START_ARRAY) {
+                while (parser.nextToken() != JsonToken.END_ARRAY) {
+                    if (parser.currentToken() != JsonToken.START_OBJECT) {
+                        throw new RuntimeException("Expected content to be a HTS object");
+                    }
+                    CentralHts hts = new CentralHts();
+                    mapHts(hts, parser, datimId);
+                    htsList.add(hts);
+                }
+            }
+            htsRepository.saveAll(htsList);
+            creatRadetUploadTracker(datimId, LocalDate.now() + " @" + LocalTime.now());
+        } catch (Exception e) {
+            log.error("Error importing HTS data: {}", e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
+    @Override
+    public void importPrep(String jsonFilePath, String datimId) throws IOException {
 
+        try (JsonParser parser = new JsonFactory().createParser(new FileReader(jsonFilePath))) {
+            List<CentralPrep> prepList = new ArrayList<>();
+            if (parser.nextToken() == JsonToken.START_ARRAY) {
+                while (parser.nextToken() != JsonToken.END_ARRAY) {
+                    if (parser.currentToken() != JsonToken.START_OBJECT) {
+                        throw new RuntimeException("Expected content to be a PREP object");
+                    }
+                    CentralPrep prep = new CentralPrep();
+                    mapPrep(prep, parser, datimId);
+                    prepList.add(prep);
+                }
+            }
+            prepRepository.saveAll(prepList);
+            creatRadetUploadTracker(datimId, LocalDate.now() + " @" + LocalTime.now());
+        } catch (Exception e) {
+            log.error("Error importing PREP data: {}", e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    void mapHts(CentralHts hts, JsonParser parser, String datimId) throws IOException {
+
+        String personUuid = "";
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            try {
+                String fieldName = parser.getCurrentName();
+                parser.nextToken();
+
+                if (fieldName.equals("clientcode")) {
+                    hts.setClientCode(parser.getText());
+                }
+
+                if (fieldName.equals("firstname")) {
+                    hts.setFirstName(parser.getText());
+                }
+
+                if (fieldName.equals("surname")) {
+                    hts.setSurname(parser.getText());
+                }
+
+                if (fieldName.equals("othername")) {
+                    hts.setOtherName(parser.getText());
+                }
+
+                if (fieldName.equals("sex")) {
+                    hts.setSex(parser.getText());
+                }
+
+                if (fieldName.equals("age")) {
+                    String value = parser.getText();
+                    if(value != null) hts.setAge(Integer.parseInt(value));
+                }
+
+                if (fieldName.equals("dateofbirth")) {
+
+                    String value = parser.getText();
+                    if(value != null)hts.setDateOfBirth(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("phonenumber")) {
+                    hts.setPhoneNumber(parser.getText());
+                }
+
+                if (fieldName.equals("maritalstatus")) {
+                    hts.setMaritalStatus(parser.getText());
+                }
+
+                if (fieldName.equals("lgaofresidence")) {
+                    hts.setLgaOfResidence(parser.getText());
+                }
+
+                if (fieldName.equals("stateofresidence")) {
+                    hts.setStateOfResidence(parser.getText());
+                }
+
+                if (fieldName.equals("facility")) {
+                    hts.setFacility(parser.getText());
+                }
+
+                if (fieldName.equals("state")) {
+                    hts.setState(parser.getText());
+                }
+
+                if (fieldName.equals("lga")) {
+                    hts.setLga(parser.getText());
+                }
+
+                if (fieldName.equals("patientid")) {
+                    hts.setPatientId(parser.getText());
+                }
+
+                if (fieldName.equals("education")) {
+                    hts.setEducation(parser.getText());
+                }
+
+                if (fieldName.equals("occupation")) {
+                    hts.setOccupation(parser.getText());
+                }
+
+                if (fieldName.equals("datimcode")) {
+                    hts.setDatimCode(parser.getText());
+                }
+
+                if (fieldName.equals("htslatitude")) {
+                    hts.setHtsLatitude(parser.getText());
+                }
+
+                if (fieldName.equals("htslongitude")) {
+                    hts.setHtsLongitude(parser.getText());
+                }
+
+                if (fieldName.equals("clientaddress")) {
+                    hts.setClientAddress(parser.getText());
+                }
+
+                if (fieldName.equals("datevisit")) {
+                    String value = parser.getText();
+                    if(value != null) hts.setDateVisit(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("firsttimevisit")) {
+                    hts.setFirstTimeVisit(parser.getText());
+                }
+
+                if (fieldName.equals("numberofchildren")) {
+                    String value = parser.getText();
+                    if(value != null) hts.setNumberOfChildren(Integer.parseInt(value));
+                }
+
+                if (fieldName.equals("numberofwives")) {
+                    String value = parser.getText();
+                    if(value != null) hts.setNumberOfWives(Integer.parseInt(value));
+                }
+
+                if (fieldName.equals("indexclient")) {
+                    hts.setIndexClient(parser.getText());
+                }
+
+                if (fieldName.equals("prepoffered")) {
+                    String value = parser.getText();
+                    if(value != null) hts.setPrepOffered(Boolean.parseBoolean(value));
+                }
+
+                if (fieldName.equals("prepaccepted")) {
+                    String value = parser.getText();
+                    if(value != null) hts.setPrepAccepted(Boolean.parseBoolean(value));
+                }
+
+                if (fieldName.equals("previouslytested")) {
+                    hts.setPreviouslyTested(parser.getText());
+                }
+
+                if (fieldName.equals("targetgroup")) {
+                    hts.setTargetGroup(parser.getText());
+                }
+
+                if (fieldName.equals("referredfrom")) {
+                    hts.setReferredFrom(parser.getText());
+                }
+
+                if (fieldName.equals("testingsetting")) {
+                    hts.setTestingSetting(parser.getText());
+                }
+
+                if (fieldName.equals("counselingtype")) {
+                    hts.setCounselingType(parser.getText());
+                }
+
+                if (fieldName.equals("pregnancystatus")) {
+                    hts.setPregnancyStatus(parser.getText());
+                }
+
+                if (fieldName.equals("breastfeeding")) {
+                    String value = parser.getText();
+                    if(value != null) hts.setBreastfeeding(Boolean.parseBoolean(value));
+                }
+
+                if (fieldName.equals("indextype")) {
+                    hts.setIndexType(parser.getText());
+                }
+
+                if (fieldName.equals("ifrecencytestingoptin")) {
+                    hts.setRecencyTestingOptIn(parser.getText());
+                }
+
+                if (fieldName.equals("recencyid")) {
+                    hts.setRecencyId(parser.getText());
+                }
+
+                if (fieldName.equals("recencytesttype")) {
+                    hts.setRecencyTestType(parser.getText());
+                }
+
+                if (fieldName.equals("recencytestdate")) {
+                    String value = parser.getText();
+                    if(value != null) hts.setRecencyTestDate(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("recencyinterpretation")) {
+                    hts.setRecencyInterpretation(parser.getText());
+                }
+
+                if (fieldName.equals("finalrecencyresult")) {
+                    hts.setFinalRecencyResult(parser.getText());
+                }
+
+                if (fieldName.equals("viralloadresult")) {
+                    hts.setViralLoadResult(parser.getText());
+                }
+
+                if (fieldName.equals("viralloadsamplecollectiondate")) {
+                    String value = parser.getText();
+                    if(value != null) hts.setViralLoadSampleCollectionDate(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("viralloadconfirmationresult")) {
+                    hts.setViralLoadConfirmationResult(parser.getText());
+                }
+
+                if (fieldName.equals("viralloadconfirmationdate")) {
+                    String value = parser.getText();
+                    if(value != null) hts.setViralLoadConfirmationDate(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("assessmentcode")) {
+                    hts.setAssessmentCode(parser.getText());
+                }
+
+                if (fieldName.equals("modality")) {
+                    hts.setModality(parser.getText());
+                }
+
+                if (fieldName.equals("syphilistestresult")) {
+                    hts.setSyphilisTestResult(parser.getText());
+                }
+
+                if (fieldName.equals("hepatitisbtestresult")) {
+                    hts.setHepatitisBTestResult(parser.getText());
+                }
+
+                if (fieldName.equals("hepatitisctestresult")) {
+                    hts.setHepatitisCTestResult(parser.getText());
+                }
+
+                if (fieldName.equals("cd4type")) {
+                    hts.setCd4Type(parser.getText());
+                }
+
+                if (fieldName.equals("cd4testresult")) {
+                    hts.setCd4TestResult(parser.getText());
+                }
+
+                if (fieldName.equals("hivtestresult")) {
+                    hts.setHivTestResult(parser.getText());
+                }
+
+                if (fieldName.equals("finalhivtestresult")) {
+                    hts.setFinalHivTestResult(parser.getText());
+                }
+
+                if (fieldName.equals("dateofhivtesting")) {
+                    String value = parser.getText();
+                    if(value != null) hts.setDateOfHivTesting(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("numberofcondomsgiven")) {
+                    hts.setNumberOfCondomsGiven(parser.getText());
+                }
+
+                if (fieldName.equals("numberoflubricantsgiven")) {
+                    hts.setNumberOfLubricantsGiven(parser.getText());
+                }
+
+                if (fieldName.equals("htsuniqueno")) {
+                    hts.setHtsUniqueNo(parser.getText());
+                }
+
+                if (fieldName.equals("period")) {
+                    hts.setPeriod(parser.getText());
+                }
+
+                if (fieldName.equals("submissiontime")) {
+                    hts.setSubmissionTime(parser.getText());
+                }
+                try {
+                    String htsUniqueNo = personUuid + "-" + datimId + "-" + PERIOD;
+                    hts.setPeriod(PERIOD);
+                    hts.setHtsUniqueNo(htsUniqueNo);
+                    hts.setSubmissionTime(LocalDate.now() + " @" + LocalTime.now());
+                    Optional<CentralHts> centralHtsOptional = htsRepository.getCentralHtsByHtsUniqueNo(htsUniqueNo);
+                    if (centralHtsOptional.isPresent()) {
+                        hts.setId(centralHtsOptional.get().getId());
+                        //continue;
+                    } else hts.setId(null);
+                } catch (Exception e) {
+                }
+            } catch (Exception e) {
+                creatRadetUploadIssueTracker(datimId, (LocalDate.now() + " @" + LocalTime.now()));// to be done later;
+            }
+        }
+
+    }
+
+    //======================================================================================
+    void mapPrep(CentralPrep prep, JsonParser parser, String datimId) throws IOException {
+
+        String personUuid = "";
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            try {
+                String fieldName = parser.getCurrentName();
+                parser.nextToken();
+
+                if (fieldName.equals("hospitalnumber")) {
+                    prep.setHospitalNumber(parser.getText());
+                }
+
+                if (fieldName.equals("personuuid")) {
+                    prep.setPersonUuid(parser.getText());
+                }
+
+                if (fieldName.equals("uuid")) {
+                    prep.setUuid(parser.getText());
+                }
+
+                if (fieldName.equals("hospitalnumber")) {
+                    prep.setHospitalNumber(parser.getText());
+                }
+
+                if (fieldName.equals("surname")) {
+                    prep.setSurname(parser.getText());
+                }
+
+                if (fieldName.equals("firstname")) {
+                    prep.setFirstName(parser.getText());
+                }
+
+                if (fieldName.equals("hivenrollmentdate")) {
+                    String value = parser.getText();
+                    if (value != null)prep.setHivEnrollmentDate(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("age")) {
+                    prep.setAge(Integer.parseInt(parser.getText()));
+                }
+
+                if (fieldName.equals("othername")) {
+                    prep.setOtherName(parser.getText());
+                }
+
+                if (fieldName.equals("sex")) {
+                    prep.setSex(parser.getText());
+                }
+
+                if (fieldName.equals("dateofbirth")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setDateOfBirth(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("dateofregistration")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setDateOfRegistration(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("maritalstatus")) {
+                    prep.setMaritalStatus(parser.getText());
+                }
+
+                if (fieldName.equals("education")) {
+                    prep.setEducation(parser.getText());
+                }
+
+                if (fieldName.equals("occupation")) {
+                    prep.setOccupation(parser.getText());
+                }
+
+                if (fieldName.equals("facilityname")) {
+                    prep.setFacilityName(parser.getText());
+                }
+
+                if (fieldName.equals("lga")) {
+                    prep.setLga(parser.getText());
+                }
+
+                if (fieldName.equals("state")) {
+                    prep.setState(parser.getText());
+                }
+
+                if (fieldName.equals("datimid")) {
+                    prep.setDatimId(parser.getText());
+                }
+
+                if (fieldName.equals("residentialstate")) {
+                    prep.setResidentialState(parser.getText());
+                }
+
+                if (fieldName.equals("residentiallga")) {
+                    prep.setResidentialLga(parser.getText());
+                }
+
+                if (fieldName.equals("address")) {
+                    prep.setAddress(parser.getText());
+                }
+
+                if (fieldName.equals("phone")) {
+                    prep.setPhone(parser.getText());
+                }
+
+                if (fieldName.equals("baselineregimen")) {
+                    prep.setBaselineRegimen(parser.getText());
+                }
+
+                if (fieldName.equals("baselinesystolicbp")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setBaselineSystolicBp(Double.parseDouble(value));
+                }
+
+                if (fieldName.equals("baselinediastolicbp")) {
+                    String value = parser.getText();
+                    if (value != null)prep.setBaselineDiastolicBp(Double.parseDouble(value));
+                }
+
+                if (fieldName.equals("baselinetweight")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setBaselineTWeight(Double.parseDouble(value));
+                }
+
+                if (fieldName.equals("baselineheight")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setBaselineHeight(Double.parseDouble(value));
+                }
+
+                if (fieldName.equals("targetgroup")) {
+                    prep.setTargetGroup(parser.getText());
+                }
+
+                if (fieldName.equals("prepcommencementdate")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setPrepCommencementDate(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("baselineurinalysis")) {
+                    prep.setBaselineUrinalysis(parser.getText());
+                }
+
+                if (fieldName.equals("baselineurinalysisdate")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setBaselineUrinalysisDate(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("baselinecreatinine")) {
+                    prep.setBaselineCreatinine(parser.getText());
+                }
+
+                if (fieldName.equals("baselinehepatitisb")) {
+                    prep.setBaselineHepatitisB(parser.getText());
+                }
+
+                if (fieldName.equals("baselinehepatitisc")) {
+                    prep.setBaselineHepatitisC(parser.getText());
+                }
+
+                if (fieldName.equals("interruptionreason")) {
+                    prep.setInterruptionReason(parser.getText());
+                }
+
+                if (fieldName.equals("interruptiondate")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setInterruptionDate(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("hivstatusatprepinitiation")) {
+                    prep.setHivStatusAtPrepInitiation(parser.getText());
+                }
+
+                if (fieldName.equals("indicationforprep")) {
+                    prep.setIndicationForPrep(parser.getText());
+                }
+
+                if (fieldName.equals("currentregimen")) {
+                    prep.setCurrentRegimen(parser.getText());
+                }
+
+                if (fieldName.equals("dateoflastpickup")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setDateOfLastPickup(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("currentsystolicbp")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setCurrentSystolicBp(Double.parseDouble(value));
+                }
+
+                if (fieldName.equals("currentdiastolicbp")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setCurrentDiastolicBp(Double.parseDouble(value));
+                }
+
+                if (fieldName.equals("currentweight")) {
+                    String value = parser.getText();
+                    if (value != null)prep.setCurrentWeight(Double.parseDouble(value));
+                }
+
+                if (fieldName.equals("currentheight")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setCurrentHeight(Double.parseDouble(value));
+                }
+
+                if (fieldName.equals("currenturinalysis")) {
+                    prep.setCurrentUrinalysis(parser.getText());
+                }
+
+                if (fieldName.equals("currenturinalysisdate")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setCurrentUrinalysisDate(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("currenthivstatus")) {
+                    prep.setCurrentHivStatus(parser.getText());
+                }
+
+                if (fieldName.equals("dateofcurrenthivstatus")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setDateOfCurrentHivStatus(LocalDate.parse(value, formatter));
+                }
+
+                if (fieldName.equals("pregnancystatus")) {
+                    prep.setPregnancyStatus(parser.getText());
+                }
+
+                if (fieldName.equals("currentstatus")) {
+                    prep.setCurrentStatus(parser.getText());
+                }
+
+                if (fieldName.equals("dateofcurrentstatus")) {
+                    String value = parser.getText();
+                    if (value != null) prep.setDateOfCurrentStatus(LocalDate.parse(value, formatter));
+                }
+                try {
+                    String UniqueNo = personUuid + "-" + datimId + "-" + PERIOD;
+                    prep.setPeriod(PERIOD);
+                    prep.setPrepUniqueNo(UniqueNo);
+                    prep.setSubmissionTime(LocalDate.now() + " @" + LocalTime.now());
+                    Optional<CentralPrep> centralPrepOptional = prepRepository.getCentralPrepByPrepUniqueNo(UniqueNo);
+                    if (centralPrepOptional.isPresent()) {
+                        prep.setId(centralPrepOptional.get().getId());
+                        //continue;
+                    } else prep.setId(null);
+                } catch (Exception e) {
+                }
+            } catch (Exception e) {
+                //creatRadetUploadIssueTracker
+                creatRadetUploadIssueTracker(datimId, (LocalDate.now() + " @" + LocalTime.now()));// to be done later;
+            }
+        }
+    }
 
 }
