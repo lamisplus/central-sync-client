@@ -9,10 +9,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.lamisplus.modules.base.controller.UserJWTController;
+import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
 import org.lamisplus.modules.base.security.JWTFilter;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
+import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
+import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.central.service.SyncHistoryService;
 import org.lamisplus.modules.central.utility.HttpConnectionManager;
 import org.springframework.http.*;
@@ -48,6 +51,7 @@ import java.util.Set;
 public class ExportController {
     private final FileUtility fileUtility;
     private final ExportService exportService;
+    private final RemoteAccessTokenRepository accessTokenRepository;
 
     private String APIURL = "http://localhost:8485/api/v1/sync/receive-data/";
 
@@ -87,8 +91,7 @@ public class ExportController {
         response.flushBuffer();
     }
 
-    //@PostMapping("/authenticate-server")
-    public String authorize(LoginVM loginVM) {
+    public String authorizeBeforeSending(LoginVM loginVM) {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
@@ -118,13 +121,21 @@ public class ExportController {
     @PostMapping("/send-data")
     public ResponseEntity<String> sendDataToAPI(@RequestParam("fileName") String fileName, @RequestParam("facilityId") Long facilityId) {
 
+        LoginVM loginVM = new LoginVM();
+        RemoteAccessToken remoteAccessToken = accessTokenRepository
+                .findOneAccess()
+                .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
+
+        loginVM.setUsername(remoteAccessToken.getUsername());
+        loginVM.setPassword(remoteAccessToken.getPassword());
+
         byte[] byteRequest = fileUtility.convertZipToByteArray(ConstantUtility.TEMP_BATCH_DIR + fileName);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        LoginVM loginVM = new LoginVM();
-        loginVM.setPassword("kitkit");
-        loginVM.setUsername("uskarim");
-        headers.set("Authorization", authorize(loginVM));
+
+        //loginVM.setPassword("kitkit");
+        //loginVM.setUsername("uskarim");
+        headers.set("Authorization", authorizeBeforeSending(loginVM));
 
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> responseEntity;
