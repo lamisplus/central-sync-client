@@ -93,15 +93,13 @@ const SettingList = (props) => {
     let history = useHistory();
   // The state for our timer
   const classes = useStyles()
-  const [syncList, setSyncList] = useState( [])
-  const [facilities, setFacilities] = useState( [])
+
   const [serverUrl, setServerUrl] = useState( [])
   const [modal, setModal] = useState(false);
   const toggle = () => setModal(!modal);
   const [showModal, setShowModal] = React.useState(false);
   const toggleModal = () => setShowModal(!showModal)
   const defaultValues = { facility: "", url: "" }
-  const [uploadDetails, setUploadDetails] = useState(defaultValues);
   const [saving, setSaving] = useState(false);
   useEffect(() => {
     ServerUrl()

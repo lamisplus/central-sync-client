@@ -122,12 +122,10 @@ const SyncList = (props) => {
   const [uploadPercentage, setUploadPercentage] = useState(0);
 
 useEffect(() => {
-    syncHistory();
     Facilities();
     JsonSyncHistory();
     }, []);
-    
-// useEffect(() => {
+
 //     const interval = setInterval(() => {
 //         syncHistory()
 //     }, 5000);
@@ -145,20 +143,6 @@ useEffect(() => {
             return Object.values(temp).every((x) => x === "");
     };
      ///GET LIST OF Sync History
-    async function syncHistory() {
-
-        axios
-            .get(`${baseUrl}account`,
-           { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-                setSyncList(response.data.applicationUserOrganisationUnits);
-            })
-            .catch((error) => {
-
-            });
-    
-    }
     async function JsonSyncHistory() {
         axios
             .get(`${baseUrl}export/sync-histories`,
@@ -168,9 +152,7 @@ useEffect(() => {
                 setSyncList(response.data);
             })
             .catch((error) => {
-
             });
-    
     }
     ///GET LIST OF Facilities
     async function Facilities() {
@@ -215,8 +197,9 @@ useEffect(() => {
                 toast.success("JSON Extraction was successful!");
                 toggle();
                 JsonSyncHistory();
+                setSaving(false);
             } catch (err) {
-                // console.log(err) 
+                setSaving(false); 
                 }  
         }else{
             toast.error("All Fields are required");
@@ -243,7 +226,7 @@ useEffect(() => {
     const  sendToServerAction = (fileName,facilityId) => {
         setModal2(true)
          //SENDING A POST REQUEST 
-         axios.get(`${baseUrl}export/send-data?fileName=${fileName}&facilityId=${facilityId}`,fileName,
+         axios.post(`${baseUrl}export/send-data?fileName=${fileName}&facilityId=${facilityId}`,fileName,
                      { headers: {"Authorization" : `Bearer ${token}`} }
                    )
             .then(response => {
