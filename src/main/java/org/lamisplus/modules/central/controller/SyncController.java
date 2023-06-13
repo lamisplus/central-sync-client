@@ -28,7 +28,7 @@ import java.util.List;
 public class SyncController {
     private final SyncService syncService;
     private final static String BASE_URL1 = "/api/v1/sync";
-    private final static String BASE_URL2 = "/api/sync";
+    //private final static String BASE_URL2 = "/api/sync";
 
     @PostMapping(value = BASE_URL1 +"/import")
     public ResponseEntity<String> importData(@RequestParam("multipartFile") MultipartFile multipartFile,  @RequestParam("facilityId") Long facilityId ) throws IOException {
@@ -64,14 +64,14 @@ public class SyncController {
         return new ResponseEntity<>("Data received and saved to file successfully.", HttpStatus.OK);
     }
 
-    @RequestMapping(value = BASE_URL2 + "/remote-access-token",
+    @RequestMapping(value = BASE_URL1 + "/remote-access-token",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public void sendToRemoteAccessToServer(@Valid @RequestBody RemoteAccessToken remoteAccessToken) throws GeneralSecurityException, IOException {
         if(syncService.authorize(remoteAccessToken) == null) throw new RuntimeException("Error while signing in");
     }
 
-    @RequestMapping(value = BASE_URL2 + "/remote-urls",
+    @RequestMapping(value = BASE_URL1 + "/remote-urls",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<RemoteUrlDTO>> getRemoteUrls() {
