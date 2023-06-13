@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.base.service.UserService;
 import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.repository.RadetUploadTrackersRepository;
 import org.lamisplus.modules.central.repository.ReportRepository;
@@ -46,6 +47,7 @@ public class ExportServiceImpl implements ExportService {
     private static final String PATIENT_ID = "patientId";
 
     private final DateUtility dateUtility;
+    private final UserService userService;
 //
 //    private static final String STATE = "state";
 //    private static final String LGA = "lga";
@@ -507,7 +509,7 @@ public class ExportServiceImpl implements ExportService {
                 jsonGenerator.writeStringField(OCCUPATION, prep.getOccupation());
                 jsonGenerator.writeStringField(RESIDENTIAL_STATE, prep.getResidentialState());
                 jsonGenerator.writeStringField(RESIDENTIAL_LGA, prep.getResidentialLga());
-                jsonGenerator.writeStringField(ADDRESS, prep.getAddress());
+                //jsonGenerator.writeStringField(ADDRESS, prep.getAddress());
                 jsonGenerator.writeStringField(PHONE, prep.getPhone());
                 jsonGenerator.writeStringField(BASELINE_REGIMEN, prep.getBaseLineRegimen());
                 jsonGenerator.writeStringField(BASELINE_SYSTOLIC_BP, String.valueOf(prep.getBaselineSystolicBp()));

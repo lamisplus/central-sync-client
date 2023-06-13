@@ -3,13 +3,24 @@ package org.lamisplus.modules.central.service;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.base.controller.vm.LoginVM;
+import org.lamisplus.modules.base.domain.entities.User;
+import org.lamisplus.modules.base.service.UserService;
+import org.lamisplus.modules.central.controller.ExportController;
 import org.lamisplus.modules.central.domain.dto.RadetUploaders;
+import org.lamisplus.modules.central.domain.dto.RemoteUrlDTO;
 import org.lamisplus.modules.central.domain.entity.*;
 import org.lamisplus.modules.central.repository.*;
 import org.lamisplus.modules.central.utility.ConstantUtility;
 import org.lamisplus.modules.central.utility.FileUtility;
+import org.lamisplus.modules.central.utility.HttpConnectionManager;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,8 +47,7 @@ public class SyncServiceImpl implements SyncService {
     private final RadetUploadIssueTrackersRepository radetUploadIssueTrackersRepository;
     //private final CentralDataElementRepository centralDataElementRepository;
     private final RadetUploadTrackersRepository radetUploadTrackersRepository;
-    // private final HtsRepository htsRepository;
-    //private final CentralPrepRepository prepRepository;
+
     private final FileUtility fileUtility;
     private static final String STATE = "state";
     private static final String LGA = "lga";
@@ -50,6 +60,8 @@ public class SyncServiceImpl implements SyncService {
     private static final String CLIENT_CODE = "clientCode";
     private static final String PATIENT_ID = "patientId";
     private static final String PERIOD = "2023Q2";
+    private final RemoteAccessTokenRepository accessTokenRepository;
+    private final UserService userService;
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -1115,6 +1127,56 @@ public class SyncServiceImpl implements SyncService {
                 creatRadetUploadIssueTracker(datimId, (LocalDate.now() + " @" + LocalTime.now()));// to be done later;
             }
         }
+    }
+
+    public String authorize(RemoteAccessToken remoteAccessToken) {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        log.info("remoteAccessToken is {}", remoteAccessToken);
+        String url = remoteAccessToken.getUrl() + "/api/v1/authenticate";
+        LoginVM loginVM = new LoginVM();
+        loginVM.setUsername(remoteAccessToken.getUsername());
+        loginVM.setPassword(remoteAccessToken.getPassword());
+        try {
+            String connect = new HttpConnectionManager().post(loginVM, null, url);
+
+            //For serializing the date on the sync queue
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            ExportController.JWTToken jwtToken = objectMapper.readValue(connect, ExportController.JWTToken.class);
+
+            if (jwtToken.getIdToken() != null) {
+                String token = "Bearer " + jwtToken.getIdToken().replace("'", "");
+                log.info("token is {}", token);
+                //saving the remote access token after authentication
+                saveRemoteAccessToken(remoteAccessToken);
+                return token;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private RemoteAccessToken saveRemoteAccessToken(RemoteAccessToken remoteAccessToken){
+        return accessTokenRepository.save(remoteAccessToken);
+    }
+
+    public List<RemoteUrlDTO> getRemoteUrls() {
+        List<RemoteAccessToken> remoteAccessTokens = accessTokenRepository.findAll();
+
+        List<RemoteUrlDTO> remoteUrlDTOS = new ArrayList<>();
+        remoteAccessTokens.forEach(remoteAccessToken -> {
+            RemoteUrlDTO remoteUrlDTO = new RemoteUrlDTO();
+            remoteUrlDTO.setId(remoteAccessToken.getId());
+            remoteUrlDTO.setUrl(remoteAccessToken.getUrl());
+            remoteUrlDTO.setUsername(remoteAccessToken.getUsername());
+            remoteUrlDTOS.add(remoteUrlDTO);
+        });
+        return remoteUrlDTOS;
     }
 
 }
