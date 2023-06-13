@@ -1,13 +1,20 @@
 package org.lamisplus.modules.central.controller;
 
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.lamisplus.modules.base.controller.UserJWTController;
+import org.lamisplus.modules.base.controller.vm.LoginVM;
+import org.lamisplus.modules.base.security.JWTFilter;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
 import org.lamisplus.modules.central.service.SyncHistoryService;
+import org.lamisplus.modules.central.utility.HttpConnectionManager;
 import org.springframework.http.*;
 import org.lamisplus.modules.central.service.ExportService;
 import org.lamisplus.modules.central.utility.ConstantUtility;
@@ -20,12 +27,14 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -41,6 +50,8 @@ public class ExportController {
     private final ExportService exportService;
 
     private String APIURL = "http://localhost:8485/api/v1/sync/receive-data/";
+
+    private String logInAPI = "http://localhost:8485/api/v1/authenticate";
     private final SyncHistoryService syncHistoryService;
 
     @GetMapping("/all")
@@ -76,18 +87,51 @@ public class ExportController {
         response.flushBuffer();
     }
 
+    //@PostMapping("/authenticate-server")
+    public String authorize(LoginVM loginVM) {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        log.info("loginVM is {}", loginVM);
+        try {
+            String connect = new HttpConnectionManager().post(loginVM, null, logInAPI);
+
+            //For serializing the date on the sync queue
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            JWTToken jwtToken = objectMapper.readValue(connect, JWTToken.class);
+
+            if (jwtToken.getIdToken() != null) {
+                String token = "Bearer " + jwtToken.getIdToken().replace("'", "");
+                log.info("token is {}", token);
+                return token;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
     @PostMapping("/send-data")
     public ResponseEntity<String> sendDataToAPI(@RequestParam("fileName") String fileName, @RequestParam("facilityId") Long facilityId) {
 
         byte[] byteRequest = fileUtility.convertZipToByteArray(ConstantUtility.TEMP_BATCH_DIR + fileName);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
+        LoginVM loginVM = new LoginVM();
+        loginVM.setPassword("kitkit");
+        loginVM.setUsername("uskarim");
+        headers.set("Authorization", authorize(loginVM));
 
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> responseEntity;
         try {
             String apiUrl = APIURL + facilityId;
+            HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
+
             responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 syncHistoryService.updateSyncHistory(fileName, 1);
@@ -124,7 +168,14 @@ public class ExportController {
         new File(ConstantUtility.TEMP_BATCH_DIR).mkdirs();
     }
 
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class JWTToken {
 
+        @JsonProperty("id_token")
+        private String idToken;
 
+    }
 
 }
