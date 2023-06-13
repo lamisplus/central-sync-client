@@ -202,7 +202,7 @@ useEffect(() => {
                 setSaving(false); 
                 }  
         }else{
-            toast.error("All Fields are required");
+            toast.error("Please select facility");
         }    
        
     };
