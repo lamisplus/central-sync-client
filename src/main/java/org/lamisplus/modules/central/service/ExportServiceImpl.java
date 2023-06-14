@@ -164,11 +164,11 @@ public class ExportServiceImpl implements ExportService {
             log.info("Extracting RADET data to JSON");
             boolean radetIsProcessed = radetExport(facilityId, reportStartDate, reportEndDate);
             log.info("Extracting HTS data to JSON");
-            boolean htsIsProcessed = htsExport(facilityId, reportStartDate, reportEndDate);
+            //boolean htsIsProcessed = htsExport(facilityId, reportStartDate, reportEndDate);
             log.info("Extracting PrEP data to JSON");
-            boolean prepIsProcessed = prepExport(facilityId, reportStartDate, reportEndDate);
+            //boolean prepIsProcessed = prepExport(facilityId, reportStartDate, reportEndDate);
 
-            if (radetIsProcessed || htsIsProcessed || prepIsProcessed) {
+            if (radetIsProcessed /*|| htsIsProcessed || prepIsProcessed*/) {
                 log.info("Writing all exports to a zip file");
                 Date date1 = new Date();
                 String datimCode = getDatimId(facilityId);
