@@ -11,7 +11,13 @@ public interface ExportService {
     boolean htsExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate);
     boolean prepExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate);
     String getDatimId(Long facilityId);
-    public boolean clinicExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
-    public boolean patientExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+    boolean clinicExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+    boolean patientExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+    boolean laboratoryOrderExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+    boolean laboratorySampleExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    boolean laboratoryTestExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    boolean laboratoryResultExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
 
 }

@@ -20,7 +20,7 @@ public interface PatientDto {
 	String getEducation();
 	String getOccupation();
 	String getTown();
-	int getArchived();
+	Integer getArchived();
 	String getSex();
 	String getResidentialState();
 	String getResidentialLga();

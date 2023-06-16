@@ -1430,6 +1430,42 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "  WHERE p.facility_id=?1 AND p.last_modified_date >= ?2 AND p.last_modified_date <= ?3",nativeQuery = true)
     List<PatientDto> getPatientData(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
 
+    @Query(value = "SELECT lo.uuid, lo.patient_uuid AS personUuid, lo.order_date AS orderDate, lo.archived, " +
+            "lo.modified_by AS modifiedBy, lo.date_modified AS dateModified, boui.code AS datimId FROM laboratory_order lo " +
+            "INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=lo.facility_id\n" +
+            "WHERE lo.facility_id=?1 AND lo.date_modified >= ?2 AND lo.date_modified <= ?3 \n" +
+            "ORDER BY lo.id ASC ",nativeQuery = true)
+    List<LaboratoryOrderDto> getLaboratoryOrder(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+
+    @Query(value = "SELECT ls.uuid, ls.test_id AS testId, ls.date_sample_collected AS dateSampleCollected, \n" +
+            "ls.patient_uuid AS personUuid, ls.archived, ls.modified_by AS modifiedBy, \n" +
+            "ls.date_modified AS dateModified, boui.code AS datimId FROM laboratory_sample ls\n" +
+            "INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=ls.facility_id\n" +
+            "WHERE ls.facility_id=?1 AND ls.date_modified >= ?2 AND ls.date_modified <= ?3\n" +
+            "ORDER BY ls.id ASC ",nativeQuery = true)
+    List<LaboratorySampleDto> getLaboratorySample(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    @Query(value = "SELECT lt.uuid, llt.lab_test_name AS labTestName, lltg.group_name AS groupName, \n" +
+            "bac.display AS viralloadindication, lt.unit_measurement AS unitMeasurement,\n" +
+            "lt.patient_uuid AS personUuid, lt.archived, lt.modified_by AS modifiedBy, \n" +
+            "lt.date_modified AS dateModified, boui.code AS datimId FROM laboratory_test lt\n" +
+            "INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=lt.facility_id\n" +
+            "LEFT JOIN laboratory_labtestgroup lltg ON lltg.id = lt.lab_test_group_id\n" +
+            "LEFT JOIN laboratory_labtest llt ON llt.id = lt.lab_test_id\n" +
+            "LEFT JOIN base_application_codeset bac ON bac.id = lt.viral_load_indication\n" +
+            "WHERE lt.facility_id=?1 AND lt.date_modified >= ?2 AND lt.date_modified <= ?3\n" +
+            "ORDER BY lt.id ASC",nativeQuery = true)
+    List<LaboratoryTestDto> getLaboratoryTest(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    @Query(value = "SELECT lr.uuid, lr.date_assayed AS dateAssayed, lr.date_result_reported AS dateResultReported, \n" +
+            "lr.patient_uuid AS personUuid, lr.result_reported AS resultReported, lr.archived, \n" +
+            "lr.modified_by AS modifiedBy, lr.date_modified AS dateModified, boui.code AS datimId FROM laboratory_result lr\n" +
+            "INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=lr.facility_id\n" +
+            "WHERE lr.facility_id=?1 AND lr.date_modified >= ?2 AND lr.date_modified <= ?3\n" +
+            "ORDER BY lr.id ASC ",nativeQuery = true)
+    List<LaboratoryResultDto> getLaboratoryResult(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
 }
 
 

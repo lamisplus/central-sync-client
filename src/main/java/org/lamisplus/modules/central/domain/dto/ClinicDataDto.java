@@ -19,7 +19,7 @@ public interface ClinicDataDto {
 	Double getSystolic();
 	String getDiastolic();
 	String getPregnancyStatus();
-	int getArchived();
+	Integer getArchived();
 	LocalDateTime getLastModifiedDate();
 	LocalDate getNextAppointment();
 	String getLastModifiedBy();

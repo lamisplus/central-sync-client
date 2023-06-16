@@ -73,8 +73,18 @@ public class ExportServiceImpl implements ExportService {
             boolean clinicIsProcessed = clinicExport(facilityId, reportStartTime, reportEndTime);
             log.info("Extracting Patient data to JSON");
             boolean patientIsProcessed = patientExport(facilityId, reportStartTime, reportEndTime);
+            log.info("Extracting laboratoryOrder data to JSON");
+            boolean laboratoryOrderIsProcessed = laboratoryOrderExport(facilityId, reportStartTime, reportEndTime);
+            log.info("Extracting laboratorySample data to JSON");
+            boolean laboratorySampleIsProcessed = laboratorySampleExport(facilityId, reportStartTime, reportEndTime);
+            log.info("Extracting laboratoryTest data to JSON");
+            boolean laboratoryTestIsProcessed = laboratoryTestExport(facilityId, reportStartTime, reportEndTime);
+            log.info("Extracting laboratoryResult data to JSON");
+            boolean laboratoryResultIsProcessed = laboratoryResultExport(facilityId, reportStartTime, reportEndTime);
 
-            if (radetIsProcessed || htsIsProcessed || prepIsProcessed || clinicIsProcessed || patientIsProcessed) {
+            if (radetIsProcessed || htsIsProcessed || prepIsProcessed
+                    || clinicIsProcessed || patientIsProcessed || laboratoryOrderIsProcessed
+                    || laboratorySampleIsProcessed || laboratoryTestIsProcessed || laboratoryResultIsProcessed) {
                 log.info("Writing all exports to a zip file");
                 Date date1 = new Date();
                 String datimCode = getDatimId(facilityId);
@@ -223,6 +233,7 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeStartArray();
                     buildJson.buildPatientJson(jsonGenerator, patients);
                     jsonGenerator.writeEndArray();
+                    log.info("Patient successfully written");
                     isProcessed = true;
                 } catch (Exception e) {
                     isProcessed = false;
@@ -237,14 +248,21 @@ public class ExportServiceImpl implements ExportService {
     }
 
 
+    /**
+     * Handles clinic data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
     @Override
-    public boolean clinicExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate) {
+    public boolean clinicExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
             String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.CLINIC_FILENAME;
-            List<ClinicDataDto> clinics = repository.getClinicData(facilityId, reportStartDate, reportEndDate);
+            List<ClinicDataDto> clinics = repository.getClinicData(facilityId, startDate, endDate);
             System.out.println("Total Clinic Generated "+ clinics.size());
             if (!clinics.isEmpty()) {
                 try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
@@ -261,6 +279,151 @@ public class ExportServiceImpl implements ExportService {
             }
         } catch (Exception e) {
             log.error("Error mapping Clinic: {}", e.getMessage());
+        }
+
+        return isProcessed;
+    }
+
+    /**
+     * Handles laboratory order data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean laboratoryOrderExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = ConstantUtility.TEMP_BATCH_DIR + LABORATORY_ORDER_FILENAME;
+            List<LaboratoryOrderDto> laboratoryOrders = repository.getLaboratoryOrder(facilityId, startDate, endDate);
+            System.out.println("Total laboratoryOrder Generated "+ laboratoryOrders.size());
+            if (!laboratoryOrders.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildLaboratoryOrderJson(jsonGenerator, laboratoryOrders);
+                    jsonGenerator.writeEndArray();
+                    log.info("laboratoryOrder successfully written");
+                    isProcessed = true;
+                } catch (Exception e) {
+                    isProcessed = false;
+                    log.error("Error writing laboratoryOrder to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error mapping laboratoryOrder: {}", e.getMessage());
+        }
+
+        return isProcessed;
+    }
+
+    /**
+     * Handles laboratory sample data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean laboratorySampleExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = ConstantUtility.TEMP_BATCH_DIR + LABORATORY_SAMPLE_FILENAME;
+            List<LaboratorySampleDto> laboratorySample = repository.getLaboratorySample(facilityId, startDate, endDate);
+            System.out.println("Total laboratorySample Generated "+ laboratorySample.size());
+            if (!laboratorySample.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildLaboratorySampleJson(jsonGenerator, laboratorySample);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    isProcessed = false;
+                    log.error("Error writing laboratorySample to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error mapping laboratorySample: {}", e.getMessage());
+        }
+
+        return isProcessed;
+    }
+
+    /**
+     * Handles laboratory Test data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean laboratoryTestExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = ConstantUtility.TEMP_BATCH_DIR + LABORATORY_TEST_FILENAME;
+            List<LaboratoryTestDto> laboratoryTest = repository.getLaboratoryTest(facilityId, startDate, endDate);
+            System.out.println("Total laboratoryTest Generated "+ laboratoryTest.size());
+            if (!laboratoryTest.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildLaboratoryTestJson(jsonGenerator, laboratoryTest);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    isProcessed = false;
+                    log.error("Error writing laboratoryTest to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error mapping laboratoryTest: {}", e.getMessage());
+        }
+
+        return isProcessed;
+    }
+
+    /**
+     * Handles laboratory Result data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean laboratoryResultExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = ConstantUtility.TEMP_BATCH_DIR + LABORATORY_RESULT_FILENAME;
+            List<LaboratoryResultDto> laboratoryResult = repository.getLaboratoryResult(facilityId, startDate, endDate);
+            System.out.println("Total laboratoryResult Generated "+ laboratoryResult.size());
+            if (!laboratoryResult.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildLaboratoryResultJson(jsonGenerator, laboratoryResult);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    isProcessed = false;
+                    log.error("Error writing laboratoryResult to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error mapping laboratoryResult: {}", e.getMessage());
         }
 
         return isProcessed;

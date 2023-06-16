@@ -121,45 +121,28 @@ public class BuildJson {
                 jsonGenerator.writeStringField("RegimenLineAtStart", radet.getRegimenLineAtStart());
                 jsonGenerator.writeStringField("PregnancyStatus", radet.getPregnancyStatus());
                 jsonGenerator.writeStringField("CurrentClinicalStage", radet.getCurrentClinicalStage());
-                if (radet.getCurrentWeight() != null)
-                    jsonGenerator.writeStringField("CurrentWeight", radet.getCurrentWeight().toString());
+                jsonGenerator.writeStringField("CurrentWeight", String.valueOf(radet.getCurrentWeight()));
                 jsonGenerator.writeStringField("ViralLoadIndication", radet.getViralLoadIndication());
-                if (radet.getDateOfViralLoadSampleCollection() != null)
-                    jsonGenerator.writeStringField("DateOfViralLoadSampleCollection", radet.getDateOfViralLoadSampleCollection().toString());
+                jsonGenerator.writeStringField("DateOfViralLoadSampleCollection", dateUtility.ConvertDateToString(radet.getDateOfViralLoadSampleCollection()));
                 jsonGenerator.writeStringField("CurrentViralLoad", radet.getCurrentViralLoad());
-                System.out.println(1);
-                if (radet.getDateOfCurrentViralLoad() != null)
-                    jsonGenerator.writeStringField("DateOfCurrentViralLoad", radet.getDateOfCurrentViralLoad().toString());
-                System.out.println(2);
-                if (radet.getDateOfCurrentViralLoadSample() != null)
-                    jsonGenerator.writeStringField("DateOfCurrentViralLoadSample", radet.getDateOfCurrentViralLoadSample().toString());
+                jsonGenerator.writeStringField("DateOfCurrentViralLoad", dateUtility.ConvertDateToString(radet.getDateOfCurrentViralLoad()));
+                jsonGenerator.writeStringField("DateOfCurrentViralLoadSample", dateUtility.ConvertDateToString(radet.getDateOfCurrentViralLoadSample()));
                 jsonGenerator.writeStringField("LastCd4Count", radet.getLastCd4Count());
-                if (radet.getDateOfLastCd4Count() != null)
-                    jsonGenerator.writeStringField("DateOfLastCd4Count", radet.getDateOfLastCd4Count().toString());
+                jsonGenerator.writeStringField("DateOfLastCd4Count", dateUtility.ConvertDateToString(radet.getDateOfLastCd4Count()));
                 jsonGenerator.writeStringField("CurrentRegimenLine", radet.getCurrentRegimenLine());
                 jsonGenerator.writeStringField("CurrentARTRegimen", radet.getCurrentARTRegimen());
-                if (radet.getMonthsOfARVRefill() != null)
-                    jsonGenerator.writeStringField("MonthsOfARVRefill", radet.getMonthsOfARVRefill().toString());
-                if (radet.getDateOfCurrentViralLoad() != null)
-                    jsonGenerator.writeStringField("LastPickupDate", radet.getLastPickupDate().toString());
-                if (radet.getNextPickupDate() != null)
-                    jsonGenerator.writeStringField("NextPickupDate", radet.getNextPickupDate().toString());
-                if (radet.getCurrentStatusDate() != null)
-                    jsonGenerator.writeStringField("CurrentStatusDate", radet.getCurrentStatusDate().toString());
+                jsonGenerator.writeStringField("MonthsOfARVRefill", String.valueOf(radet.getMonthsOfARVRefill()));
+                jsonGenerator.writeStringField("LastPickupDate", dateUtility.ConvertDateToString(radet.getLastPickupDate()));
+                jsonGenerator.writeStringField("NextPickupDate", String.valueOf(radet.getNextPickupDate()));
+                jsonGenerator.writeStringField("CurrentStatusDate", dateUtility.ConvertDateToString(radet.getCurrentStatusDate()));
                 jsonGenerator.writeStringField("getCurrentStatus", radet.getCurrentStatus());
-                if (radet.getPreviousStatusDate() != null)
-                    jsonGenerator.writeStringField("PreviousStatusDate", radet.getPreviousStatusDate().toString());
+                jsonGenerator.writeStringField("PreviousStatusDate", dateUtility.ConvertDateToString(radet.getPreviousStatusDate()));
                 jsonGenerator.writeStringField("PreviousStatus", radet.getPreviousStatus());
-                if (radet.getDateBiometricsEnrolled() != null)
-                    jsonGenerator.writeStringField("DateBiometricsEnrolled", radet.getDateBiometricsEnrolled().toString());
-                if (radet.getNumberOfFingersCaptured() != null)
-                    jsonGenerator.writeStringField("NumberOfFingersCaptured", radet.getNumberOfFingersCaptured().toString());
-                if (radet.getDateOfCommencementOfEAC() != null)
-                    jsonGenerator.writeStringField("DateOfCommencementOfEAC", radet.getDateOfCommencementOfEAC().toString());
-                if (radet.getNumberOfEACSessionCompleted() != null)
-                    jsonGenerator.writeStringField("NumberOfEACSessionCompleted", radet.getNumberOfEACSessionCompleted().toString());
-                if (radet.getDateOfLastEACSessionCompleted() != null)
-                    jsonGenerator.writeStringField("DateOfLastEACSessionCompleted", radet.getDateOfLastEACSessionCompleted().toString());
+                jsonGenerator.writeStringField("DateBiometricsEnrolled", dateUtility.ConvertDateToString(radet.getDateBiometricsEnrolled()));
+                jsonGenerator.writeStringField("NumberOfFingersCaptured", String.valueOf(radet.getNumberOfFingersCaptured()));
+                jsonGenerator.writeStringField("DateOfCommencementOfEAC", dateUtility.ConvertDateToString(radet.getDateOfCommencementOfEAC()));
+                jsonGenerator.writeStringField("NumberOfEACSessionCompleted", String.valueOf(radet.getNumberOfEACSessionCompleted()));
+                jsonGenerator.writeStringField("DateOfLastEACSessionCompleted", dateUtility.ConvertDateToString(radet.getDateOfLastEACSessionCompleted()));
                 if (radet.getDateOfExtendEACCompletion() != null)
                     jsonGenerator.writeStringField("DateOfExtendEACCompletion", radet.getDateOfExtendEACCompletion().toString());
                 if (radet.getDateOfRepeatViralLoadResult() != null)
@@ -287,7 +270,6 @@ public class BuildJson {
                 jsonGenerator.writeStringField(DATIM_ID, clinic.getDatimId());
                 jsonGenerator.writeStringField(PERSON_UUID, clinic.getPersonUuid());
                 jsonGenerator.writeStringField(HOSPITAL_NUMBER, clinic.getHospitalNumber());
-                log.info("clinic.getVisitDate() {}", clinic.getVisitDate());
                 //jsonGenerator.writeNullField();
                 jsonGenerator.writeStringField(VISIT_DATE, dateUtility.ConvertDateToString(clinic.getVisitDate()));
                 jsonGenerator.writeStringField(CLINICAL_STAGE, clinic.getClinicalStage());
@@ -299,9 +281,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(SYSTOLIC, String.valueOf(clinic.getSystolic()));
                 jsonGenerator.writeStringField(DIASTOLIC, String.valueOf(clinic.getDiastolic()));
                 jsonGenerator.writeStringField(CLINIC_PREGNANCY_STATUS, clinic.getPregnancyStatus());
-                log.info("clinic.getLastModifiedDate() {}", clinic.getLastModifiedDate());
                 jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(clinic.getLastModifiedDate()));
-                log.info("clinic.getNextAppointment() {}", clinic.getNextAppointment());
                 jsonGenerator.writeStringField(NEXT_APPOINTMENT, dateUtility.ConvertDateToString(clinic.getNextAppointment()));
                 jsonGenerator.writeStringField(LAST_MODIFIED_BY, clinic.getLastModifiedBy());
                 jsonGenerator.writeStringField(BODY_WEIGHT, String.valueOf(clinic.getBodyWeight()));
@@ -351,5 +331,90 @@ public class BuildJson {
 
     }
 
+    public void buildLaboratoryOrderJson(JsonGenerator jsonGenerator,  List<LaboratoryOrderDto> laboratoryOrders) throws IOException {
+        for (LaboratoryOrderDto laboratoryOrder : laboratoryOrders) {
+            try {
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField(UUID, laboratoryOrder.getUuid());
+                jsonGenerator.writeStringField(DATIM_ID, laboratoryOrder.getDatimId());
+                jsonGenerator.writeStringField(PERSON_UUID, laboratoryOrder.getPersonUuid());
+                jsonGenerator.writeStringField(ORDER_DATE, dateUtility.ConvertDateTimeToString(laboratoryOrder.getOrderDate()));
+                jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(laboratoryOrder.getDateModified()));
+                jsonGenerator.writeStringField(LAST_MODIFIED_BY, laboratoryOrder.getModifiedBy());
+                jsonGenerator.writeStringField(ARCHIVED, String.valueOf(laboratoryOrder.getArchived()));
+                jsonGenerator.writeEndObject();
+            } catch (Exception e) {
+                log.error("Error generating laboratoryOrder JSON: {}", e.getMessage());
+                log.error("laboratoryOrder JSON: {}", laboratoryOrder);
+            }
+        }
 
+    }
+
+    public void buildLaboratorySampleJson(JsonGenerator jsonGenerator,  List<LaboratorySampleDto> laboratorySamples) throws IOException {
+        for (LaboratorySampleDto laboratorySample : laboratorySamples) {
+            try {
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField(UUID, laboratorySample.getUuid());
+                jsonGenerator.writeStringField(TEST_ID, String.valueOf(laboratorySample.getTestId()));
+                jsonGenerator.writeStringField(DATIM_ID, laboratorySample.getDatimId());
+                jsonGenerator.writeStringField(PERSON_UUID, laboratorySample.getPersonUuid());
+                jsonGenerator.writeStringField(DATE_SAMPLE_COLLECTED, dateUtility.ConvertDateTimeToString(laboratorySample.getDateSampleCollected()));
+                jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(laboratorySample.getDateModified()));
+                jsonGenerator.writeStringField(LAST_MODIFIED_BY, laboratorySample.getModifiedBy());
+                jsonGenerator.writeStringField(ARCHIVED, String.valueOf(laboratorySample.getArchived()));
+                jsonGenerator.writeEndObject();
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error("Error generating laboratorySample JSON: {}", e.getMessage());
+                log.error("laboratorySample JSON: {}", laboratorySample);
+            }
+        }
+
+    }
+
+    public void buildLaboratoryTestJson(JsonGenerator jsonGenerator,  List<LaboratoryTestDto> laboratoryTests) throws IOException {
+        for (LaboratoryTestDto laboratoryTest : laboratoryTests) {
+            try {
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField(UUID, laboratoryTest.getUuid());
+                jsonGenerator.writeStringField(LAB_TEST_NAME, laboratoryTest.getLabTestName());
+                jsonGenerator.writeStringField(GROUP_NAME, laboratoryTest.getGroupName());
+                jsonGenerator.writeStringField(VIRAL_LOAD_INDICATION, laboratoryTest.getViralLoadIndication());
+                jsonGenerator.writeStringField(UNIT_MEASUREMENT, laboratoryTest.getUnitMeasurement());
+                jsonGenerator.writeStringField(DATIM_ID, laboratoryTest.getDatimId());
+                jsonGenerator.writeStringField(PERSON_UUID, laboratoryTest.getPersonUuid());
+                jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(laboratoryTest.getDateModified()));
+                jsonGenerator.writeStringField(LAST_MODIFIED_BY, laboratoryTest.getModifiedBy());
+                jsonGenerator.writeStringField(ARCHIVED, String.valueOf(laboratoryTest.getArchived()));
+                jsonGenerator.writeEndObject();
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error("Error generating laboratoryTest JSON: {}", e.getMessage());
+                log.error("laboratoryTest JSON: {}", laboratoryTest);
+            }
+        }
+    }
+
+    public void buildLaboratoryResultJson(JsonGenerator jsonGenerator,  List<LaboratoryResultDto> laboratoryResults) throws IOException {
+        for (LaboratoryResultDto laboratoryResult : laboratoryResults) {
+            try {
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField(UUID, laboratoryResult.getUuid());
+                jsonGenerator.writeStringField(DATE_ASSAYED, dateUtility.ConvertDateTimeToString(laboratoryResult.getDateAssayed()));
+                jsonGenerator.writeStringField(DATE_RESULT_REPORTED, dateUtility.ConvertDateTimeToString(laboratoryResult.getDateResultReported()));
+                jsonGenerator.writeStringField(RESULT_REPORTED, laboratoryResult.getResultReported());
+                jsonGenerator.writeStringField(DATIM_ID, laboratoryResult.getDatimId());
+                jsonGenerator.writeStringField(PERSON_UUID, laboratoryResult.getPersonUuid());
+                jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(laboratoryResult.getDateModified()));
+                jsonGenerator.writeStringField(LAST_MODIFIED_BY, laboratoryResult.getModifiedBy());
+                jsonGenerator.writeStringField(ARCHIVED, String.valueOf(laboratoryResult.getArchived()));
+                jsonGenerator.writeEndObject();
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error("Error generating laboratoryResult JSON: {}", e.getMessage());
+                log.error("laboratoryResult JSON: {}", laboratoryResult);
+            }
+        }
+    }
 }

@@ -2,6 +2,7 @@ package org.lamisplus.modules.central.utility;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class ConstantUtility {
     public static final String TEMP_BASE_DIR = System.getProperty("user.dir");
@@ -10,7 +11,11 @@ public class ConstantUtility {
     public static final String RADET_FILENAME = "radet.json";
     public static final String PREP_FILENAME = "prep.json";
     public static final String CLINIC_FILENAME = "clinic.json";
-    public static final String PATIENT_FILENAME = "clinic.json";
+    public static final String PATIENT_FILENAME = "patient.json";
+    public static final String LABORATORY_ORDER_FILENAME = "laboratoryOrder.json";
+    public static final String LABORATORY_SAMPLE_FILENAME = "laboratorySample.json";
+    public static final String LABORATORY_TEST_FILENAME = "laboratoryTest.json";
+    public static final String LABORATORY_RESULT_FILENAME = "laboratoryResult.json";
     public static final String HTS_FILENAME = "hts.json";
     public static final String CONTENT_DISPOSITION = "Content-Disposition";
     public static final String ATTACHMENT_FILENAME = "attachment; filename=";
@@ -138,4 +143,20 @@ public class ConstantUtility {
     public static final String PATIENT_RESIDENTIAL_LGA = "residentialLga";
 
     public static final String TOWN = "town";
+
+    public static final String UUID = "uuid";
+    public static final String ORDER_DATE = "orderDate";
+
+    public static final String DATE_SAMPLE_COLLECTED = "dateSampleCollected";
+
+    public static final String TEST_ID = "testId";
+
+    public static final String LAB_TEST_NAME = "labTestName";
+    public static final String GROUP_NAME = "groupName";
+    public static final String VIRAL_LOAD_INDICATION = "viralLoadIndication";
+    public static final String UNIT_MEASUREMENT = "unitMeasurement";
+
+    public static final String DATE_ASSAYED = "dateAssayed";
+    public static final String DATE_RESULT_REPORTED = "dateResultReported";
+    public static final String RESULT_REPORTED = "resultReported";
 }
