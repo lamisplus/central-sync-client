@@ -1466,6 +1466,33 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "ORDER BY lr.id ASC ",nativeQuery = true)
     List<LaboratoryResultDto> getLaboratoryResult(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
 
+    @Query(value = "SELECT pharmacy.*, boui.code AS datimId FROM (SELECT DISTINCT pharmacy.person_uuid AS personUuid, pharmacy.uuid, pharmacy.visit_date AS visitDate,\n" +
+            "pharmacy_object ->> 'name' AS regimenName, CAST(pharmacy_object ->> 'duration' AS VARCHAR) AS duration,\n" +
+            "(CASE WHEN hrr.regimen IS NULL THEN hr.description ELSE hrr.regimen END) AS codeDescription,\n" +
+            "pharmacy.visit_id AS visitId, pharmacy.next_appointment AS nextappointment, pharmacy.mmd_type AS mmdType, \n" +
+            "pharmacy.archived,\n" +
+            "pharmacy.last_modified_date AS LastModifiedDate, pharmacy.last_modified_by AS LastModifiedBy\n" +
+            "FROM hiv_art_pharmacy pharmacy,\n" +
+            "jsonb_array_elements(extra->'regimens') with ordinality p(pharmacy_object)\n" +
+            "\n" +
+            "INNER JOIN hiv_regimen hr ON hr.description=CAST(pharmacy_object ->> 'name' AS VARCHAR) \n" +
+            "LEFT JOIN hiv_regimen_resolver hrr ON hrr.regimensys=hr.description\n" +
+            "\t  WHERE pharmacy.facility_id = ?1 AND pharmacy.last_modified_date >= ?2 \n" +
+            "\t  AND pharmacy.last_modified_date <= ?3) pharmacy\n" +
+            "INNER JOIN (SELECT phar.uuid, boui.code FROM hiv_art_pharmacy phar\n" +
+            "\t\t\tINNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=phar.facility_id) boui ON \n" +
+            "\t\t\tboui.uuid=pharmacy.uuid",nativeQuery = true)
+    List<PharmacyDto> getPharmacy(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    @Query(value = "SELECT b.id AS uuid, b.person_uuid AS personUuid, b.template_type AS templateType,\n" +
+            "b.enrollment_date AS enrollmentDate, b.iso, b.device_name AS deviceName,\n" +
+            "b.version_iso_20 AS versionIso20, b.image_quality AS imageQuality, b.recapture,\n" +
+            "b.count, b.hashed, boui.code AS datimId, b.template,\n" +
+            "b.last_modified_date AS LastModifiedDate, b.last_modified_by AS LastModifiedBy, b.archived FROM biometric b\n" +
+            "INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=b.facility_id " +
+            "WHERE b.facility_id=?1 AND b.last_modified_date >= ?2 AND b.last_modified_date <= ?3 ",nativeQuery = true)
+    List<BiometricDto> getBiometric(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
 }
 
 

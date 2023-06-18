@@ -16,6 +16,8 @@ public class ConstantUtility {
     public static final String LABORATORY_SAMPLE_FILENAME = "laboratorySample.json";
     public static final String LABORATORY_TEST_FILENAME = "laboratoryTest.json";
     public static final String LABORATORY_RESULT_FILENAME = "laboratoryResult.json";
+    public static final String PHARMACY_FILENAME = "pharmacy.json";
+    public static final String BIOMETRIC_FILENAME = "biometric.json";
     public static final String HTS_FILENAME = "hts.json";
     public static final String CONTENT_DISPOSITION = "Content-Disposition";
     public static final String ATTACHMENT_FILENAME = "attachment; filename=";
@@ -132,7 +134,6 @@ public class ConstantUtility {
     public static final String NEXT_APPOINTMENT = "nextAppointment";
     public static final String LAST_MODIFIED_BY = "lastModifiedBy";
     public static final String BODY_WEIGHT = "bodyWeight";
-
     public static final String PATIENT_FIRST_NAME = "firstName";
     public static final String PATIENT_OTHER_NAME = "otherName";
     public static final String PATIENT_DATE_OF_BIRTH = "dateOfBirth";
@@ -141,22 +142,33 @@ public class ConstantUtility {
     public static final String PATIENT_EDUCATION = "education";
     public static final String PATIENT_RESIDENTIAL_STATE = "residentialState";
     public static final String PATIENT_RESIDENTIAL_LGA = "residentialLga";
-
     public static final String TOWN = "town";
-
     public static final String UUID = "uuid";
     public static final String ORDER_DATE = "orderDate";
-
     public static final String DATE_SAMPLE_COLLECTED = "dateSampleCollected";
-
     public static final String TEST_ID = "testId";
-
     public static final String LAB_TEST_NAME = "labTestName";
     public static final String GROUP_NAME = "groupName";
     public static final String VIRAL_LOAD_INDICATION = "viralLoadIndication";
     public static final String UNIT_MEASUREMENT = "unitMeasurement";
-
     public static final String DATE_ASSAYED = "dateAssayed";
     public static final String DATE_RESULT_REPORTED = "dateResultReported";
     public static final String RESULT_REPORTED = "resultReported";
+    public static final String REGIME_NAME = "regimenName";
+    public static final String DURATION = "duration";
+    public static final String CODE_DESCRIPTION = "codeDescription";
+    public static final String VISIT_ID = "visitId";
+    public static final String MMD_TYPE = "mmdType";
+
+    public static final String TEMPLATE_TYPE = "templateType";
+    public static final String ENROLLMENT_DATE = "enrollmentDate";
+    public static final String ISO = "iso";
+    public static final String DEVICE_NAME = "deviceName";
+    public static final String VERSION_ISO_20 = "versionIso20";
+    public static final String IMAGE_QUALITY = "ImageQuality";
+    public static final String COUNT = "count";
+    public static final String RECAPTURE = "recapture";
+    public static final String HASHED = "hashed";
+    public static final String TEMPLATE = "template";
+    public static final String ID = "id";
 }

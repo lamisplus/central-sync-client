@@ -143,49 +143,36 @@ public class BuildJson {
                 jsonGenerator.writeStringField("DateOfCommencementOfEAC", dateUtility.ConvertDateToString(radet.getDateOfCommencementOfEAC()));
                 jsonGenerator.writeStringField("NumberOfEACSessionCompleted", String.valueOf(radet.getNumberOfEACSessionCompleted()));
                 jsonGenerator.writeStringField("DateOfLastEACSessionCompleted", dateUtility.ConvertDateToString(radet.getDateOfLastEACSessionCompleted()));
-                if (radet.getDateOfExtendEACCompletion() != null)
-                    jsonGenerator.writeStringField("DateOfExtendEACCompletion", radet.getDateOfExtendEACCompletion().toString());
-                if (radet.getDateOfRepeatViralLoadResult() != null)
-                    jsonGenerator.writeStringField("DateOfRepeatViralLoadResult", radet.getDateOfRepeatViralLoadResult().toString());
-                if (radet.getDateOfRepeatViralLoadEACSampleCollection() != null)
-                    jsonGenerator.writeStringField("DateOfRepeatViralLoadEACSampleCollection", radet.getDateOfRepeatViralLoadEACSampleCollection().toString());
+                jsonGenerator.writeStringField("DateOfExtendEACCompletion", dateUtility.ConvertDateToString(radet.getDateOfExtendEACCompletion()));
+                jsonGenerator.writeStringField("DateOfRepeatViralLoadResult", dateUtility.ConvertDateTimeToString(radet.getDateOfRepeatViralLoadResult()));
+                jsonGenerator.writeStringField("DateOfRepeatViralLoadEACSampleCollection", dateUtility.ConvertDateTimeToString(radet.getDateOfRepeatViralLoadEACSampleCollection()));
                 jsonGenerator.writeStringField("RepeatViralLoadResult", radet.getRepeatViralLoadResult());
                 jsonGenerator.writeStringField("TbStatus", radet.getTbStatus());
-                if (radet.getDateOfTbScreened() != null)
-                    jsonGenerator.writeStringField("DateOfTbScreened", radet.getDateOfTbScreened().toString());
-                if (radet.getDateOfCurrentRegimen() != null)
-                    jsonGenerator.writeStringField("DateOfCurrentRegimen", radet.getDateOfCurrentRegimen().toString());
-                if (radet.getDateOfIptStart() != null)
-                    jsonGenerator.writeStringField("DateOfIptStart", radet.getDateOfIptStart().toString());
-                if (radet.getIptCompletionDate() != null)
-                    jsonGenerator.writeStringField("IptCompletionDate", radet.getIptCompletionDate().toString());
+                jsonGenerator.writeStringField("DateOfTbScreened", dateUtility.ConvertDateToString(radet.getDateOfTbScreened()));
+                jsonGenerator.writeStringField("DateOfCurrentRegimen", dateUtility.ConvertDateToString(radet.getDateOfCurrentRegimen()));
+                jsonGenerator.writeStringField("DateOfIptStart", dateUtility.ConvertDateToString(radet.getDateOfIptStart()));
+                jsonGenerator.writeStringField("IptCompletionDate", dateUtility.ConvertDateToString(radet.getIptCompletionDate()));
                 jsonGenerator.writeStringField("IptType", radet.getIptType());
                 jsonGenerator.writeStringField("ResultOfCervicalCancerScreening", radet.getResultOfCervicalCancerScreening());
                 jsonGenerator.writeStringField("CervicalCancerScreeningType", radet.getCervicalCancerScreeningType());
                 jsonGenerator.writeStringField("CervicalCancerScreeningMethod", radet.getCervicalCancerScreeningMethod());
                 jsonGenerator.writeStringField("CervicalCancerTreatmentScreened", radet.getCervicalCancerTreatmentScreened());
-                if (radet.getDateOfCervicalCancerScreening() != null)
-                    jsonGenerator.writeStringField("DateOfCervicalCancerScreening", radet.getDateOfCervicalCancerScreening().toString());
+                jsonGenerator.writeStringField("DateOfCervicalCancerScreening", dateUtility.ConvertDateToString(radet.getDateOfCervicalCancerScreening()));
                 jsonGenerator.writeStringField("OvcNumber", radet.getOvcNumber());
                 jsonGenerator.writeStringField("HouseholdNumber", radet.getHouseholdNumber());
                 jsonGenerator.writeStringField("CareEntry", radet.getCareEntry());
                 jsonGenerator.writeStringField("CauseOfDeath", radet.getCauseOfDeath());
                 jsonGenerator.writeStringField("VlEligibilityStatus", radet.getVlEligibilityStatus() + "");
-                if (radet.getDateOfVlEligibilityStatus() != null)
-                    jsonGenerator.writeStringField("DateOfVlEligibilityStatu", radet.getDateOfVlEligibilityStatus().toString());
+                jsonGenerator.writeStringField("DateOfVlEligibilityStatu", dateUtility.ConvertDateToString(radet.getDateOfVlEligibilityStatus()));
                 jsonGenerator.writeStringField("TbDiagnosticTestType", radet.getTbDiagnosticTestType());
-                if (radet.getDateOfTbSampleCollection() != null)
-                    jsonGenerator.writeStringField("DateOfTbSampleCollection", radet.getDateOfTbSampleCollection().toString());
+                jsonGenerator.writeStringField("DateOfTbSampleCollection", dateUtility.ConvertDateToString(radet.getDateOfTbSampleCollection()));
                 jsonGenerator.writeStringField("TbDiagnosticResult", radet.getTbDiagnosticResult());
                 jsonGenerator.writeStringField("DsdModel", radet.getDsdModel());
-                if (radet.getDateOfTbDiagnosticResultReceived() != null)
-                    jsonGenerator.writeStringField("DateOfTbDiagnosticResultReceived", radet.getDateOfTbDiagnosticResultReceived().toString());
+                jsonGenerator.writeStringField("DateOfTbDiagnosticResultReceived", dateUtility.ConvertDateToString(radet.getDateOfTbDiagnosticResultReceived()));
                 jsonGenerator.writeStringField("TbTreatementType", radet.getTbTreatementType());
                 jsonGenerator.writeStringField("TbTreatmentOutcome", radet.getTbTreatmentOutcome());
-                if (radet.getTbTreatmentStartDate() != null)
-                    jsonGenerator.writeStringField("TbTreatmentStartDate", radet.getTbTreatmentStartDate().toString());
-                if (radet.getTbCompletionDate() != null)
-                    jsonGenerator.writeStringField("TbCompletionDate", radet.getTbCompletionDate().toString());
+                jsonGenerator.writeStringField("TbTreatmentStartDate", dateUtility.ConvertDateToString(radet.getTbTreatmentStartDate()));
+                jsonGenerator.writeStringField("TbCompletionDate", dateUtility.ConvertDateToString(radet.getTbCompletionDate()));
                 jsonGenerator.writeStringField("IptCompletionStatus()", radet.getIptCompletionStatus());
 
                 jsonGenerator.writeEndObject();
@@ -417,4 +404,60 @@ public class BuildJson {
             }
         }
     }
+
+    public void buildPharmacyJson(JsonGenerator jsonGenerator,  List<PharmacyDto> pharmacies) throws IOException {
+        for (PharmacyDto pharmacy : pharmacies) {
+            try {
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField(UUID, pharmacy.getUuid());
+                jsonGenerator.writeStringField(VISIT_DATE, dateUtility.ConvertDateToString(pharmacy.getVisitDate()));
+                jsonGenerator.writeStringField(DATIM_ID, pharmacy.getDatimId());
+                jsonGenerator.writeStringField(PERSON_UUID, pharmacy.getPersonUuid());
+                jsonGenerator.writeStringField(REGIME_NAME, pharmacy.getRegimenName());
+                jsonGenerator.writeStringField(DURATION, pharmacy.getDuration());
+                jsonGenerator.writeStringField(CODE_DESCRIPTION, pharmacy.getCodeDescription());
+                jsonGenerator.writeStringField(VISIT_ID, pharmacy.getVisitId());
+                jsonGenerator.writeStringField(MMD_TYPE, pharmacy.getMmdType());
+                jsonGenerator.writeStringField(NEXT_APPOINTMENT, dateUtility.ConvertDateToString(pharmacy.getNextAppointment()));
+                jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(pharmacy.getLastModifiedDate()));
+                jsonGenerator.writeStringField(LAST_MODIFIED_BY, pharmacy.getLastModifiedBy());
+                jsonGenerator.writeStringField(ARCHIVED, String.valueOf(pharmacy.getArchived()));
+                jsonGenerator.writeEndObject();
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error("Error generating pharmacy JSON: {}", e.getMessage());
+                log.error("pharmacy JSON: {}", pharmacy);
+            }
+        }
+    }
+
+    public void buildBiometricJson(JsonGenerator jsonGenerator,  List<BiometricDto> biometrics) throws IOException {
+        for (BiometricDto biometric : biometrics) {
+            try {
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField(ID, biometric.getUuid());
+                jsonGenerator.writeStringField(DATIM_ID, biometric.getDatimId());
+                jsonGenerator.writeStringField(PERSON_UUID, biometric.getPersonUuid());
+                jsonGenerator.writeStringField(DEVICE_NAME, biometric.getDeviceName());
+                jsonGenerator.writeStringField(VERSION_ISO_20, String.valueOf(biometric.getVersionIso20()));
+                jsonGenerator.writeStringField(IMAGE_QUALITY, String.valueOf(biometric.getImageQuality()));
+                jsonGenerator.writeStringField(RECAPTURE, String.valueOf(biometric.getRecapture()));
+                jsonGenerator.writeStringField(HASHED, String.valueOf(biometric.getHashed()));
+                jsonGenerator.writeStringField(COUNT, String.valueOf(biometric.getCount()));
+                jsonGenerator.writeStringField(TEMPLATE, String.valueOf(biometric.getTemplate()));
+                jsonGenerator.writeStringField(ISO, String.valueOf(biometric.getIso()));
+                jsonGenerator.writeStringField(TEMPLATE_TYPE, biometric.getTemplateType());
+                jsonGenerator.writeStringField(ENROLLMENT_DATE, dateUtility.ConvertDateToString(biometric.getEnrollmentDate()));
+                jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(biometric.getLastModifiedDate()));
+                jsonGenerator.writeStringField(LAST_MODIFIED_BY, biometric.getLastModifiedBy());
+                jsonGenerator.writeStringField(ARCHIVED, String.valueOf(biometric.getArchived()));
+                jsonGenerator.writeEndObject();
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error("Error generating biometric JSON: {}", e.getMessage());
+                log.error("biometric JSON: {}", biometric);
+            }
+        }
+    }
+
 }

@@ -42,12 +42,6 @@ public class ExportServiceImpl implements ExportService {
 
     private final BuildJson buildJson;
 
-
-
-    private final DateUtility dateUtility;
-    private final UserService userService;
-
-
     @Override
     public String bulkExport(Long facilityId) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyy-MM-dd");
@@ -81,10 +75,16 @@ public class ExportServiceImpl implements ExportService {
             boolean laboratoryTestIsProcessed = laboratoryTestExport(facilityId, reportStartTime, reportEndTime);
             log.info("Extracting laboratoryResult data to JSON");
             boolean laboratoryResultIsProcessed = laboratoryResultExport(facilityId, reportStartTime, reportEndTime);
+            log.info("Extracting Pharmacy data to JSON");
+            boolean pharmacyIsProcessed = pharmacyExport(facilityId, reportStartTime, reportEndTime);
+            log.info("Extracting biometric data to JSON");
+            boolean biometricIsProcessed = biometricExport(facilityId, reportStartTime, reportEndTime);
+
 
             if (radetIsProcessed || htsIsProcessed || prepIsProcessed
                     || clinicIsProcessed || patientIsProcessed || laboratoryOrderIsProcessed
-                    || laboratorySampleIsProcessed || laboratoryTestIsProcessed || laboratoryResultIsProcessed) {
+                    || laboratorySampleIsProcessed || laboratoryTestIsProcessed
+                    || laboratoryResultIsProcessed || pharmacyIsProcessed || biometricIsProcessed) {
                 log.info("Writing all exports to a zip file");
                 Date date1 = new Date();
                 String datimCode = getDatimId(facilityId);
@@ -429,9 +429,77 @@ public class ExportServiceImpl implements ExportService {
         return isProcessed;
     }
 
+    /**
+     * Handles Pharmacy data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean pharmacyExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = ConstantUtility.TEMP_BATCH_DIR + PHARMACY_FILENAME;
+            List<PharmacyDto> pharmacy = repository.getPharmacy(facilityId, startDate, endDate);
+            System.out.println("Total pharmacy Generated "+ pharmacy.size());
+            if (!pharmacy.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildPharmacyJson(jsonGenerator, pharmacy);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    isProcessed = false;
+                    log.error("Error writing pharmacy to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error mapping pharmacy: {}", e.getMessage());
+        }
 
+        return isProcessed;
+    }
 
+    /**
+     * Handles biometric data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean biometricExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = ConstantUtility.TEMP_BATCH_DIR + BIOMETRIC_FILENAME;
+            List<BiometricDto> biometric = repository.getBiometric(facilityId, startDate, endDate);
+            System.out.println("Total biometric Generated "+ biometric.size());
+            if (!biometric.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildBiometricJson(jsonGenerator, biometric);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    isProcessed = false;
+                    log.error("Error writing biometric to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error mapping biometric: {}", e.getMessage());
+        }
 
+        return isProcessed;
+    }
 
     @Override
     public String getDatimId(Long facilityId)
