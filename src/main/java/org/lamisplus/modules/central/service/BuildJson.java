@@ -404,7 +404,6 @@ public class BuildJson {
             }
         }
     }
-
     public void buildPharmacyJson(JsonGenerator jsonGenerator,  List<PharmacyDto> pharmacies) throws IOException {
         for (PharmacyDto pharmacy : pharmacies) {
             try {
