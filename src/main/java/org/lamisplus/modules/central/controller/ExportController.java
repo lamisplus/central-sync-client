@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.lamisplus.modules.base.controller.UserJWTController;
@@ -43,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 @RestController
 @RequiredArgsConstructor
@@ -53,9 +55,9 @@ public class ExportController {
     private final ExportService exportService;
     private final RemoteAccessTokenRepository accessTokenRepository;
 
-    private String APIURL = "http://localhost:8485/api/v1/sync/receive-data/";
+    private String API_URL = "/api/v1/sync/receive-data/";
 
-    private String logInAPI = "http://localhost:8485/api/v1/authenticate";
+    private String LOGIN_API = "/api/v1/authenticate";
     private final SyncHistoryService syncHistoryService;
 
     @GetMapping("/all")
@@ -97,7 +99,12 @@ public class ExportController {
 
         log.info("loginVM is {}", loginVM);
         try {
-            String connect = new HttpConnectionManager().post(loginVM, null, logInAPI);
+            RemoteAccessToken remoteAccessToken = accessTokenRepository
+                    .findOneAccess()
+                    .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
+
+            LOGIN_API = checkUrl(remoteAccessToken).concat(LOGIN_API);
+            String connect = new HttpConnectionManager().post(loginVM, null, LOGIN_API);
 
             //For serializing the date on the sync queue
             ObjectMapper objectMapper = new ObjectMapper();
@@ -126,6 +133,7 @@ public class ExportController {
                 .findOneAccess()
                 .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
 
+        API_URL = checkUrl(remoteAccessToken).concat(API_URL);
         loginVM.setUsername(remoteAccessToken.getUsername());
         loginVM.setPassword(remoteAccessToken.getPassword());
 
@@ -140,7 +148,7 @@ public class ExportController {
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> responseEntity;
         try {
-            String apiUrl = APIURL + facilityId;
+            String apiUrl = API_URL + facilityId;
             HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
 
             responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
@@ -183,10 +191,16 @@ public class ExportController {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class JWTToken {
-
         @JsonProperty("id_token")
         private String idToken;
 
+    }
+
+    private String checkUrl(RemoteAccessToken remoteAccessToken){
+        if(remoteAccessToken.getUrl() == null || StringUtils.isAllBlank(remoteAccessToken.getUrl())){
+            throw new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available");
+        }
+        return remoteAccessToken.getUrl();
     }
 
 }
