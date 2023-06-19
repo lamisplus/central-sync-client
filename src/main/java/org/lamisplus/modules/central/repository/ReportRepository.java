@@ -1,14 +1,13 @@
 package org.lamisplus.modules.central.repository;
 
-import org.lamisplus.modules.central.domain.dto.HtsReportDto;
-import org.lamisplus.modules.central.domain.dto.PrepReportDto;
-import org.lamisplus.modules.central.domain.dto.RadetReportDto;
+import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.domain.entity.Report;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -1359,6 +1358,140 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "        LEFT JOIN  current_tb_result tbResult ON tbResult.personTbResult = bd.personUuid\n"
             , nativeQuery = true)
     List<RadetReportDto> getRadetData(Long facilityId, LocalDate start, LocalDate end, LocalDate previous, LocalDate previousPrevious);
+
+
+    @Query(value = "SELECT DISTINCT (p.uuid) AS personuuid, \n" +
+            "                           p.hospital_number AS hospitalNumber, \n" +
+            "                           INITCAP(p.sex) AS gender, \n" +
+            "                           facility.name AS facilityName, \n" +
+            "                           facility_lga.name AS lga, \n" +
+            "                           facility_state.name AS state, \n" +
+            "                           boui.code AS datimId,  \n" +
+            "           tvs.body_weight as BodyWeight,  \n" +
+            "\t\t   tvs.diastolic,\n" +
+            "\t\t   tvs.systolic,\n" +
+            "\t\t   tvs.height,\n" +
+            "                  (CASE\n" +
+            "           WHEN hac.pregnancy_status = 'Not Pregnant' THEN hac.pregnancy_status\n" +
+            "           WHEN hac.pregnancy_status = 'Pregnant' THEN hac.pregnancy_status\n" +
+            "           WHEN hac.pregnancy_status = 'Breastfeeding' THEN hac.pregnancy_status\n" +
+            "           WHEN hac.pregnancy_status = 'Post Partum' THEN hac.pregnancy_status\n" +
+            "           WHEN preg.display IS NOT NULL THEN hac.pregnancy_status\n" +
+            "           ELSE NULL END ) AS pregnancyStatus, \n" +
+            "           hac.next_appointment as nextAppointment , \n" +
+            "           hac.visit_date as visitDate, \n" +
+            "           funStatus.display as funtionalStatus, \n" +
+            "           clnicalStage.display as clinicalStage, \n" +
+            "           tbStatus.display as tbStatus,\n" +
+            "\t\t   hac.archived,\n" +
+            "\t\t   hac.last_modified_date AS lastModifiedDate,\n" +
+            "\t\t   hac.last_modified_by AS lastModifiedBy,\n" +
+            "\t\t   hac.uuid\n" +
+            "           FROM \n" +
+            "                patient_person p \n" +
+            "                      INNER JOIN base_organisation_unit facility ON facility.id = facility_id \n" +
+            "                      INNER JOIN base_organisation_unit facility_lga ON facility_lga.id = facility.parent_organisation_unit_id \n" +
+            "                      INNER JOIN base_organisation_unit facility_state ON facility_state.id = facility_lga.parent_organisation_unit_id \n" +
+            "                      INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id = facility_id \n" +
+            "                      INNER JOIN hiv_art_clinical hac ON hac.person_uuid = p.uuid  \n" +
+            "           LEFT JOIN base_application_codeset preg ON preg.code = hac.pregnancy_status\n" +
+            "                  INNER JOIN base_application_codeset funStatus ON funStatus.id = hac.functional_status_id \n" +
+            "                  INNER JOIN base_application_codeset clnicalStage ON clnicalStage.id = hac.clinical_stage_id \n" +
+            "                  INNER JOIN base_application_codeset tbStatus ON tbStatus.id = CAST(regexp_replace(hac.tb_status, '[^0-9]', '', 'g') AS INTEGER)  \n" +
+            "                  INNER JOIN triage_vital_sign tvs ON tvs.uuid = hac.vital_sign_uuid \n" +
+            "              WHERE  hac.facility_id =?1 AND hac.last_modified_date >= ?2 AND hac.last_modified_date <= ?3 ",nativeQuery = true)
+    List<ClinicDataDto> getClinicData(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    @Query(value = "SELECT p.uuid as personUuid, p.facility_id as facilityId,p.hospital_number as hospitalNumber,  \n" +
+            "   p.surname, p.first_name as firstName, \n" +
+            "   p.other_name as otherName, p.sex, p.date_of_birth as dateOfBirth,  \n" +
+            "   h.date_of_registration as dateOfRegistration, p.marital_status->>'display' as maritalStatus,  \n" +
+            "   education->>'display' as education, p.employment_status->>'display' as occupation,  \n" +
+            "   facility.name as facilityName, facility_lga.name as lga, facility_state.name as state,  \n" +
+            "   boui.code as datimId, r.city as town,res_state.name as residentialState, res_lga.name as residentialLga, \n" +
+            "   r.address as address, p.contact_point->'contactPoint'->0->'value'->>0 AS phone,\n" +
+            "   p.archived, p.last_modified_by AS lastModifiedBy, p.last_modified_date AS lastModifiedDate\n" +
+            "   FROM patient_person p \n" +
+            "   INNER JOIN ( \n" +
+            "   SELECT * FROM (SELECT p.id, REPLACE(REPLACE(REPLACE(REPLACE(CAST(address_object->>'line' AS text), '\\', ''), ']', ''), '[', ''), '\"', '') AS address, \n" +
+            "   REPLACE(REPLACE(REPLACE(CAST(address_object->>'city' AS text), '\\\\', ''), ']', ''), '[', '') AS city, \n" +
+            " CASE WHEN address_object->>'stateId'  ~ '^\\d(\\.\\d)?$' THEN address_object->>'stateId' ELSE null END  AS stateId, \n" +
+            " CASE WHEN address_object->>'district'  ~ '^\\d(\\.\\d)?$' THEN address_object->>'district' ELSE null END  AS lgaId \n" +
+            "       FROM patient_person p, \n" +
+            " jsonb_array_elements(p.address-> 'address') with ordinality l(address_object)) as result \n" +
+            "   ) r ON r.id=p.id \n" +
+            "  INNER JOIN base_organisation_unit facility ON facility.id=facility_id \n" +
+            "  INNER JOIN base_organisation_unit facility_lga ON facility_lga.id=facility.parent_organisation_unit_id \n" +
+            "  INNER JOIN base_organisation_unit facility_state ON facility_state.id=facility_lga.parent_organisation_unit_id \n" +
+            "  LEFT JOIN base_organisation_unit res_state ON res_state.id=CAST(r.stateid AS BIGINT) \n" +
+            "  LEFT JOIN base_organisation_unit res_lga ON res_lga.id=CAST(r.lgaid AS BIGINT) \n" +
+            "  INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=facility_id \n" +
+            "  INNER JOIN hiv_enrollment h ON h.person_uuid = p.uuid \n" +
+            "  WHERE p.facility_id=?1 AND p.last_modified_date >= ?2 AND p.last_modified_date <= ?3",nativeQuery = true)
+    List<PatientDto> getPatientData(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    @Query(value = "SELECT lo.uuid, lo.patient_uuid AS personUuid, lo.order_date AS orderDate, lo.archived, " +
+            "lo.modified_by AS modifiedBy, lo.date_modified AS dateModified, boui.code AS datimId FROM laboratory_order lo " +
+            "INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=lo.facility_id\n" +
+            "WHERE lo.facility_id=?1 AND lo.date_modified >= ?2 AND lo.date_modified <= ?3 \n" +
+            "ORDER BY lo.id ASC ",nativeQuery = true)
+    List<LaboratoryOrderDto> getLaboratoryOrder(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+
+    @Query(value = "SELECT ls.uuid, ls.test_id AS testId, ls.date_sample_collected AS dateSampleCollected, \n" +
+            "ls.patient_uuid AS personUuid, ls.archived, ls.modified_by AS modifiedBy, \n" +
+            "ls.date_modified AS dateModified, boui.code AS datimId FROM laboratory_sample ls\n" +
+            "INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=ls.facility_id\n" +
+            "WHERE ls.facility_id=?1 AND ls.date_modified >= ?2 AND ls.date_modified <= ?3\n" +
+            "ORDER BY ls.id ASC ",nativeQuery = true)
+    List<LaboratorySampleDto> getLaboratorySample(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    @Query(value = "SELECT lt.uuid, llt.lab_test_name AS labTestName, lltg.group_name AS groupName, \n" +
+            "bac.display AS viralloadindication, lt.unit_measurement AS unitMeasurement,\n" +
+            "lt.patient_uuid AS personUuid, lt.archived, lt.modified_by AS modifiedBy, \n" +
+            "lt.date_modified AS dateModified, boui.code AS datimId FROM laboratory_test lt\n" +
+            "INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=lt.facility_id\n" +
+            "LEFT JOIN laboratory_labtestgroup lltg ON lltg.id = lt.lab_test_group_id\n" +
+            "LEFT JOIN laboratory_labtest llt ON llt.id = lt.lab_test_id\n" +
+            "LEFT JOIN base_application_codeset bac ON bac.id = lt.viral_load_indication\n" +
+            "WHERE lt.facility_id=?1 AND lt.date_modified >= ?2 AND lt.date_modified <= ?3\n" +
+            "ORDER BY lt.id ASC",nativeQuery = true)
+    List<LaboratoryTestDto> getLaboratoryTest(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    @Query(value = "SELECT lr.uuid, lr.date_assayed AS dateAssayed, lr.date_result_reported AS dateResultReported, \n" +
+            "lr.patient_uuid AS personUuid, lr.result_reported AS resultReported, lr.archived, \n" +
+            "lr.modified_by AS modifiedBy, lr.date_modified AS dateModified, boui.code AS datimId FROM laboratory_result lr\n" +
+            "INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=lr.facility_id\n" +
+            "WHERE lr.facility_id=?1 AND lr.date_modified >= ?2 AND lr.date_modified <= ?3\n" +
+            "ORDER BY lr.id ASC ",nativeQuery = true)
+    List<LaboratoryResultDto> getLaboratoryResult(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    @Query(value = "SELECT pharmacy.*, boui.code AS datimId FROM (SELECT DISTINCT pharmacy.person_uuid AS personUuid, pharmacy.uuid, pharmacy.visit_date AS visitDate,\n" +
+            "pharmacy_object ->> 'name' AS regimenName, CAST(pharmacy_object ->> 'duration' AS VARCHAR) AS duration,\n" +
+            "(CASE WHEN hrr.regimen IS NULL THEN hr.description ELSE hrr.regimen END) AS codeDescription,\n" +
+            "pharmacy.visit_id AS visitId, pharmacy.next_appointment AS nextappointment, pharmacy.mmd_type AS mmdType, \n" +
+            "pharmacy.archived,\n" +
+            "pharmacy.last_modified_date AS LastModifiedDate, pharmacy.last_modified_by AS LastModifiedBy\n" +
+            "FROM hiv_art_pharmacy pharmacy,\n" +
+            "jsonb_array_elements(extra->'regimens') with ordinality p(pharmacy_object)\n" +
+            "\n" +
+            "INNER JOIN hiv_regimen hr ON hr.description=CAST(pharmacy_object ->> 'name' AS VARCHAR) \n" +
+            "LEFT JOIN hiv_regimen_resolver hrr ON hrr.regimensys=hr.description\n" +
+            "\t  WHERE pharmacy.facility_id = ?1 AND pharmacy.last_modified_date >= ?2 \n" +
+            "\t  AND pharmacy.last_modified_date <= ?3) pharmacy\n" +
+            "INNER JOIN (SELECT phar.uuid, boui.code FROM hiv_art_pharmacy phar\n" +
+            "\t\t\tINNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=phar.facility_id) boui ON \n" +
+            "\t\t\tboui.uuid=pharmacy.uuid",nativeQuery = true)
+    List<PharmacyDto> getPharmacy(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    @Query(value = "SELECT b.id AS uuid, b.person_uuid AS personUuid, b.template_type AS templateType,\n" +
+            "b.enrollment_date AS enrollmentDate, b.iso, b.device_name AS deviceName,\n" +
+            "b.version_iso_20 AS versionIso20, b.image_quality AS imageQuality, b.recapture,\n" +
+            "b.count, b.hashed, boui.code AS datimId, b.template,\n" +
+            "b.last_modified_date AS LastModifiedDate, b.last_modified_by AS LastModifiedBy, b.archived FROM biometric b\n" +
+            "INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=b.facility_id " +
+            "WHERE b.facility_id=?1 AND b.last_modified_date >= ?2 AND b.last_modified_date <= ?3 ",nativeQuery = true)
+    List<BiometricDto> getBiometric(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
 
 }
 
