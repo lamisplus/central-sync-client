@@ -29,6 +29,10 @@ public interface SyncService {
 
     List<RemoteUrlDTO> getRemoteUrls();
 
+    void deleteSyncHistory(Long id);
+
+    void deleteRemoteAccessToken(Long id);
+
 
 
 }
