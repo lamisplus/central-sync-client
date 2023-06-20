@@ -35,12 +35,12 @@ public class ExportServiceImpl implements ExportService {
     private final ReportRepository repository;
     private final QuarterUtility quarterUtility;
     private final FileUtility fileUtility;
-
     private final SyncHistoryService syncHistoryService;
-
     private final RadetUploadTrackersRepository radetUploadTrackersRepository;
-
     private final BuildJson buildJson;
+    private final SendWebsocketService sendSyncWebsocketService;
+    private static String SYNC_ENDPOINT = "topic/sync";
+    private static Integer stat;
 
     @Override
     public String bulkExport(Long facilityId) {
@@ -52,6 +52,7 @@ public class ExportServiceImpl implements ExportService {
         LocalDateTime reportStartTime = LocalDateTime.parse("1985-01-01 00:00:00", timeFormatter);
         LocalDateTime reportEndTime = LocalDateTime.parse(LocalDateTime.now().format(timeFormatter), timeFormatter);
 
+        sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, stat++);
         String zipFileName = "None";
         try {
             log.info("Initializing data export");
@@ -128,6 +129,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean radetExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate) {
         boolean isProcessed = false;
+        sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, stat++);
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -160,6 +162,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean htsExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate) {
         boolean isProcessed = false;
+        sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, stat++);
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -191,6 +194,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean prepExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate) {
         boolean isProcessed = false;
+        sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, stat++);
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -220,6 +224,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean patientExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate) {
         boolean isProcessed = false;
+        sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, stat++);
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -258,6 +263,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean clinicExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+        sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, stat++);
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -294,6 +300,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean laboratoryOrderExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+        sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, stat++);
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -331,6 +338,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean laboratorySampleExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+        sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, stat++);
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -367,6 +375,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean laboratoryTestExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+        sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, stat++);
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -403,6 +412,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean laboratoryResultExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+        sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, stat++);
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -439,6 +449,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean pharmacyExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+        sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, stat++);
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -475,6 +486,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean biometricExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+        sendSyncWebsocketService.broadcastProgressUpdate(SYNC_ENDPOINT, stat++);
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();

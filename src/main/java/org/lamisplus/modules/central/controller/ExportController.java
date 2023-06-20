@@ -93,7 +93,7 @@ public class ExportController {
         response.flushBuffer();
     }
 
-    public String authorizeBeforeSending(LoginVM loginVM) {
+    public String authorizeBeforeSending(LoginVM loginVM) throws RuntimeException {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
@@ -115,11 +115,12 @@ public class ExportController {
 
             if (jwtToken.getIdToken() != null) {
                 String token = "Bearer " + jwtToken.getIdToken().replace("'", "");
-                log.info("token is {}", token);
+                //log.info("token is {}", token);
                 return token;
             }
         }catch (Exception e){
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
         return null;
     }
