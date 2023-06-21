@@ -29,6 +29,7 @@ public class SyncHistoryService {
         syncHistory.setUploadSize(request.getUploadSize());
         syncHistory.setProcessed(3); //default
         syncHistory.setDateLastSync(LocalDateTime.now());
+        syncHistory.setErrorLog(request.getErrorLog());
         syncHistoryRepository.save(syncHistory);
 
         return entityToDto(syncHistory);
