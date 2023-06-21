@@ -38,6 +38,16 @@ public class SyncController {
         return ResponseEntity.ok().body("Data imported successfully");
     }
 
+    @DeleteMapping(value = BASE_URL1 + "/sync-history/{id}")
+    public void deleteSyncHistory(@PathVariable Long id){
+        syncService.deleteSyncHistory(id);
+    }
+
+    @DeleteMapping(value = BASE_URL1 + "/remote-access-token/{id}")
+    public void deleteRemoteAccessToken(@PathVariable Long id){
+        syncService.deleteRemoteAccessToken(id);
+    }
+
     @SneakyThrows
     @PostConstruct
     public void initialize() {

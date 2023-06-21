@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
 import org.lamisplus.modules.base.domain.entities.User;
 import org.lamisplus.modules.base.service.UserService;
@@ -44,6 +45,8 @@ public class SyncServiceImpl implements SyncService {
     private final CentralRadetRepository radetRepository;
     private final CentralHtsRepository htsRepository;
     private final CentralPrepRepository prepRepository;
+    private final SyncHistoryRepository syncHistoryRepository;
+    private final RemoteAccessTokenRepository remoteAccessTokenRepository;
     private final RadetUploadIssueTrackersRepository radetUploadIssueTrackersRepository;
     //private final CentralDataElementRepository centralDataElementRepository;
     private final RadetUploadTrackersRepository radetUploadTrackersRepository;
@@ -1177,6 +1180,20 @@ public class SyncServiceImpl implements SyncService {
             remoteUrlDTOS.add(remoteUrlDTO);
         });
         return remoteUrlDTOS;
+    }
+
+    public void deleteSyncHistory(Long id){
+        SyncHistory syncHistory = syncHistoryRepository
+                .findById(id)
+                .orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "id", String.valueOf(id)));
+        syncHistoryRepository.delete(syncHistory);
+    }
+
+    public void deleteRemoteAccessToken(Long id){
+        RemoteAccessToken remoteAccessToken = remoteAccessTokenRepository
+                .findById(id)
+                .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "id", String.valueOf(id)));
+        remoteAccessTokenRepository.delete(remoteAccessToken);
     }
 
 }

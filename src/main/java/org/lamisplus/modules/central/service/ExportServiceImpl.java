@@ -9,6 +9,7 @@ import org.lamisplus.modules.base.service.UserService;
 import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.repository.RadetUploadTrackersRepository;
 import org.lamisplus.modules.central.repository.ReportRepository;
+import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.utility.*;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -35,22 +37,31 @@ public class ExportServiceImpl implements ExportService {
     private final ReportRepository repository;
     private final QuarterUtility quarterUtility;
     private final FileUtility fileUtility;
-
     private final SyncHistoryService syncHistoryService;
-
     private final RadetUploadTrackersRepository radetUploadTrackersRepository;
-
+    private final SyncHistoryRepository syncHistoryRepository;
     private final BuildJson buildJson;
+    private final SendWebsocketService sendSyncWebsocketService;
+    private static String SYNC_ENDPOINT = "topic/sync";
+    private static Integer stat;
+    private static Long ONE_DAY=1L;
+
+    private static ArrayList ERROR_LOG= new ArrayList<>();
+    private final DateUtility dateUtility;
 
     @Override
     public String bulkExport(Long facilityId) {
+        if(!ERROR_LOG.isEmpty()) ERROR_LOG.clear();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyy-MM-dd");
         LocalDate reportStartDate = LocalDate.parse("1980-01-01", formatter);
-        LocalDate reportEndDate = LocalDate.now();
+        LocalDate reportEndDate = LocalDate.now().plusDays(ONE_DAY);
 
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime reportStartTime = LocalDateTime.parse("1985-01-01 00:00:00", timeFormatter);
-        LocalDateTime reportEndTime = LocalDateTime.parse(LocalDateTime.now().format(timeFormatter), timeFormatter);
+        LocalDateTime reportEndTime = LocalDateTime.parse(LocalDateTime.now().format(timeFormatter), timeFormatter).plusDays(ONE_DAY);
+
+        LocalDateTime lastSync = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
+        if(lastSync != null)reportStartTime=LocalDateTime.parse(dateUtility.ConvertDateTimeToString(lastSync), timeFormatter);;
 
         String zipFileName = "None";
         try {
@@ -94,8 +105,9 @@ public class ExportServiceImpl implements ExportService {
 
                 //update synchistory
                 int fileSize = (int) fileUtility.getFileSize(ConstantUtility.TEMP_BATCH_DIR + zipFileName);
-                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize);
+                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (ERROR_LOG.isEmpty()) ? null : ERROR_LOG);
                 SyncHistoryResponse syncResponse = syncHistoryService.saveSyncHistory(request);
+
                 cleanDirectory(fileList);
                 if (syncResponse != null) {
                     log.info("Sync history updated successfully.");
@@ -146,12 +158,15 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (IOException e) {
+                    addError("RADET", e.getMessage(), null);
                     isProcessed = false;
                     log.error("Error writing RADET to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
+            addError("RADET", e.getMessage(), null);
             log.error("Error mapping RADET: {}", e.getMessage());
+
         }
 
         return false;
@@ -177,11 +192,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (IOException e) {
+                    addError("HTS", e.getMessage(), null);
                     isProcessed = false;
                     log.error("Error writing HTS to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
+            addError("HTS", e.getMessage(), null);
             log.error("Error mapping HTS: {}", e.getMessage());
         }
 
@@ -206,11 +223,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (IOException e) {
+                    addError("PrEP", e.getMessage(), null);
                     isProcessed = false;
                     log.error("Error writing Prep to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
+            addError("PrEP", e.getMessage(), null);
             log.error("Error mapping PrEP: {}", e.getMessage());
         }
 
@@ -220,6 +239,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean patientExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate) {
         boolean isProcessed = false;
+         
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -236,11 +256,13 @@ public class ExportServiceImpl implements ExportService {
                     log.info("Patient successfully written");
                     isProcessed = true;
                 } catch (Exception e) {
+                    addError("PATIENT", e.getMessage(), null);
                     isProcessed = false;
                     log.error("Error writing Patient to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
+            addError("PATIENT", e.getMessage(), null);
             log.error("Error mapping Patient: {}", e.getMessage());
         }
 
@@ -258,6 +280,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean clinicExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+         
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -273,11 +296,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (IOException e) {
+                    addError("CLINIC", e.getMessage(), null);
                     isProcessed = false;
                     log.error("Error writing Clinic to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
+            addError("CLINIC", e.getMessage(), null);
             log.error("Error mapping Clinic: {}", e.getMessage());
         }
 
@@ -294,6 +319,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean laboratoryOrderExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+         
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -310,11 +336,13 @@ public class ExportServiceImpl implements ExportService {
                     log.info("laboratoryOrder successfully written");
                     isProcessed = true;
                 } catch (Exception e) {
+                    addError("LABORATORY ORDER", e.getMessage(), null);
                     isProcessed = false;
                     log.error("Error writing laboratoryOrder to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
+            addError("LABORATORY ORDER", e.getMessage(), null);
             log.error("Error mapping laboratoryOrder: {}", e.getMessage());
         }
 
@@ -331,6 +359,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean laboratorySampleExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+         
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -346,11 +375,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (Exception e) {
+                    addError("LABORATORY SAMPLE", e.getMessage(), null);
                     isProcessed = false;
                     log.error("Error writing laboratorySample to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
+            addError("LABORATORY SAMPLE", e.getMessage(), null);
             log.error("Error mapping laboratorySample: {}", e.getMessage());
         }
 
@@ -382,11 +413,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (Exception e) {
+                    addError("LABORATORY TEST", e.getMessage(), null);
                     isProcessed = false;
                     log.error("Error writing laboratoryTest to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
+            addError("LABORATORY TEST", e.getMessage(), null);
             log.error("Error mapping laboratoryTest: {}", e.getMessage());
         }
 
@@ -403,6 +436,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean laboratoryResultExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+         
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -418,11 +452,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (Exception e) {
+                    addError("LABORATORY RESULT", e.getMessage(), null);
                     isProcessed = false;
                     log.error("Error writing laboratoryResult to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
+            addError("LABORATORY RESULT", e.getMessage(), null);
             log.error("Error mapping laboratoryResult: {}", e.getMessage());
         }
 
@@ -439,6 +475,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean pharmacyExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+         
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -454,11 +491,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (Exception e) {
+                    addError("PHARMACY", e.getMessage(), null);
                     isProcessed = false;
                     log.error("Error writing pharmacy to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
+            addError("PHARMACY", e.getMessage(), null);
             log.error("Error mapping pharmacy: {}", e.getMessage());
         }
 
@@ -475,6 +514,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public boolean biometricExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
         boolean isProcessed = false;
+         
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -490,11 +530,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (Exception e) {
+                    addError("BIOMETRIC", e.getMessage(), null);
                     isProcessed = false;
                     log.error("Error writing biometric to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
+            addError("BIOMETRIC", e.getMessage(), null);
             log.error("Error mapping biometric: {}", e.getMessage());
         }
 
@@ -507,6 +549,10 @@ public class ExportServiceImpl implements ExportService {
         String datimId = radetUploadTrackersRepository.getDatimCode(facilityId);
         return datimId;
 
+    }
+
+    private void addError(String name, String error, String others){
+        ERROR_LOG.add(new ErrorLog(name, error, others));
     }
 
 }

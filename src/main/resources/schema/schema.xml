@@ -257,4 +257,44 @@
                 ADD COLUMN created_by character varying;
         </sql>
     </changeSet>
+
+    <changeSet failOnError="true" author="Emeka Ilozue" id="20232106-1005">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM sync_history
+                WHERE date_last_sync BETWEEN '2023-01-21 08:46:07.702' AND '2023-06-21 08:46:07.702'
+                AND id=(SELECT MAX(id) FROM sync_history)
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            DELETE FROM sync_history WHERE date_last_sync
+                WHERE date_last_sync BETWEEN '2023-01-21 08:46:07.702' AND '2023-06-21 08:46:07.702'
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true" author="Emeka Ilozue" id="20232106-1105">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM remote_access_token WHERE password='x'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            DELETE FROM remote_access_token WHERE password='x'
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true" author="Emeka Ilozue" id="20232106-1142">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM pg_attribute
+                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'sync_history')
+                  AND attname = 'error_log';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE IF EXISTS sync_history
+                ADD COLUMN error_log jsonb;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

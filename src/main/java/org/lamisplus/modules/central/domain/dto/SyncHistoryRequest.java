@@ -2,6 +2,8 @@ package org.lamisplus.modules.central.domain.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class SyncHistoryRequest {
     private Long organisationUnitId;
@@ -11,10 +13,12 @@ public class SyncHistoryRequest {
     private Long remoteAccessTokenId;
     private Integer uploadSize;
     private Integer processedSize;
+    private List errorLog;
 
-    public SyncHistoryRequest(Long organisationUnitId, String tableName, Integer uploadSize) {
+    public SyncHistoryRequest(Long organisationUnitId, String tableName, Integer uploadSize, List errorLog) {
         this.organisationUnitId = organisationUnitId;
         this.tableName = tableName;
         this.uploadSize = uploadSize;
+        this.errorLog = errorLog;
     }
 }

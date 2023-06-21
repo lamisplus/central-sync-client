@@ -7,12 +7,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.lamisplus.modules.base.controller.UserJWTController;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
-import org.lamisplus.modules.base.security.JWTFilter;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
@@ -31,20 +27,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.LocalDate;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 @RestController
 @RequiredArgsConstructor
@@ -54,9 +37,7 @@ public class ExportController {
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final RemoteAccessTokenRepository accessTokenRepository;
-
     private String API_URL = "/api/v1/sync/receive-data/";
-
     private String LOGIN_API = "/api/v1/authenticate";
     private final SyncHistoryService syncHistoryService;
 
@@ -93,7 +74,7 @@ public class ExportController {
         response.flushBuffer();
     }
 
-    public String authorizeBeforeSending(LoginVM loginVM) {
+    public String authorizeBeforeSending(LoginVM loginVM) throws RuntimeException {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
@@ -103,8 +84,8 @@ public class ExportController {
                     .findOneAccess()
                     .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
 
-            LOGIN_API = checkUrl(remoteAccessToken).concat(LOGIN_API);
-            String connect = new HttpConnectionManager().post(loginVM, null, LOGIN_API);
+            String USE_LOGIN_API = checkUrl(remoteAccessToken).concat(LOGIN_API);
+            String connect = new HttpConnectionManager().post(loginVM, null, USE_LOGIN_API);
 
             //For serializing the date on the sync queue
             ObjectMapper objectMapper = new ObjectMapper();
@@ -115,11 +96,12 @@ public class ExportController {
 
             if (jwtToken.getIdToken() != null) {
                 String token = "Bearer " + jwtToken.getIdToken().replace("'", "");
-                log.info("token is {}", token);
+                //log.info("token is {}", token);
                 return token;
             }
         }catch (Exception e){
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
         return null;
     }
@@ -133,7 +115,7 @@ public class ExportController {
                 .findOneAccess()
                 .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
 
-        API_URL = checkUrl(remoteAccessToken).concat(API_URL);
+        String USE_API_URL = checkUrl(remoteAccessToken).concat(API_URL);
         loginVM.setUsername(remoteAccessToken.getUsername());
         loginVM.setPassword(remoteAccessToken.getPassword());
 
@@ -148,7 +130,7 @@ public class ExportController {
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> responseEntity;
         try {
-            String apiUrl = API_URL + facilityId;
+            String apiUrl = USE_API_URL + facilityId;
             HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
 
             responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
