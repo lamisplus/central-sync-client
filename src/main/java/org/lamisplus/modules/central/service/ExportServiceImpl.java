@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.service.UserService;
 import org.lamisplus.modules.central.domain.dto.*;
+import org.lamisplus.modules.central.domain.entity.SyncHistory;
 import org.lamisplus.modules.central.repository.RadetUploadTrackersRepository;
 import org.lamisplus.modules.central.repository.ReportRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
@@ -60,8 +61,12 @@ public class ExportServiceImpl implements ExportService {
         LocalDateTime reportStartTime = LocalDateTime.parse("1985-01-01 00:00:00", timeFormatter);
         LocalDateTime reportEndTime = LocalDateTime.parse(LocalDateTime.now().format(timeFormatter), timeFormatter).plusDays(ONE_DAY);
 
-        LocalDateTime lastSync = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
-        if(lastSync != null)reportStartTime=LocalDateTime.parse(dateUtility.ConvertDateTimeToString(lastSync), timeFormatter);;
+        SyncHistory history = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
+
+        if(history != null){
+            LocalDateTime lastSync = history.getDateLastSync();
+            reportStartTime=LocalDateTime.parse(dateUtility.ConvertDateTimeToString(lastSync), timeFormatter);;
+        }
 
         String zipFileName = "None";
         try {

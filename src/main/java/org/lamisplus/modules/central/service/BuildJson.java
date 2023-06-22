@@ -91,6 +91,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(DATE_OF_HIV_TESTING, dateUtility.ConvertDateToString(hts.getDateOfHivTesting()));
                 jsonGenerator.writeStringField(NUMBER_OF_CONDOMS_GIVEN, hts.getNumberOfCondomsGiven());
                 jsonGenerator.writeStringField(NUMBER_OF_LUBRICANTS_GIVEN, hts.getNumberOfLubricantsGiven());
+                jsonGenerator.writeStringField(UUID, hts.getUuid());
                 jsonGenerator.writeEndObject();
             } catch (IOException e) {
                 log.error("Error generating HTS JSON: {}", e.getMessage());
