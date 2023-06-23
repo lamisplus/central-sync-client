@@ -49,6 +49,7 @@ public class ExportServiceImpl implements ExportService {
 
     private static ArrayList ERROR_LOG= new ArrayList<>();
     private final DateUtility dateUtility;
+    private final QuarterService quarterService;
 
     @Override
     public String bulkExport(Long facilityId) {
@@ -68,17 +69,20 @@ public class ExportServiceImpl implements ExportService {
             reportStartTime=LocalDateTime.parse(dateUtility.ConvertDateTimeToString(lastSync), timeFormatter);;
         }
 
+        final String PERIOD = reportEndDate.getYear()+quarterService.getCurrentQuarter(reportEndDate).getName();
+        log.info("PERIOD IS {}", PERIOD);
+
         String zipFileName = "None";
         try {
             log.info("Initializing data export");
             Set<String> fileList = fileUtility.listFilesUsingDirectoryStream(ConstantUtility.TEMP_BATCH_DIR);
             cleanDirectory(fileList);
             log.info("Extracting RADET data to JSON");
-            boolean radetIsProcessed = radetExport(facilityId, reportStartDate, reportEndDate);
+            boolean radetIsProcessed = radetExport(facilityId, reportStartDate, reportEndDate, PERIOD);
             log.info("Extracting HTS data to JSON");
-            boolean htsIsProcessed = htsExport(facilityId, reportStartDate, reportEndDate);
+            boolean htsIsProcessed = htsExport(facilityId, reportStartDate, reportEndDate, PERIOD);
             log.info("Extracting PrEP data to JSON");
-            boolean prepIsProcessed = prepExport(facilityId, reportStartDate, reportEndDate);
+            boolean prepIsProcessed = prepExport(facilityId, reportStartDate, reportEndDate, PERIOD);
             log.info("Extracting Clinic data to JSON");
             boolean clinicIsProcessed = clinicExport(facilityId, reportStartTime, reportEndTime);
             log.info("Extracting Patient data to JSON");
@@ -143,7 +147,7 @@ public class ExportServiceImpl implements ExportService {
     }
 
     @Override
-    public boolean radetExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate) {
+    public boolean radetExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period) {
         boolean isProcessed = false;
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
@@ -159,7 +163,7 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.setCodec(objectMapper);
                     jsonGenerator.useDefaultPrettyPrinter();
                     jsonGenerator.writeStartArray();
-                    buildJson.buildRadetJson(jsonGenerator, radetList);
+                    buildJson.buildRadetJson(jsonGenerator, radetList, period);
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (IOException e) {
@@ -178,7 +182,7 @@ public class ExportServiceImpl implements ExportService {
     }
 
     @Override
-    public boolean htsExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate) {
+    public boolean htsExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period) {
         boolean isProcessed = false;
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
@@ -193,7 +197,7 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.setCodec(objectMapper);
                     jsonGenerator.useDefaultPrettyPrinter();
                     jsonGenerator.writeStartArray();
-                    buildJson.buildHtsJson(jsonGenerator, htsList);
+                    buildJson.buildHtsJson(jsonGenerator, htsList, period);
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (IOException e) {
@@ -211,7 +215,7 @@ public class ExportServiceImpl implements ExportService {
     }
 
     @Override
-    public boolean prepExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate) {
+    public boolean prepExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period) {
         boolean isProcessed = false;
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
@@ -224,7 +228,7 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.setCodec(objectMapper);
                     jsonGenerator.useDefaultPrettyPrinter();
                     jsonGenerator.writeStartArray();
-                    buildJson.buildPrepJson(jsonGenerator, prepList);
+                    buildJson.buildPrepJson(jsonGenerator, prepList, period);
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (IOException e) {

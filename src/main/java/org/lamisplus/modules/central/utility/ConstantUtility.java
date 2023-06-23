@@ -1,8 +1,6 @@
 package org.lamisplus.modules.central.utility;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class ConstantUtility {
     public static final String TEMP_BASE_DIR = System.getProperty("user.dir");
@@ -171,4 +169,6 @@ public class ConstantUtility {
     public static final String HASHED = "hashed";
     public static final String TEMPLATE = "template";
     public static final String ID = "id";
+    public static final String PERIOD = "period";
+    public static final String SUBMISSION_TIME = "submissiontime";
 }

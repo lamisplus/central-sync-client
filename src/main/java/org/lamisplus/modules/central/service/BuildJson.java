@@ -29,7 +29,7 @@ public class BuildJson {
     public static final String RADET_TARGET_GROUP1 = "TargetGroup";
     private final DateUtility dateUtility;
 
-    public void buildHtsJson(JsonGenerator jsonGenerator, List<HtsReportDto> htsList) throws IOException {
+    public void buildHtsJson(JsonGenerator jsonGenerator, List<HtsReportDto> htsList, String period) throws IOException {
         for (HtsReportDto hts : htsList) {
             try {
                 jsonGenerator.writeStartObject();
@@ -92,6 +92,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(NUMBER_OF_CONDOMS_GIVEN, hts.getNumberOfCondomsGiven());
                 jsonGenerator.writeStringField(NUMBER_OF_LUBRICANTS_GIVEN, hts.getNumberOfLubricantsGiven());
                 jsonGenerator.writeStringField(UUID, hts.getUuid());
+                jsonGenerator.writeStringField(PERIOD, period);
                 jsonGenerator.writeEndObject();
             } catch (IOException e) {
                 log.error("Error generating HTS JSON: {}", e.getMessage());
@@ -101,7 +102,7 @@ public class BuildJson {
 
     }
 
-    public void buildRadetJson(JsonGenerator jsonGenerator, List<RadetReportDto> radetList) throws IOException {
+    public void buildRadetJson(JsonGenerator jsonGenerator, List<RadetReportDto> radetList, String period) throws IOException {
         for (RadetReportDto radet : radetList)
         {
             try {
@@ -176,6 +177,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField("TbCompletionDate", dateUtility.ConvertDateToString(radet.getTbCompletionDate()));
                 jsonGenerator.writeStringField("IptCompletionStatus()", radet.getIptCompletionStatus());
 
+                jsonGenerator.writeStringField(PERIOD, period);
                 jsonGenerator.writeEndObject();
             } catch (IOException e) {
                 log.error("Error generating radet JSON: {}", e.getMessage());
@@ -185,7 +187,7 @@ public class BuildJson {
 
     }
 
-    public void buildPrepJson(JsonGenerator jsonGenerator,  List<PrepReportDto> prepList) throws IOException {
+    public void buildPrepJson(JsonGenerator jsonGenerator,  List<PrepReportDto> prepList, String period) throws IOException {
         for (PrepReportDto prep : prepList) {
             try {
                 jsonGenerator.writeStartObject();
@@ -239,6 +241,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(PREGNANCY_STATUS, prep.getPregnancyStatus());
                 jsonGenerator.writeStringField(CURRENT_STATUS, prep.getCurrentStatus());
                 jsonGenerator.writeStringField(DATE_OF_CURRENT_STATUS, dateUtility.ConvertDateToString(prep.getDateOfCurrentStatus()));
+                jsonGenerator.writeStringField(PERIOD, period);
                 jsonGenerator.writeEndObject();
             } catch (IOException e) {
                 log.error("Error generating PrEP JSON: {}", e.getMessage());
