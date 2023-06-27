@@ -239,8 +239,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "            WHERE p.archived=0 AND p.facility_id=?1 AND p.date_of_registration >=?2 AND p.date_of_registration < ?3", nativeQuery = true)
     List<PrepReportDto> getPrepReport(Long facilityId, LocalDate start, LocalDate end);
 
-
-    @Query(value = "WITH bio_data AS (SELECT DISTINCT (p.uuid) AS personUuid,p.hospital_number AS hospitalNumber,\n" +
+    //Start of RADET Query
+    @Query(value = "WITH bio_data AS (SELECT DISTINCT (p.uuid) AS personUuid,p.hospital_number AS hospitalNumber, h.unique_id as uniqueId,\n" +
             "EXTRACT(YEAR FROM  AGE(NOW(), date_of_birth)) AS age,\n" +
             "INITCAP(p.sex) AS gender,\n" +
             "p.date_of_birth AS dateOfBirth,\n" +
@@ -269,13 +269,21 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "AND hac.archived = 0\n" +
             "INNER JOIN hiv_regimen hr ON hr.id = hac.regimen_id\n" +
             "INNER JOIN hiv_regimen_type hrt ON hrt.id = hac.regimen_type_id\n" +
-            "    WHERE\n" +
+            "WHERE\n" +
             "h.archived = 0\n" +
-            "      AND h.facility_id = ?1\n" +
-            "      AND hac.is_commencement = TRUE\n" +
-            "      AND hac.visit_date >= ?2\n" +
-            "      AND hac.visit_date < ?3\n" +
+            "AND p.archived = 0\n"+
+            "AND h.facility_id = ?1\n" +
+            "AND hac.is_commencement = TRUE\n" +
+            "AND hac.visit_date >= ?2\n" +
+            "AND hac.visit_date < ?3\n" +
             "),\n" +
+            "\n" +
+            "patient_lga as (select DISTINCT ON (personUuid) personUuid as personUuid11, \n" +
+            "case when (addr ~ '^[0-9\\.]+$') =TRUE \n" +
+            "then (select name from base_organisation_unit where id = cast(addr as int)) end as lgaOfResidence \n" +
+            "from (\n" +
+            "select uuid AS personUuid, (jsonb_array_elements(address->'address')->>'district') as addr from patient_person \n" +
+            ") dt),"+
             "\n" +
             "current_clinical AS (SELECT DISTINCT ON (tvs.person_uuid) tvs.person_uuid AS person_uuid10,\n" +
             "       body_weight AS currentWeight,\n" +
@@ -746,7 +754,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "     FROM\n" +
             "         hiv_art_pharmacy\n" +
             "     WHERE\n" +
-            "         (ipt ->> 'type' ilike '%INITIATION%')\n" +
+            "         (ipt ->> 'type' ilike '%INITIATION%' or ipt ->> 'type' ilike 'START_REFILL')\n" +
             "       AND archived = 0\n" +
             "     GROUP BY\n" +
             "         person_uuid\n" +
@@ -867,7 +875,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "        END\n" +
             "    ) AS status_date,\n" +
             "\n" +
-            "stat.cause_of_death\n" +
+            "stat.cause_of_death, stat.va_cause_of_death\n" +
             "\n" +
             "         FROM\n" +
             " (\n" +
@@ -909,11 +917,12 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "     SELECT\n" +
             "         hst.hiv_status,\n" +
             "         hst.person_id,\n" +
-            "         hst.cause_of_death,\n" +
+            "         hst.cause_of_death," +
+            "          hst.va_cause_of_death,\n" +
             "         hst.status_date\n" +
             "     FROM\n" +
             "         (\n" +
-            " SELECT * FROM (SELECT DISTINCT (person_id) person_id, status_date, cause_of_death,\n" +
+            " SELECT * FROM (SELECT DISTINCT (person_id) person_id, status_date, cause_of_death,va_cause_of_death,\n" +
             "        hiv_status, ROW_NUMBER() OVER (PARTITION BY person_id ORDER BY status_date DESC)\n" +
             "    FROM hiv_status_tracker WHERE archived=0 AND status_date <= ?5 )s\n" +
             " WHERE s.row_number=1\n" +
@@ -950,7 +959,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "        END\n" +
             "    ) AS status_date,\n" +
             "\n" +
-            "stat.cause_of_death\n" +
+            "stat.cause_of_death, stat.va_cause_of_death\n" +
             "\n" +
             "         FROM\n" +
             " (\n" +
@@ -992,11 +1001,12 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "     SELECT\n" +
             "         hst.hiv_status,\n" +
             "         hst.person_id,\n" +
-            "         hst.cause_of_death,\n" +
+            "         hst.cause_of_death, " +
+            "         hst.va_cause_of_death,\n" +
             "         hst.status_date\n" +
             "     FROM\n" +
             "         (\n" +
-            " SELECT * FROM (SELECT DISTINCT (person_id) person_id, status_date, cause_of_death,\n" +
+            " SELECT * FROM (SELECT DISTINCT (person_id) person_id, status_date, cause_of_death,va_cause_of_death,\n" +
             "        hiv_status, ROW_NUMBER() OVER (PARTITION BY person_id ORDER BY status_date DESC)\n" +
             "    FROM hiv_status_tracker WHERE archived=0 AND status_date <=  ?4 )s\n" +
             " WHERE s.row_number=1\n" +
@@ -1022,7 +1032,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "    ELSE pharmacy.visit_date\n" +
             "    END\n" +
             ") AS status_date,\n" +
-            "        stat.cause_of_death\n" +
+            "        stat.cause_of_death, stat.va_cause_of_death\n" +
             " FROM\n" +
             "     (\n" +
             "         SELECT\n" +
@@ -1063,11 +1073,12 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "         SELECT\n" +
             " hst.hiv_status,\n" +
             " hst.person_id,\n" +
-            " hst.cause_of_death,\n" +
+            " hst.cause_of_death," +
+            " hst.va_cause_of_death,\n" +
             " hst.status_date\n" +
             "         FROM\n" +
             " (\n" +
-            "     SELECT * FROM (SELECT DISTINCT (person_id) person_id, status_date, cause_of_death,\n" +
+            "     SELECT * FROM (SELECT DISTINCT (person_id) person_id, status_date, cause_of_death, va_cause_of_death,\n" +
             "hiv_status, ROW_NUMBER() OVER (PARTITION BY person_id ORDER BY status_date DESC)\n" +
             "        FROM hiv_status_tracker WHERE archived=0 AND status_date <= ?3 )s\n" +
             "     WHERE s.row_number=1\n" +
@@ -1101,11 +1112,19 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "      WHERE ls.archived=0 AND ls.facility_id=?1\n" +
             "      GROUP BY ls.patient_uuid\n" +
             "  )t )\n" +
-            "     )\n" +
+            "     ),\n" +
             "\n" +
+            "crytococal_antigen as (select personuuid12, date_result_reported as dateOfLastCrytococalAntigen, result_reported as lastCrytococalAntigen from (\n" +
+            "select DISTINCT ON (lr.patient_uuid) lr.patient_uuid as personuuid12, lr.date_result_reported, lr.result_reported, \n" +
+            "ROW_NUMBER() OVER (PARTITION BY lr.patient_uuid ORDER BY lr.date_result_reported DESC) as rowNum\n" +
+            "from public.laboratory_test lt \n" +
+            "inner join laboratory_result lr on lr.test_id = lt.id\n" +
+            "where lab_test_id=52\n" +
+            ") dt where rowNum=1)\n"+
             "\n" +
             "SELECT DISTINCT ON (bd.personUuid) personUuid AS uniquePersonUuid,\n" +
             "           bd.*,\n" +
+            "           p_lga.*,\n"+
             "           scd.*,\n" +
             "           cvlr.*,\n" +
             "           pdr.*,\n" +
@@ -1124,6 +1143,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "           tbSample.*,\n" +
             "           tbResult.*,\n" +
             "           ct.cause_of_death AS causeOfDeath,\n" +
+            "           ct.va_cause_of_death AS vaCauseOfDeath,\n" +
             "           (\n" +
             "   CASE\n" +
             "       WHEN prepre.status ILIKE '%DEATH%' THEN 'DEATH'\n" +
@@ -1335,8 +1355,12 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "     ELSE NULL END) as lastCd4Count,\n" +
             "           (CASE WHEN  ccd.visit_date IS NOT NULL THEN CAST(ccd.visit_date as DATE)\n" +
             "     WHEN  cd.dateOfCd4Lb IS NOT NULL THEN  CAST(cd.dateOfCd4Lb as DATE)\n" +
-            "     ELSE NULL END) as dateOfLastCd4Count\n" +
+            "     ELSE NULL END) as dateOfLastCd4Count, \n" +
+            "      crypt.*, \n"+
+            "   (select concat(cm.first_name, ' ', cm.last_name) from public.case_manager_patients cmp \n" +
+            "   inner join case_manager cm on cmp.case_manager_id=cm.id and cmp.person_uuid=bd.personUuid) as caseManager\n"+
             "FROM bio_data bd\n" +
+            "        LEFT JOIN patient_lga p_lga on p_lga.personUuid11 = bd.personUuid \n"+
             "        LEFT JOIN pharmacy_details_regimen pdr ON pdr.person_uuid40 = bd.personUuid\n" +
             "        LEFT JOIN current_clinical c ON c.person_uuid10 = bd.personUuid\n" +
             "        LEFT JOIN sample_collection_date scd ON scd.person_uuid120 = bd.personUuid\n" +
@@ -1355,7 +1379,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "        LEFT JOIN naive_vl_data nvd ON nvd.nvl_person_uuid = bd.personUuid\n" +
             "        LEFT JOIN tb_sample_collection tbSample ON tbSample.personTbSample = bd.personUuid\n" +
             "        LEFT JOIN  tbTreatment tbTment ON tbTment.tbTreatmentPersonUuid = bd.personUuid\n" +
-            "        LEFT JOIN  current_tb_result tbResult ON tbResult.personTbResult = bd.personUuid\n"
+            "        LEFT JOIN  current_tb_result tbResult ON tbResult.personTbResult = bd.personUuid\n" +
+            "        LEFT JOIN crytococal_antigen crypt on crypt.personuuid12= bd.personUuid"
             , nativeQuery = true)
     List<RadetReportDto> getRadetData(Long facilityId, LocalDate start, LocalDate end, LocalDate previous, LocalDate previousPrevious);
 
@@ -1371,7 +1396,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "\t\t   tvs.diastolic,\n" +
             "\t\t   tvs.systolic,\n" +
             "\t\t   tvs.height,\n" +
-            "                  (CASE\n" +
+            "           (CASE WHEN INITCAP(p.sex) = 'Male' THEN NULL " +
             "           WHEN hac.pregnancy_status = 'Not Pregnant' THEN hac.pregnancy_status\n" +
             "           WHEN hac.pregnancy_status = 'Pregnant' THEN hac.pregnancy_status\n" +
             "           WHEN hac.pregnancy_status = 'Breastfeeding' THEN hac.pregnancy_status\n" +
@@ -1487,11 +1512,62 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     @Query(value = "SELECT b.id AS uuid, b.person_uuid AS personUuid, b.template_type AS templateType,\n" +
             "b.enrollment_date AS enrollmentDate, b.iso, b.device_name AS deviceName,\n" +
             "b.version_iso_20 AS versionIso20, b.image_quality AS imageQuality, b.recapture,\n" +
-            "b.count, b.hashed, boui.code AS datimId, b.template,\n" +
+            "b.count, b.hashed, boui.code AS datimId, encode(template, 'base64') AS template,\n" +
             "b.last_modified_date AS LastModifiedDate, b.last_modified_by AS LastModifiedBy, b.archived FROM biometric b\n" +
             "INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=b.facility_id " +
             "WHERE b.facility_id=?1 AND b.last_modified_date >= ?2 AND b.last_modified_date <= ?3 ",nativeQuery = true)
     List<BiometricDto> getBiometric(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    @Query(value = "SELECT he.person_uuid personUuid, he.uuid, \n" +
+            "he.date_of_registration As dateOfRegistration, \n" +
+            "he.ovc_number AS ovcNumber, he.house_hold_number AS houseHoldNumber, \n" +
+            "he.facility_name AS facilityName, he.unique_id AS uniqueId,\n" +
+            "he.date_confirmed_hiv AS dateConfirmedHiv, he.date_started AS dateStarted,\n" +
+            "esettings.display AS enrollmenSetting, enpoint.display AS entryPoint,\n" +
+            "targetg.display AS targetGroup, stareg.display AS statusAtRegistration,\n" +
+            "pregsta.display AS pregnancyStatus, tbstat.display AS tbStatus,\n" +
+            "he.last_modified_date AS lastModifiedDate, \n" +
+            "he.last_modified_by AS lastModifiedBy, he.archived, facility.code AS datimId\n" +
+            "FROM hiv_enrollment he\n" +
+            "LEFT JOIN base_application_codeset enpoint ON enpoint.id=he.entry_point_id\n" +
+            "LEFT JOIN base_application_codeset targetg ON targetg.id=he.target_group_id\n" +
+            "LEFT JOIN base_application_codeset stareg ON stareg.id=he.status_at_registration_id\n" +
+            "LEFT JOIN base_application_codeset esettings ON esettings.id=he.enrollment_setting_id\n" +
+            "LEFT JOIN base_application_codeset pregsta ON pregsta.id=he.pregnancy_status_id\n" +
+            "LEFT JOIN base_application_codeset tbstat ON tbstat.id=he.tb_status_id\n" +
+            "INNER JOIN base_organisation_unit_identifier facility ON facility.organisation_unit_id=he.facility_id " +
+            "WHERE he.facility_id=?1 AND he.last_modified_date >= ?2 AND he.last_modified_date <= ?3 ",nativeQuery = true)
+    List<EnrollmentDto> getEnrollmentData(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+
+    @Query(value = "SELECT ho.last_modified_date AS lastModifiedDate, facility.code AS datimId, " +
+            "ho.last_modified_by AS lastModifiedBy, ho.date_of_observation AS dateOfObservation, " +
+            "ho.person_uuid AS personUuid, ho.type, ho.uuid, CAST(ho.data AS VARCHAR) AS data, ho.archived \n" +
+            "FROM hiv_observation ho " +
+            "INNER JOIN base_organisation_unit_identifier facility ON facility.organisation_unit_id=ho.facility_id " +
+            "WHERE ho.facility_id=?1 AND ho.last_modified_date >= ?2 AND ho.last_modified_date <= ?3 ",nativeQuery = true)
+    List<ObservationDto> getObservationData(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    @Query(value = "SELECT * FROM (SELECT hst.last_modified_date AS LastModifiedDate, \n" +
+            "hst.last_modified_by AS LastModifiedBy, facility.code AS datimId,\n" +
+            "hst.hiv_status AS hivStatus, hst.status_date AS statusDate,\n" +
+            "hst.person_id AS personUuid, hst.uuid, hst.archived,\n" +
+            "ROW_NUMBER () OVER (PARTITION BY hst.person_id ORDER BY hst.status_date DESC)\n" +
+            "FROM hiv_status_tracker hst \n" +
+            "INNER JOIN base_organisation_unit_identifier facility ON facility.organisation_unit_id=hst.facility_id\n" +
+            "WHERE hst.auto=false AND hst.facility_id=?1 AND hst.last_modified_date >= ?2 " +
+            "AND hst.last_modified_date <= ?3) rn WHERE row_number < 5 ",nativeQuery = true)
+    List<StatusTrackerDto> getStatusTrackerData(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
+
+    @Query(value = "SELECT last_modified_date AS lastModifiedDate,last_modified_by AS lastModifiedBy,\n" +
+            "eac_id AS eacUuid,person_uuid AS personUuid,CAST(barriers AS VARCHAR) AS barriers,\n" +
+            "CAST(intervention AS VARCHAR) AS intervention, barriers_others AS barriersOthers, \n" +
+            "intervention_others AS interventionOthers, comment, follow_up_date AS followUpDate,\n" +
+            "eac_session_date AS eacSessionDate,referral,adherence,uuid,status,archived,\n" +
+            "facility.code AS datimid FROM hiv_eac_session\n" +
+            "INNER JOIN base_organisation_unit_identifier facility ON facility.organisation_unit_id=hiv_eac_session.facility_id " +
+            "WHERE facility_id=?1 AND last_modified_date >= ?2 AND last_modified_date <= ?3 ",nativeQuery = true)
+    List<EacDto> getEacData(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
 
 }
 

@@ -16,7 +16,7 @@ public interface BiometricDto {
 	Integer getCount();
 	Integer getRecapture();
 	Integer getHashed();
-	byte[] getTemplate();
+	String getTemplate();
 	Integer getArchived();
 	LocalDateTime getLastModifiedDate();
 	String getLastModifiedBy();

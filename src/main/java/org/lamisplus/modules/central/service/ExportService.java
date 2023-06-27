@@ -19,5 +19,9 @@ public interface ExportService {
     boolean laboratoryResultExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
     boolean pharmacyExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate);
     boolean biometricExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate);
+    boolean enrollmentExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate);
+    boolean observationExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate);
+    boolean statusTrackerExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate);
+    boolean eacExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate);
 
 }

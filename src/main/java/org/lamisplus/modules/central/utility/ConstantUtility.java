@@ -1,12 +1,14 @@
 package org.lamisplus.modules.central.utility;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 
 public class ConstantUtility {
     public static final String TEMP_BASE_DIR = System.getProperty("user.dir");
     public static final String TEMP_BATCH_DIR = TEMP_BASE_DIR + "/batch/temp/";
     public static final String TEMP_SERVER_DIR = TEMP_BASE_DIR + "/server/temp/";
     public static final String RADET_FILENAME = "radet.json";
+    public static final String EXTRACT_FILENAME = "extract.json";
     public static final String PREP_FILENAME = "prep.json";
     public static final String CLINIC_FILENAME = "clinic.json";
     public static final String PATIENT_FILENAME = "patient.json";
@@ -16,6 +18,11 @@ public class ConstantUtility {
     public static final String LABORATORY_RESULT_FILENAME = "laboratoryResult.json";
     public static final String PHARMACY_FILENAME = "pharmacy.json";
     public static final String BIOMETRIC_FILENAME = "biometric.json";
+    public static final String ENROLLMENT_FILENAME = "hivEnrollment.json";
+
+    public static final String OBSERVATION_FILENAME = "observation.json";
+    public static final String STATUS_TRACKER_FILENAME = "statusTracker.json";
+    public static final String EAC_FILENAME = "eac.json";
     public static final String HTS_FILENAME = "hts.json";
     public static final String CONTENT_DISPOSITION = "Content-Disposition";
     public static final String ATTACHMENT_FILENAME = "attachment; filename=";
@@ -114,6 +121,7 @@ public class ConstantUtility {
     public static final String FACILITY = "facility";
     public static final String DATIM_ID = "datimId";
     public static final String PERSON_UUID = "personUuid";
+    public static final String UNIQUE_ID = "uniqueId";
     public static final String HOSPITAL_NUMBER = "hospitalNumber";
     public static final String DATIM_CODE = "datimCode";
     public static final String CLIENT_CODE = "clientCode";
@@ -171,4 +179,97 @@ public class ConstantUtility {
     public static final String ID = "id";
     public static final String PERIOD = "period";
     public static final String SUBMISSION_TIME = "submissiontime";
+    public static final String DATE_OF_LAST_CRYTOCOCAL_ANTIGEN = "dateOfLastCrytococalAntigen";
+    public static final String LAST_CRYTOCOCAL_ANTIGEN = "lastCrytococalAntigen";
+    public static final String CASE_MANAGER = "caseManager";
+    public static final String VA_CAUSE_OF_DEATH = "vaCauseOfDeath";
+    public static final String RADET_DATE_OF_BIRTH1 = "DateOfBirth";
+    public static final String RADET_AGE = "Age";
+    public static final String RADET_GENDER = "Gender";
+    public static final String RADET_TARGET_GROUP1 = "TargetGroup";
+
+    public static final String IPT_COMPLETION_STATUS = "IptCompletionStatus";
+    public static final String TB_COMPLETION_DATE = "TbCompletionDate";
+    public static final String TB_TREATMENT_START_DATE = "TbTreatmentStartDate";
+    public static final String TB_TREATMENT_OUTCOME = "TbTreatmentOutcome";
+    public static final String TB_TREATEMENT_TYPE = "TbTreatementType";
+    public static final String DATE_OF_TB_DIAGNOSTIC_RESULT_RECEIVED = "DateOfTbDiagnosticResultReceived";
+    public static final String DSD_MODEL = "DsdModel";
+    public static final String TB_DIAGNOSTIC_RESULT = "TbDiagnosticResult";
+    public static final String DATE_OF_TB_SAMPLE_COLLECTION = "DateOfTbSampleCollection";
+    public static final String TB_DIAGNOSTIC_TEST_TYPE = "TbDiagnosticTestType";
+    public static final String DATE_OF_VL_ELIGIBILITY_STATUS = "DateOfVlEligibilityStatus";
+    public static final String VL_ELIGIBILITY_STATUS = "VlEligibilityStatus";
+    public static final String CAUSE_OF_DEATH = "CauseOfDeath";
+    public static final String CARE_ENTRY = "CareEntry";
+    public static final String HOUSEHOLD_NUMBER = "HouseholdNumber";
+    public static final String OVC_NUMBER = "OvcNumber";
+    public static final String DATE_OF_CERVICAL_CANCER_SCREENING = "DateOfCervicalCancerScreening";
+    public static final String CERVICAL_CANCER_TREATMENT_SCREENED = "CervicalCancerTreatmentScreened";
+    public static final String CERVICAL_CANCER_SCREENING_METHOD = "CervicalCancerScreeningMethod";
+    public static final String CERVICAL_CANCER_SCREENING_TYPE = "CervicalCancerScreeningType";
+    public static final String RESULT_OF_CERVICAL_CANCER_SCREENING = "ResultOfCervicalCancerScreening";
+    public static final String IPT_TYPE = "IptType";
+    public static final String IPT_COMPLETION_DATE = "IptCompletionDate";
+    public static final String DATE_OF_IPT_START = "DateOfIptStart";
+    public static final String DATE_OF_CURRENT_REGIMEN = "DateOfCurrentRegimen";
+    public static final String DATE_OF_TB_SCREENED = "DateOfTbScreened";
+    public static final String TB_STATUS1 = "TbStatus";
+    public static final String REPEAT_VIRAL_LOAD_RESULT = "RepeatViralLoadResult";
+    public static final String DATE_OF_REPEAT_VIRAL_LOAD_EAC_SAMPLE_COLLECTION = "DateOfRepeatViralLoadEACSampleCollection";
+    public static final String DATE_OF_REPEAT_VIRAL_LOAD_RESULT = "DateOfRepeatViralLoadResult";
+    public static final String DATE_OF_EXTEND_EAC_COMPLETION = "DateOfExtendEACCompletion";
+    public static final String DATE_OF_LAST_EAC_SESSION_COMPLETED = "DateOfLastEACSessionCompleted";
+    public static final String NUMBER_OF_EAC_SESSION_COMPLETED = "NumberOfEACSessionCompleted";
+    public static final String DATE_OF_COMMENCEMENT_OF_EAC = "DateOfCommencementOfEAC";
+    public static final String NUMBER_OF_FINGERS_CAPTURED = "NumberOfFingersCaptured";
+    public static final String DATE_BIOMETRICS_ENROLLED = "DateBiometricsEnrolled";
+    public static final String PREVIOUS_STATUS = "PreviousStatus";
+    public static final String PREVIOUS_STATUS_DATE = "PreviousStatusDate";
+    public static final String CURRENT_STATUS1 = "CurrentStatus";
+    public static final String CURRENT_STATUS_DATE = "CurrentStatusDate";
+    public static final String NEXT_PICKUP_DATE = "NextPickupDate";
+    public static final String LAST_PICKUP_DATE = "LastPickupDate";
+    public static final String MONTHS_OF_ARV_REFILL = "MonthsOfARVRefill";
+    public static final String CURRENT_ART_REGIMEN = "CurrentARTRegimen";
+    public static final String CURRENT_REGIMEN_LINE = "CurrentRegimenLine";
+    public static final String DATE_OF_LAST_CD_4_COUNT = "DateOfLastCd4Count";
+    public static final String LAST_CD_4_COUNT = "LastCd4Count";
+    public static final String DATE_OF_CURRENT_VIRAL_LOAD_SAMPLE = "DateOfCurrentViralLoadSample";
+    public static final String DATE_OF_CURRENT_VIRAL_LOAD = "DateOfCurrentViralLoad";
+    public static final String CURRENT_VIRAL_LOAD = "CurrentViralLoad";
+    public static final String DATE_OF_VIRAL_LOAD_SAMPLE_COLLECTION = "DateOfViralLoadSampleCollection";
+    public static final String VIRAL_LOAD_INDICATION1 = "ViralLoadIndication";
+    public static final String CURRENT_WEIGHT1 = "CurrentWeight";
+    public static final String CURRENT_CLINICAL_STAGE = "CurrentClinicalStage";
+    public static final String PREGNANCY_STATUS1 = "PregnancyStatus";
+    public static final String REGIMEN_LINE_AT_START = "RegimenLineAtStart";
+    public static final String REGIMEN_AT_START = "RegimenAtStart";
+    public static final String ART_START_DATE = "ArtStartDate";
+    public static final String ENROLLMENT_SETTING = "EnrollmentSetting";
+
+    public static final String HOUSE_HOLD_NUMBER = "houseHoldNumber";
+    public static final String DATE_CONFIRMED_HIV = "dateConfirmedHiv";
+    public static final String DATE_STARTED = "dateStarted";
+    public static final String ENTRY_POINT = "entryPoint";
+    public static final String STATUS_AT_REGISTRATION = "statusAtRegistration";
+
+    public static final String DATA = "data";
+    public static final String TYPE = "type";
+
+    public static final String DATE_OF_OBSERVATION = "dateOfObservation";
+
+    public static final String HIV_STATUS = "hivStatus";
+    public static final String STATUS_DATE = "statusDate";
+
+    public static final String BARRIERS_OTHERS = "barriersOthers";
+    public static final String INTERVENTION_OTHERS = "interventionOthers";
+    public static final String INTERVENTION = "intervention";
+    public static final String BARRIERS = "barriers";
+    public static final String EAC_SESSION_DATE = "eacSessionDate";
+
+    public static final String EAC_UUID = "eacUuid";
+    public static final String REFERRAL = "referral";
+    public static final String ADHERENCE = "adherence";
+    public static final String FOLLOW_UP_DATE = "followUpDate";
 }

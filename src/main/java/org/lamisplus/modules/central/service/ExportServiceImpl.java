@@ -99,12 +99,20 @@ public class ExportServiceImpl implements ExportService {
             boolean pharmacyIsProcessed = pharmacyExport(facilityId, reportStartTime, reportEndTime);
             log.info("Extracting biometric data to JSON");
             boolean biometricIsProcessed = biometricExport(facilityId, reportStartTime, reportEndTime);
-
+            log.info("Extracting enrollment data to JSON");
+            boolean enrollmentIsProcessed = enrollmentExport(facilityId, reportStartTime, reportEndTime);
+            log.info("Extracting observation data to JSON");
+            boolean observationIsProcessed = observationExport(facilityId, reportStartTime, reportEndTime);
+            log.info("Extracting status tracker data to JSON");
+            boolean statusTrackerIsProcessed = statusTrackerExport(facilityId, reportStartTime, reportEndTime);
+            log.info("Extracting eac data to JSON");
+            boolean eacIsProcessed = eacExport(facilityId, reportStartTime, reportEndTime);
 
             if (radetIsProcessed || htsIsProcessed || prepIsProcessed
                     || clinicIsProcessed || patientIsProcessed || laboratoryOrderIsProcessed
-                    || laboratorySampleIsProcessed || laboratoryTestIsProcessed
-                    || laboratoryResultIsProcessed || pharmacyIsProcessed || biometricIsProcessed) {
+                    || laboratorySampleIsProcessed || laboratoryTestIsProcessed || eacIsProcessed
+                    || laboratoryResultIsProcessed || pharmacyIsProcessed || biometricIsProcessed
+                    || enrollmentIsProcessed || observationIsProcessed || statusTrackerIsProcessed) {
                 log.info("Writing all exports to a zip file");
                 Date date1 = new Date();
                 String datimCode = getDatimId(facilityId);
@@ -152,7 +160,8 @@ public class ExportServiceImpl implements ExportService {
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.RADET_FILENAME;
+            //String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.RADET_FILENAME;
+            String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.EXTRACT_FILENAME;
             LocalDate previousQuarterEnd = quarterUtility.getPreviousQuarter(reportEndDate).getEndDate();
             LocalDate previousPreviousQuarterEnd = quarterUtility.getPreviousQuarter(previousQuarterEnd).getEndDate();
             List<RadetReportDto> radetList = repository.getRadetData(facilityId, reportStartDate, reportEndDate.plusDays(1),
@@ -551,6 +560,163 @@ public class ExportServiceImpl implements ExportService {
 
         return isProcessed;
     }
+
+    /**
+     * Handles hiv enrollment data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean enrollmentExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = TEMP_BATCH_DIR + ENROLLMENT_FILENAME;
+            List<EnrollmentDto> enrollments = repository.getEnrollmentData(facilityId, startDate, endDate);
+            System.out.println("Total enrollments Generated "+ enrollments.size());
+            if (!enrollments.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildEnrollmentJson(jsonGenerator, enrollments);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    addError("ENROLLMENT", e.getMessage(), null);
+                    isProcessed = false;
+                    log.error("Error writing enrollment to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            addError("ENROLLMENT", e.getMessage(), null);
+            log.error("Error mapping enrollment: {}", e.getMessage());
+        }
+
+        return isProcessed;
+    }
+
+    /**
+     * Handles observation data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean observationExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = TEMP_BATCH_DIR + OBSERVATION_FILENAME;
+            List<ObservationDto> observations = repository.getObservationData(facilityId, startDate, endDate);
+            System.out.println("Total observations Generated "+ observations.size());
+            if (!observations.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildObservationJson(jsonGenerator, observations);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    addError("OBSERVATION", e.getMessage(), null);
+                    isProcessed = false;
+                    log.error("Error writing observations to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            addError("OBSERVATION", e.getMessage(), null);
+            log.error("Error mapping observations: {}", e.getMessage());
+        }
+
+        return isProcessed;
+    }
+
+    /**
+     * Handles status tracker data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean statusTrackerExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = TEMP_BATCH_DIR + STATUS_TRACKER_FILENAME;
+            List<StatusTrackerDto> statusTrackers = repository.getStatusTrackerData(facilityId, startDate, endDate);
+            System.out.println("Total status tracker Generated "+ statusTrackers.size());
+            if (!statusTrackers.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildStatusTrackerJson(jsonGenerator, statusTrackers);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    addError("STATUS TRACKER", e.getMessage(), null);
+                    isProcessed = false;
+                    log.error("Error writing status tracker to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            addError("STATUS TRACKER", e.getMessage(), null);
+            log.error("Error mapping status tracker: {}", e.getMessage());
+        }
+
+        return isProcessed;
+    }
+
+    /**
+     * Handles EAC data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean eacExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = TEMP_BATCH_DIR + EAC_FILENAME;
+            List<EacDto> eacs = repository.getEacData(facilityId, startDate, endDate);
+            System.out.println("Total eac Generated "+ eacs.size());
+            if (!eacs.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildEacJson(jsonGenerator, eacs);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    addError("EAC", e.getMessage(), null);
+                    isProcessed = false;
+                    log.error("Error writing eac to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            addError("EAC", e.getMessage(), null);
+            log.error("Error mapping eac: {}", e.getMessage());
+        }
+
+        return isProcessed;
+    }
+
 
     @Override
     public String getDatimId(Long facilityId)
