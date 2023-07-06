@@ -284,7 +284,8 @@ useEffect(() => {
             { title: "File Name ", field: "tableName", filtering: false },
             { title: "Upload Size ", field: "uploadSize", filtering: false },
             { title: "Date Generated ", field: "date", filtering: false },
-            { title: "Status", field: "status", filtering: false },        
+            { title: "Status", field: "status", filtering: false },  
+            { title: "Error Log", field: "errorLog", filtering: false },       
             { title: "Action", field: "actions", filtering: false }, 
             ]}
             data={ syncList.map((row) => ({
@@ -294,6 +295,7 @@ useEffect(() => {
                 uploadSize: row.uploadSize,
                 date:  moment(row.dateLastSync).format("LLLL"),
                 status: row.errorLog===null ? row.processed===0 ? "Processing" : "Completed" : "Error",
+                //errorLog: row.errorLog,
                 actions:(<div>
                     <Menu.Menu position='right'  >
                     <Menu.Item >
