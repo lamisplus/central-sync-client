@@ -284,8 +284,7 @@ useEffect(() => {
             { title: "File Name ", field: "tableName", filtering: false },
             { title: "Upload Size ", field: "uploadSize", filtering: false },
             { title: "Date Generated ", field: "date", filtering: false },
-            { title: "Status", field: "status", filtering: false },  
-            { title: "Error Log", field: "errorLog", filtering: false },       
+            { title: "Status", field: "status", filtering: false },         
             { title: "Action", field: "actions", filtering: false }, 
             ]}
             data={ syncList.map((row) => ({
