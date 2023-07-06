@@ -171,10 +171,13 @@ public class BuildJson {
                 jsonGenerator.writeStringField(TB_TREATMENT_START_DATE, dateUtility.ConvertDateToString(radet.getTbTreatmentStartDate()));
                 jsonGenerator.writeStringField(TB_COMPLETION_DATE, dateUtility.ConvertDateToString(radet.getTbCompletionDate()));
                 jsonGenerator.writeStringField(IPT_COMPLETION_STATUS, radet.getIptCompletionStatus());
-                jsonGenerator.writeStringField(DATE_OF_LAST_CRYTOCOCAL_ANTIGEN, dateUtility.ConvertDateToString(radet.getDateOfLastCrytococalAntigen()));
+                jsonGenerator.writeStringField(DATE_OF_LAST_CRYTOCOCAL_ANTIGEN, dateUtility.ConvertDateTimeToString(radet.getDateOfLastCrytococalAntigen()));
                 jsonGenerator.writeStringField(LAST_CRYTOCOCAL_ANTIGEN, radet.getLastCrytococalAntigen());
                 jsonGenerator.writeStringField(CASE_MANAGER, radet.getCaseManager());
                 jsonGenerator.writeStringField(VA_CAUSE_OF_DEATH, radet.getVaCauseOfDeath());
+                jsonGenerator.writeStringField(TREATMENT_METHOD_DATE, radet.getTreatmentMethodDate());
+                jsonGenerator.writeStringField(DATE_OF_REGISTRATION, dateUtility.ConvertDateToString(radet.getDateOfRegistration()));
+                jsonGenerator.writeStringField(DATE_OF_ENROLLMENT, dateUtility.ConvertDateToString(radet.getDateOfEnrollment()));
                 jsonGenerator.writeStringField(PERIOD, period);
                 jsonGenerator.writeEndObject();
             } catch (IOException e) {
@@ -535,7 +538,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(INTERVENTION, eac.getIntervention());
                 jsonGenerator.writeStringField(BARRIERS, eac.getBarriers());
                 jsonGenerator.writeStringField(EAC_SESSION_DATE, dateUtility.ConvertDateToString(eac.getEacSessionDate()));
-                jsonGenerator.writeStringField(EAC_UUID, eac.getUuid());
+                jsonGenerator.writeStringField(EAC_UUID, eac.getEacUuid());
                 jsonGenerator.writeStringField(ADHERENCE, eac.getAdherence());
                 jsonGenerator.writeStringField(FOLLOW_UP_DATE, dateUtility.ConvertDateToString(eac.getFollowUpDate()));
                 jsonGenerator.writeStringField(REFERRAL, eac.getReferral());

@@ -272,4 +272,7 @@ public class ConstantUtility {
     public static final String REFERRAL = "referral";
     public static final String ADHERENCE = "adherence";
     public static final String FOLLOW_UP_DATE = "followUpDate";
+
+    public static final String TREATMENT_METHOD_DATE = "treatmentMethodDate";
+    public static final String DATE_OF_ENROLLMENT = "dateOfEnrollment";
 }

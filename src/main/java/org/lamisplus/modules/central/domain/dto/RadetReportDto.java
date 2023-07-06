@@ -7,38 +7,62 @@ import java.util.Date;
 public interface RadetReportDto {
     //biodata
     String getState();
+
     String getLga();
+
     String getFacilityName();
+
     String getUniqueId();
     String getLgaOfResidence();
+
     String getDatimId();
+
     String getPersonUuid();
+
     String getHospitalNumber();
+
     Date getDateOfBirth();
+
     Integer getAge();
 
     String getGender();
+
     String getTargetGroup();
+
     String getEnrollmentSetting();
+
     Date getArtStartDate();
+
     String getRegimenAtStart();
+
     String getRegimenLineAtStart();
+
     //cc
     String getPregnancyStatus();
+
     String getCurrentClinicalStage();
+
     Double getCurrentWeight();
+
+
     //vl
     String getViralLoadIndication();
+
     LocalDate getDateOfViralLoadSampleCollection();
+
     String getCurrentViralLoad();
 
     LocalDate getDateOfCurrentViralLoad();
     LocalDate getDateOfCurrentViralLoadSample();
+
     //cd4
     String getLastCd4Count();
+
     LocalDate getDateOfLastCd4Count();
+
     //Refill
     String getCurrentRegimenLine();
+
     String getCurrentARTRegimen();
 
     Double getMonthsOfARVRefill();
@@ -56,6 +80,8 @@ public interface RadetReportDto {
     LocalDate getPreviousStatusDate();
 
     String getPreviousStatus();
+
+
 
     //Biometric status
     LocalDate getDateBiometricsEnrolled();
@@ -110,9 +136,13 @@ public interface RadetReportDto {
     String getIptCompletionStatus();
 
     //Crytococal Antigen
-    LocalDate getDateOfLastCrytococalAntigen();
+    LocalDateTime getDateOfLastCrytococalAntigen();
     String	getLastCrytococalAntigen();
+
     String getCaseManager();
     String getVaCauseOfDeath();
+    String getTreatmentMethodDate();
+    LocalDate getDateOfRegistration();
+    LocalDate getDateOfEnrollment();
 }
 
