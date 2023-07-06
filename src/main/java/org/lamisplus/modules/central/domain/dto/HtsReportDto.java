@@ -67,5 +67,7 @@ public interface HtsReportDto {
 
     public String getNumberOfCondomsGiven();
     public String getNumberOfLubricantsGiven();
+
+    String getUuid();
 }
 

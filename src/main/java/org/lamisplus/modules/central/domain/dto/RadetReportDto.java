@@ -12,6 +12,9 @@ public interface RadetReportDto {
 
     String getFacilityName();
 
+    String getUniqueId();
+    String getLgaOfResidence();
+
     String getDatimId();
 
     String getPersonUuid();
@@ -123,7 +126,7 @@ public interface RadetReportDto {
     String  getTbDiagnosticResult();
 
     String getDsdModel();
-    LocalDate getDateOfTbDiagnosticResultReceived();
+    LocalDate getDateofTbDiagnosticResultReceived();
 
     //TB Treatment
     String  getTbTreatementType();
@@ -131,5 +134,15 @@ public interface RadetReportDto {
     LocalDate getTbTreatmentStartDate();
     LocalDate getTbCompletionDate();
     String getIptCompletionStatus();
+
+    //Crytococal Antigen
+    LocalDateTime getDateOfLastCrytococalAntigen();
+    String	getLastCrytococalAntigen();
+
+    String getCaseManager();
+    String getVaCauseOfDeath();
+    String getTreatmentMethodDate();
+    LocalDate getDateOfRegistration();
+    LocalDate getDateOfEnrollment();
 }
 

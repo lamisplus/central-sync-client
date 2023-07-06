@@ -7,15 +7,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.service.UserService;
 import org.lamisplus.modules.central.domain.dto.*;
+import org.lamisplus.modules.central.domain.entity.SyncHistory;
 import org.lamisplus.modules.central.repository.RadetUploadTrackersRepository;
 import org.lamisplus.modules.central.repository.ReportRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.utility.*;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.Format;
@@ -48,32 +47,42 @@ public class ExportServiceImpl implements ExportService {
 
     private static ArrayList ERROR_LOG= new ArrayList<>();
     private final DateUtility dateUtility;
+    private final QuarterService quarterService;
 
     @Override
     public String bulkExport(Long facilityId) {
         if(!ERROR_LOG.isEmpty()) ERROR_LOG.clear();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyy-MM-dd");
         LocalDate reportStartDate = LocalDate.parse("1980-01-01", formatter);
-        LocalDate reportEndDate = LocalDate.now().plusDays(ONE_DAY);
+        //LocalDate reportEndDate = LocalDate.now().plusDays(ONE_DAY);
+
+        LocalDate reportEndDate = LocalDate.parse("2023-06-30", formatter);
 
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime reportStartTime = LocalDateTime.parse("1985-01-01 00:00:00", timeFormatter);
         LocalDateTime reportEndTime = LocalDateTime.parse(LocalDateTime.now().format(timeFormatter), timeFormatter).plusDays(ONE_DAY);
 
-        LocalDateTime lastSync = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
-        if(lastSync != null)reportStartTime=LocalDateTime.parse(dateUtility.ConvertDateTimeToString(lastSync), timeFormatter);;
+        SyncHistory history = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
+
+        if(history != null){
+            LocalDateTime lastSync = history.getDateLastSync();
+            reportStartTime=LocalDateTime.parse(dateUtility.ConvertDateTimeToString(lastSync), timeFormatter);;
+        }
+
+        final String PERIOD = reportEndDate.getYear()+quarterService.getCurrentQuarter(reportEndDate).getName();
+        log.info("PERIOD IS {}", PERIOD);
 
         String zipFileName = "None";
         try {
             log.info("Initializing data export");
             Set<String> fileList = fileUtility.listFilesUsingDirectoryStream(ConstantUtility.TEMP_BATCH_DIR);
             cleanDirectory(fileList);
-            log.info("Extracting RADET data to JSON");
-            boolean radetIsProcessed = radetExport(facilityId, reportStartDate, reportEndDate);
+            log.info("Extracting Extract data to JSON");
+            boolean radetIsProcessed = extractExport(facilityId, reportStartDate, reportEndDate, PERIOD);
             log.info("Extracting HTS data to JSON");
-            boolean htsIsProcessed = htsExport(facilityId, reportStartDate, reportEndDate);
+            boolean htsIsProcessed = htsExport(facilityId, reportStartDate, reportEndDate, PERIOD);
             log.info("Extracting PrEP data to JSON");
-            boolean prepIsProcessed = prepExport(facilityId, reportStartDate, reportEndDate);
+            boolean prepIsProcessed = prepExport(facilityId, reportStartDate, reportEndDate, PERIOD);
             log.info("Extracting Clinic data to JSON");
             boolean clinicIsProcessed = clinicExport(facilityId, reportStartTime, reportEndTime);
             log.info("Extracting Patient data to JSON");
@@ -90,12 +99,20 @@ public class ExportServiceImpl implements ExportService {
             boolean pharmacyIsProcessed = pharmacyExport(facilityId, reportStartTime, reportEndTime);
             log.info("Extracting biometric data to JSON");
             boolean biometricIsProcessed = biometricExport(facilityId, reportStartTime, reportEndTime);
-
+            log.info("Extracting enrollment data to JSON");
+            boolean enrollmentIsProcessed = enrollmentExport(facilityId, reportStartTime, reportEndTime);
+            log.info("Extracting observation data to JSON");
+            boolean observationIsProcessed = observationExport(facilityId, reportStartTime, reportEndTime);
+            log.info("Extracting status tracker data to JSON");
+            boolean statusTrackerIsProcessed = statusTrackerExport(facilityId, reportStartTime, reportEndTime);
+            log.info("Extracting eac data to JSON");
+            boolean eacIsProcessed = eacExport(facilityId, reportStartTime, reportEndTime);
 
             if (radetIsProcessed || htsIsProcessed || prepIsProcessed
                     || clinicIsProcessed || patientIsProcessed || laboratoryOrderIsProcessed
-                    || laboratorySampleIsProcessed || laboratoryTestIsProcessed
-                    || laboratoryResultIsProcessed || pharmacyIsProcessed || biometricIsProcessed) {
+                    || laboratorySampleIsProcessed || laboratoryTestIsProcessed || eacIsProcessed
+                    || laboratoryResultIsProcessed || pharmacyIsProcessed || biometricIsProcessed
+                    || enrollmentIsProcessed || observationIsProcessed || statusTrackerIsProcessed) {
                 log.info("Writing all exports to a zip file");
                 Date date1 = new Date();
                 String datimCode = getDatimId(facilityId);
@@ -138,42 +155,44 @@ public class ExportServiceImpl implements ExportService {
     }
 
     @Override
-    public boolean radetExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate) {
+    public boolean extractExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period) {
         boolean isProcessed = false;
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.RADET_FILENAME;
+            //String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.RADET_FILENAME;
+            String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.EXTRACT_FILENAME;
             LocalDate previousQuarterEnd = quarterUtility.getPreviousQuarter(reportEndDate).getEndDate();
             LocalDate previousPreviousQuarterEnd = quarterUtility.getPreviousQuarter(previousQuarterEnd).getEndDate();
             List<RadetReportDto> radetList = repository.getRadetData(facilityId, reportStartDate, reportEndDate.plusDays(1),
                     previousQuarterEnd, previousPreviousQuarterEnd);
-            System.out.println("Total Radet Generated "+ radetList.size());
+            System.out.println("Total Extract Generated "+ radetList.size());
             if (!radetList.isEmpty()) {
                 try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
                     jsonGenerator.setCodec(objectMapper);
                     jsonGenerator.useDefaultPrettyPrinter();
                     jsonGenerator.writeStartArray();
-                    buildJson.buildRadetJson(jsonGenerator, radetList);
+                    buildJson.buildRadetJson(jsonGenerator, radetList, period);
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (IOException e) {
-                    addError("RADET", e.getMessage(), null);
+                    //e.printStackTrace();
+                    addError("extract", e.getMessage(), getPrintStackError(e));
                     isProcessed = false;
-                    log.error("Error writing RADET to a JSON file: {}", e.getMessage());
+                    log.error("Error writing extract to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            addError("RADET", e.getMessage(), null);
-            log.error("Error mapping RADET: {}", e.getMessage());
-
+            //e.printStackTrace();
+            addError("extract", e.getMessage(), getPrintStackError(e));
+            log.error("Error mapping extract: {}", e.getMessage());
         }
 
         return false;
     }
 
     @Override
-    public boolean htsExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate) {
+    public boolean htsExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period) {
         boolean isProcessed = false;
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
@@ -188,17 +207,17 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.setCodec(objectMapper);
                     jsonGenerator.useDefaultPrettyPrinter();
                     jsonGenerator.writeStartArray();
-                    buildJson.buildHtsJson(jsonGenerator, htsList);
+                    buildJson.buildHtsJson(jsonGenerator, htsList, period);
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (IOException e) {
-                    addError("HTS", e.getMessage(), null);
+                    addError("HTS", e.getMessage(), getPrintStackError(e));
                     isProcessed = false;
                     log.error("Error writing HTS to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            addError("HTS", e.getMessage(), null);
+            addError("HTS", e.getMessage(), getPrintStackError(e));
             log.error("Error mapping HTS: {}", e.getMessage());
         }
 
@@ -206,7 +225,7 @@ public class ExportServiceImpl implements ExportService {
     }
 
     @Override
-    public boolean prepExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate) {
+    public boolean prepExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period) {
         boolean isProcessed = false;
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
@@ -219,17 +238,17 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.setCodec(objectMapper);
                     jsonGenerator.useDefaultPrettyPrinter();
                     jsonGenerator.writeStartArray();
-                    buildJson.buildPrepJson(jsonGenerator, prepList);
+                    buildJson.buildPrepJson(jsonGenerator, prepList, period);
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (IOException e) {
-                    addError("PrEP", e.getMessage(), null);
+                    addError("PrEP", e.getMessage(), getPrintStackError(e));
                     isProcessed = false;
                     log.error("Error writing Prep to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            addError("PrEP", e.getMessage(), null);
+            addError("PrEP", e.getMessage(), getPrintStackError(e));
             log.error("Error mapping PrEP: {}", e.getMessage());
         }
 
@@ -256,13 +275,13 @@ public class ExportServiceImpl implements ExportService {
                     log.info("Patient successfully written");
                     isProcessed = true;
                 } catch (Exception e) {
-                    addError("PATIENT", e.getMessage(), null);
+                    addError("PATIENT", e.getMessage(), getPrintStackError(e));
                     isProcessed = false;
                     log.error("Error writing Patient to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            addError("PATIENT", e.getMessage(), null);
+            addError("PATIENT", e.getMessage(), getPrintStackError(e));
             log.error("Error mapping Patient: {}", e.getMessage());
         }
 
@@ -296,13 +315,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (IOException e) {
-                    addError("CLINIC", e.getMessage(), null);
+                    addError("CLINIC", e.getMessage(), getPrintStackError(e));
                     isProcessed = false;
                     log.error("Error writing Clinic to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            addError("CLINIC", e.getMessage(), null);
+            addError("CLINIC", e.getMessage(), getPrintStackError(e));
             log.error("Error mapping Clinic: {}", e.getMessage());
         }
 
@@ -336,13 +355,13 @@ public class ExportServiceImpl implements ExportService {
                     log.info("laboratoryOrder successfully written");
                     isProcessed = true;
                 } catch (Exception e) {
-                    addError("LABORATORY ORDER", e.getMessage(), null);
+                    addError("LABORATORY ORDER", e.getMessage(), getPrintStackError(e));
                     isProcessed = false;
                     log.error("Error writing laboratoryOrder to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            addError("LABORATORY ORDER", e.getMessage(), null);
+            addError("LABORATORY ORDER", e.getMessage(), getPrintStackError(e));
             log.error("Error mapping laboratoryOrder: {}", e.getMessage());
         }
 
@@ -375,13 +394,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (Exception e) {
-                    addError("LABORATORY SAMPLE", e.getMessage(), null);
+                    addError("LABORATORY SAMPLE", e.getMessage(), getPrintStackError(e));
                     isProcessed = false;
                     log.error("Error writing laboratorySample to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            addError("LABORATORY SAMPLE", e.getMessage(), null);
+            addError("LABORATORY SAMPLE", e.getMessage(), getPrintStackError(e));
             log.error("Error mapping laboratorySample: {}", e.getMessage());
         }
 
@@ -413,13 +432,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (Exception e) {
-                    addError("LABORATORY TEST", e.getMessage(), null);
+                    addError("LABORATORY TEST", e.getMessage(), getPrintStackError(e));
                     isProcessed = false;
                     log.error("Error writing laboratoryTest to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            addError("LABORATORY TEST", e.getMessage(), null);
+            addError("LABORATORY TEST", e.getMessage(), getPrintStackError(e));
             log.error("Error mapping laboratoryTest: {}", e.getMessage());
         }
 
@@ -452,13 +471,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (Exception e) {
-                    addError("LABORATORY RESULT", e.getMessage(), null);
+                    addError("LABORATORY RESULT", e.getMessage(), getPrintStackError(e));
                     isProcessed = false;
                     log.error("Error writing laboratoryResult to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            addError("LABORATORY RESULT", e.getMessage(), null);
+            addError("LABORATORY RESULT", e.getMessage(), getPrintStackError(e));
             log.error("Error mapping laboratoryResult: {}", e.getMessage());
         }
 
@@ -491,13 +510,13 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (Exception e) {
-                    addError("PHARMACY", e.getMessage(), null);
+                    addError("PHARMACY", e.getMessage(), getPrintStackError(e));
                     isProcessed = false;
                     log.error("Error writing pharmacy to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            addError("PHARMACY", e.getMessage(), null);
+            addError("PHARMACY", e.getMessage(), getPrintStackError(e));
             log.error("Error mapping pharmacy: {}", e.getMessage());
         }
 
@@ -530,19 +549,181 @@ public class ExportServiceImpl implements ExportService {
                     jsonGenerator.writeEndArray();
                     isProcessed = true;
                 } catch (Exception e) {
-                    addError("BIOMETRIC", e.getMessage(), null);
+                    addError("BIOMETRIC", e.getMessage(), getPrintStackError(e));
                     isProcessed = false;
                     log.error("Error writing biometric to a JSON file: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            addError("BIOMETRIC", e.getMessage(), null);
+            addError("BIOMETRIC", e.getMessage(), getPrintStackError(e));
             log.error("Error mapping biometric: {}", e.getMessage());
         }
 
         return isProcessed;
     }
 
+    /**
+     * Handles hiv enrollment data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean enrollmentExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = TEMP_BATCH_DIR + ENROLLMENT_FILENAME;
+            List<EnrollmentDto> enrollments = repository.getEnrollmentData(facilityId, startDate, endDate);
+            System.out.println("Total enrollments Generated "+ enrollments.size());
+            if (!enrollments.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildEnrollmentJson(jsonGenerator, enrollments);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    addError("ENROLLMENT", e.getMessage(), getPrintStackError(e));
+                    isProcessed = false;
+                    log.error("Error writing enrollment to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            addError("ENROLLMENT", e.getMessage(), getPrintStackError(e));
+            log.error("Error mapping enrollment: {}", e.getMessage());
+        }
+
+        return isProcessed;
+    }
+
+    /**
+     * Handles observation data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean observationExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = TEMP_BATCH_DIR + OBSERVATION_FILENAME;
+            List<ObservationDto> observations = repository.getObservationData(facilityId, startDate, endDate);
+            System.out.println("Total observations Generated "+ observations.size());
+            if (!observations.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildObservationJson(jsonGenerator, observations);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    addError("OBSERVATION", e.getMessage(), getPrintStackError(e));
+                    isProcessed = false;
+                    log.error("Error writing observations to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            addError("OBSERVATION", e.getMessage(), getPrintStackError(e));
+            log.error("Error mapping observations: {}", e.getMessage());
+        }
+
+        return isProcessed;
+    }
+
+    /**
+     * Handles status tracker data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean statusTrackerExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = TEMP_BATCH_DIR + STATUS_TRACKER_FILENAME;
+            List<StatusTrackerDto> statusTrackers = repository.getStatusTrackerData(facilityId, startDate, endDate);
+            System.out.println("Total status tracker Generated "+ statusTrackers.size());
+            if (!statusTrackers.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildStatusTrackerJson(jsonGenerator, statusTrackers);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    addError("STATUS TRACKER", e.getMessage(), getPrintStackError(e));
+                    isProcessed = false;
+                    log.error("Error writing status tracker to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            addError("STATUS TRACKER", e.getMessage(), getPrintStackError(e));
+            log.error("Error mapping status tracker: {}", e.getMessage());
+        }
+
+        return isProcessed;
+    }
+
+    /**
+     * Handles EAC data export on client.
+     * @param facilityId
+     * @param startDate
+     * @param endDate
+     * @return boolean - true | false
+     */
+    @Override
+    public boolean eacExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+        boolean isProcessed = false;
+
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = TEMP_BATCH_DIR + EAC_FILENAME;
+            List<EacDto> eacs = repository.getEacData(facilityId, startDate, endDate);
+            System.out.println("Total eac Generated "+ eacs.size());
+            if (!eacs.isEmpty()) {
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                    jsonGenerator.setCodec(objectMapper);
+                    jsonGenerator.useDefaultPrettyPrinter();
+                    jsonGenerator.writeStartArray();
+                    buildJson.buildEacJson(jsonGenerator, eacs);
+                    jsonGenerator.writeEndArray();
+                    isProcessed = true;
+                } catch (Exception e) {
+                    addError("EAC", e.getMessage(), getPrintStackError(e));
+                    isProcessed = false;
+                    log.error("Error writing eac to a JSON file: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            addError("EAC", e.getMessage(), getPrintStackError(e));
+            log.error("Error mapping eac: {}", e.getMessage());
+        }
+
+        return isProcessed;
+    }
+
+
+    /**
+     * get Datim ID from facility ID.
+     * @param facilityId
+     * @return String - the datimId
+     */
     @Override
     public String getDatimId(Long facilityId)
     {
@@ -553,6 +734,18 @@ public class ExportServiceImpl implements ExportService {
 
     private void addError(String name, String error, String others){
         ERROR_LOG.add(new ErrorLog(name, error, others));
+    }
+
+    /**
+     * using a StringWriter, to print the stack trace into a String
+     * @param exception
+     * @return String - the exception stack message
+     */
+    private String getPrintStackError(Exception exception){
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        exception.printStackTrace(pw);
+        return sw.toString();
     }
 
 }

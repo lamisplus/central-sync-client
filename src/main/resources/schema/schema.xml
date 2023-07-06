@@ -267,8 +267,7 @@
             </sqlCheck>
         </preConditions>
         <sql>
-            DELETE FROM sync_history WHERE date_last_sync
-                WHERE date_last_sync BETWEEN '2023-01-21 08:46:07.702' AND '2023-06-21 08:46:07.702'
+            DELETE FROM sync_history WHERE date_last_sync BETWEEN '2023-01-21 08:46:07.702' AND '2023-06-21 08:46:07.702'
         </sql>
     </changeSet>
 
