@@ -84,6 +84,7 @@ public class SyncHistoryService {
         response.setProcessedSize(entity.getProcessedSize());
         response.setDateLastSync(entity.getDateLastSync());
         response.setTableName(entity.getTableName());
+        response.setErrorLog(entity.getErrorLog());
 
         return response;
     }

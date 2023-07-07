@@ -27,8 +27,8 @@ public class BuildJson {
         for (HtsReportDto hts : htsList) {
             try {
                 jsonGenerator.writeStartObject();
-                jsonGenerator.writeStringField(STATE, hts.getState());
-                jsonGenerator.writeStringField(LGA, hts.getLga());
+                jsonGenerator.writeStringField(STATE, hts.getStateOfResidence());
+                jsonGenerator.writeStringField(LGA, hts.getLgaOfResidence());
                 jsonGenerator.writeStringField(FACILITY, hts.getFacility());
                 jsonGenerator.writeStringField(DATIM_CODE, hts.getDatimCode());
                 jsonGenerator.writeStringField(PATIENT_ID, hts.getPatientId());
@@ -66,7 +66,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(IF_RECENCY_TESTING_OPT_IN, hts.getIfRecencyTestingOptIn());
                 jsonGenerator.writeStringField(RECENCY_ID, hts.getRecencyId());
                 jsonGenerator.writeStringField(RECENCY_TEST_TYPE, hts.getRecencyTestType());
-                jsonGenerator.writeStringField(RECENCY_TEST_DATE, hts.getRecencyTestDate());
+                jsonGenerator.writeStringField(RECENCY_TEST_DATE, dateUtility.ConvertDateToString(hts.getRecencyTestDate()));
                 jsonGenerator.writeStringField(RECENCY_INTERPRETATION, hts.getRecencyInterpretation());
                 jsonGenerator.writeStringField(FINAL_RECENCY_RESULT, hts.getFinalRecencyResult());
                 jsonGenerator.writeStringField(VIRAL_LOAD_RESULT, hts.getViralLoadResult());
