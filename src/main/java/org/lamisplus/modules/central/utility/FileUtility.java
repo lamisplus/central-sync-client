@@ -1,22 +1,26 @@
 package org.lamisplus.modules.central.utility;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.zip.*;
 
 
 @Component
+@Slf4j
 public class FileUtility {
 
     Set<String> filesListInDir = new HashSet<>();
@@ -47,6 +51,20 @@ public class FileUtility {
         } catch (IOException e) {
             e.printStackTrace();
 
+        }
+    }
+
+    public void zipDirectoryLocked(File dir, String fileName, String password) {
+        List<File> fileList = Arrays.asList(dir.listFiles())
+                .stream()
+                .filter(file -> file.getName().contains(".json"))
+                .collect(Collectors.toList());
+        try {
+            String filePath = dir.getPath() +File.separator + fileName;
+            log.info("file path {}", filePath);
+            lockZipFile(dir.getPath() +File.separator + password, password, fileList);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -212,31 +230,32 @@ public class FileUtility {
 
     }
 
-//    public void lockZipFile(String zipFilePath, String password, List<File> fileList) throws IOException {
-//        try(ZipFile zipFile = new ZipFile(zipFilePath, password.toCharArray());) {
-//            ZipParameters zipParameters = new ZipParameters();
-//            zipParameters.setCompressionMethod(CompressionMethod.DEFLATE);
-//            zipParameters.setCompressionLevel(CompressionLevel.HIGHER);
-//            zipParameters.setEncryptFiles(true);
-//            zipParameters.setEncryptionMethod(EncryptionMethod.AES);
-//            zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_128);
-//
-//            zipFile.addFiles(fileList, zipParameters);
-//        } catch (ZipException exception) {
-//            log.error("An errorr occurred while creating zip file: {}", exception.getMessage());
-//        }
-//    }
-//
-//    public void unlockZipFile(String lockedZipFilePath, String unlockedZipFilePath, String password) throws IOException {
-//        try(ZipFile zipFile = new ZipFile(lockedZipFilePath, password.toCharArray());) {
-//            if (Files.exists(Paths.get(lockedZipFilePath))) {
-//                zipFile.extractAll(unlockedZipFilePath);
-//            }
-//        } catch (ZipException exception) {
-//            log.error("An errorr occurred while creating zip file: {}", exception.getMessage());
-//        }
-//    }
-//
+    public void lockZipFile(String zipFilePath, String password, List<File> fileList) throws IOException {
+        try(ZipFile zipFile = new ZipFile(zipFilePath, password.toCharArray())) {
+            ZipParameters zipParameters = new ZipParameters();
+            zipParameters.setCompressionMethod(CompressionMethod.DEFLATE);
+            zipParameters.setCompressionLevel(CompressionLevel.HIGHER);
+            zipParameters.setEncryptFiles(true);
+            zipParameters.setEncryptionMethod(EncryptionMethod.AES);
+            zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_128);
+
+            zipFile.addFiles(fileList, zipParameters);
+        } catch (ZipException exception) {
+            exception.printStackTrace();
+            log.error("An errorr occurred while creating zip file: {}", exception.getMessage());
+        }
+    }
+
+    public void unlockZipFile(String lockedZipFilePath, String unlockedZipFilePath, String password) throws IOException {
+        try(ZipFile zipFile = new ZipFile(lockedZipFilePath, password.toCharArray());) {
+            if (Files.exists(Paths.get(lockedZipFilePath))) {
+                zipFile.extractAll(unlockedZipFilePath);
+            }
+        } catch (ZipException exception) {
+            log.error("An errorr occurred while creating zip file: {}", exception.getMessage());
+        }
+    }
+
 
 //    @SneakyThrows
 //    public ByteArrayOutputStream downloadFile(String directory, String fileName) {

@@ -10,20 +10,8 @@ import java.util.List;
 
 public interface SyncService {
 
-    //boolean bulkImport(MultipartFile file) throws IOException;
-
-    //void importRadet(String jsonFilePath) throws IOException;
-
-    void importRadet(String jsonFilePath,  String datimId) throws IOException;
-
-    boolean bulkImport(MultipartFile file, String datimId) throws IOException;
-
     String getDatimId(Long facilityId);
 
-    boolean bulkImport(String fileName, String datimId) throws IOException;
-    void importHts(String jsonFilePath, String datimId) throws IOException;
-
-    void importPrep(String jsonFilePath, String datimId) throws IOException;
 
     String authorize(RemoteAccessToken remoteAccessToken);
 
@@ -32,7 +20,5 @@ public interface SyncService {
     void deleteSyncHistory(Long id);
 
     void deleteRemoteAccessToken(Long id);
-
-
 
 }

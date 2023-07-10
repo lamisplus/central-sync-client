@@ -22,10 +22,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 
@@ -44,7 +41,6 @@ public class ExportServiceImpl implements ExportService {
     private static String SYNC_ENDPOINT = "topic/sync";
     private static Integer stat;
     private static Long ONE_DAY=1L;
-
     private static ArrayList ERROR_LOG= new ArrayList<>();
     private final DateUtility dateUtility;
     private final QuarterService quarterService;
@@ -118,7 +114,9 @@ public class ExportServiceImpl implements ExportService {
                 String datimCode = getDatimId(facilityId);
                 zipFileName = datimCode+"_" + ConstantUtility.DATE_FORMAT.format(date1) + ".zip";
                 File file = new File(ConstantUtility.TEMP_BATCH_DIR);
+                //fileUtility.zipDirectoryLocked(file, zipFileName, datimCode);
                 fileUtility.zipDirectory(file, ConstantUtility.TEMP_BATCH_DIR + zipFileName);
+
 
                 //update synchistory
                 int fileSize = (int) fileUtility.getFileSize(ConstantUtility.TEMP_BATCH_DIR + zipFileName);

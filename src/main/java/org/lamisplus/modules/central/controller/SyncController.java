@@ -30,13 +30,13 @@ public class SyncController {
     private final static String BASE_URL1 = "/api/v1/sync";
     //private final static String BASE_URL2 = "/api/sync";
 
-    @PostMapping(value = BASE_URL1 +"/import")
+    /*@PostMapping(value = BASE_URL1 +"/import")
     public ResponseEntity<String> importData(@RequestParam("multipartFile") MultipartFile multipartFile,  @RequestParam("facilityId") Long facilityId ) throws IOException {
         String datimId = syncService.getDatimId(facilityId);
         syncService .bulkImport(multipartFile,  datimId);
         //syncService.bulkImport(multipartFile);
         return ResponseEntity.ok().body("Data imported successfully");
-    }
+    }*/
 
     @DeleteMapping(value = BASE_URL1 + "/sync-history/{id}")
     public void deleteSyncHistory(@PathVariable Long id){
@@ -55,12 +55,11 @@ public class SyncController {
         File directory = new File(ConstantUtility.TEMP_SERVER_DIR);
 
         if (!directory.exists()) {
-            return;
         } else {
             FileUtils.cleanDirectory(directory);
         }
     }
-    @PostMapping(BASE_URL1 + "/receive-data/{facilityId}")
+/*    @PostMapping(BASE_URL1 + "/receive-data/{facilityId}")
     public ResponseEntity<String> receiveDataFromAPI(@RequestBody byte[] data, @PathVariable Long facilityId ) throws IOException {
         String datimId = syncService.getDatimId(facilityId);
         final String filePath = ConstantUtility.TEMP_SERVER_DIR + "import.zip";
@@ -72,7 +71,7 @@ public class SyncController {
         }
 
         return new ResponseEntity<>("Data received and saved to file successfully.", HttpStatus.OK);
-    }
+    }*/
 
     @RequestMapping(value = BASE_URL1 + "/remote-access-token",
             method = RequestMethod.POST,
