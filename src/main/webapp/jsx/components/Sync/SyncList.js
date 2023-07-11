@@ -115,7 +115,7 @@ const SyncList = (props) => {
   const toggle = () => setModal(!modal);
   const [modal2, setModal2] = useState(false);
   const toggle2 = () => setModal2(!modal2);
-  const defaultValues = { facilityId: "", startDate : "", endDate:"",}
+  const defaultValues = { facilityId: "", startDate : "", endDate:"", all:""}
   const [uploadDetails, setUploadDetails] = useState(defaultValues);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -173,6 +173,14 @@ useEffect(() => {
     }
     const handleInputChange = e => {
         setUploadDetails ({...uploadDetails,  [e.target.name]: e.target.value});
+    }
+    const handleCheckBox =e =>{
+        if(e.target.checked){
+            setUploadDetails ({...uploadDetails,  ['all']: e.target.checked});  
+            //setOvcEnrolled(true)
+        }else{
+            setUploadDetails ({...uploadDetails,  ['all']: false}); 
+        }
     }
     const handleSubmit = async e => {  
         e.preventDefault();
@@ -296,34 +304,34 @@ useEffect(() => {
                 status: row.errorLog===null ? row.processed===0 ? "Processing" : "Completed" : "Error",
                 //errorLog: row.errorLog,
                 actions:(<div>
-                    <Menu.Menu position='right'  >
-                    <Menu.Item >
-                        <Buuton2 style={{backgroundColor:'rgb(153,46,98)'}} primary>
-                        <Dropdown item text='Action'>
+                            <Menu.Menu position='right'  >
+                            <Menu.Item >
+                                <Buuton2 style={{backgroundColor:'rgb(153,46,98)'}} primary>
+                                <Dropdown item text='Action'>
 
-                        <Dropdown.Menu style={{ marginTop:"10px", }}>
-                            {row.errorLog===null ? (<>
-                                <Dropdown.Item  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
-                                </Dropdown.Item>
-                                <Dropdown.Item  onClick={() => sendToServerAction(row.tableName, row.organisationUnitId)}><CloudUpload color="primary"/> Send To Server
-                                </Dropdown.Item>
-                            </>)
-                            :
-                            (
-                                <Dropdown.Item  onClick={() => displayErrorTable(row)}><CloudUpload color="primary"/>View Error
-                                </Dropdown.Item>
-                            )
+                                <Dropdown.Menu style={{ marginTop:"10px", }}>
+                                    {row.errorLog===null ? (<>
+                                        <Dropdown.Item  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
+                                        </Dropdown.Item>
+                                        <Dropdown.Item  onClick={() => sendToServerAction(row.tableName, row.organisationUnitId)}><CloudUpload color="primary"/> Send To Server
+                                        </Dropdown.Item>
+                                    </>)
+                                    :
+                                    (
+                                        <Dropdown.Item  onClick={() => displayErrorTable(row)}><CloudUpload color="primary"/>View Error
+                                        </Dropdown.Item>
+                                    )
 
-                            }
-                        </Dropdown.Menu>
-                    </Dropdown>
-                        </Buuton2>
-                    </Menu.Item>
-                    </Menu.Menu>
-              </div>)
+                                    }
+                                </Dropdown.Menu>
+                            </Dropdown>
+                                </Buuton2>
+                            </Menu.Item>
+                            </Menu.Menu>
+                        </div>)
                 }))}
         
-                    options={{
+                options={{
                         headerStyle: {
                             backgroundColor: "#014d88",
                             color: "#fff",
@@ -338,7 +346,7 @@ useEffect(() => {
                         pageSizeOptions:[10,20,100],
                         pageSize:10,
                         debounceInterval: 400
-         }}
+                }}
         />
         </>)}
         {showErrorTable && (<>
@@ -368,21 +376,21 @@ useEffect(() => {
 
                 }))}
         
-                    options={{
-                        headerStyle: {
-                            backgroundColor: "#014d88",
-                            color: "#fff",
-                        },
-                        searchFieldStyle: {
-                            width : '200%',
-                            margingLeft: '250px',
-                        },
-                        filtering: false,
-                        exportButton: false,
-                        searchFieldAlignment: 'left',
-                        pageSizeOptions:[10,20,100],
-                        pageSize:10,
-                        debounceInterval: 400
+                options={{
+                    headerStyle: {
+                        backgroundColor: "#014d88",
+                        color: "#fff",
+                    },
+                    searchFieldStyle: {
+                        width : '200%',
+                        margingLeft: '250px',
+                    },
+                    filtering: false,
+                    exportButton: false,
+                    searchFieldAlignment: 'left',
+                    pageSizeOptions:[10,20,100],
+                    pageSize:10,
+                    debounceInterval: 400
          }}
         />
         </>)}
@@ -416,6 +424,22 @@ useEffect(() => {
                                 ) : "" } 
                             </FormGroup>
                             </Col> 
+                            <div className="form-check custom-checkbox ml-3 ">
+                                <input
+                                type="checkbox"
+                                className="form-check-input"
+                                name="all"
+                                id="all"                                        
+                                onChange={handleInputChange}
+                                //disabled={locationState.actionType==='update'? false : true}
+                                />
+                                <label
+                                className="form-check-label"
+                                htmlFor="all"
+                                >
+                                 All Records ?
+                                </label>
+                            </div>
                             </Row>
                             <br/>
                             {saving ?
