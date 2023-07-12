@@ -111,7 +111,7 @@ const UpdateToken = (props) => {
       e.preventDefault();
             if (validate()) {      
                     setSaving(true);
-                    axios.post(`${baseUrl}sync/remote-access-token/${props.userToken.id}`,patDetails,
+                    axios.put(`${baseUrl}sync/remote-access-token/${props.userToken.id}`,patDetails,
                      { headers: {"Authorization" : `Bearer ${token}`}},
                     
                     )

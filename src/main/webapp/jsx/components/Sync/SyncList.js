@@ -115,7 +115,7 @@ const SyncList = (props) => {
   const toggle = () => setModal(!modal);
   const [modal2, setModal2] = useState(false);
   const toggle2 = () => setModal2(!modal2);
-  const defaultValues = { facilityId: "", startDate : "", endDate:"", all:""}
+  const defaultValues = { facilityId: "", startDate : "", endDate:"", all:true}
   const [uploadDetails, setUploadDetails] = useState(defaultValues);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -187,7 +187,7 @@ useEffect(() => {
         setSaving(true);
         if(validate()){
             try {
-                const res = await axios.get(`${baseUrl}export/all?facilityId=${uploadDetails.facilityId}`, {
+                const res = await axios.get(`${baseUrl}export/all?facilityId=${uploadDetails.facilityId}&current=${uploadDetails.all}`, {
                     headers: {"Authorization" : `Bearer ${token}`},
                     onUploadProgress: progressEvent => {
                         setUploadPercentage(
@@ -430,17 +430,20 @@ useEffect(() => {
                                 className="form-check-input"
                                 name="all"
                                 id="all"                                        
-                                onChange={handleInputChange}
+                                onChange={handleCheckBox}
+                                checked={uploadDetails.all}
                                 //disabled={locationState.actionType==='update'? false : true}
                                 />
                                 <label
                                 className="form-check-label"
                                 htmlFor="all"
                                 >
-                                 All Records ?
+                                 Recent Update ?
                                 </label>
                             </div>
                             </Row>
+                            <br/>
+                            <b>{uploadDetails.all===true ? "Only the updated records will be pushed" : "You are pushing record from initial"}</b>
                             <br/>
                             {saving ?
                             <Progress percentage={uploadPercentage} /> 
