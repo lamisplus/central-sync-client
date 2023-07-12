@@ -13,7 +13,7 @@ public interface SyncService {
     String getDatimId(Long facilityId);
 
 
-    String authorize(RemoteAccessToken remoteAccessToken);
+    String authorize(RemoteAccessToken remoteAccessToken, Boolean update);
 
     List<RemoteUrlDTO> getRemoteUrls();
 

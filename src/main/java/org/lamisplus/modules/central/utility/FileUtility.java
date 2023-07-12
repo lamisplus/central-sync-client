@@ -29,6 +29,7 @@ public class FileUtility {
         try (FileOutputStream fileOutputStream = new FileOutputStream(zipFileName);
              ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream)){
             loadDirectoryFileToList(dir);
+            log.info("filesListInDir {}", filesListInDir);
             for (String filePath : filesListInDir) {
                 if (!filePath.contains(".zip") && filePath.contains(".json")) {
                     File file = new File(filePath);

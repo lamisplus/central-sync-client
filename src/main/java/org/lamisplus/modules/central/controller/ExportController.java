@@ -42,11 +42,13 @@ public class ExportController {
     private final SyncHistoryService syncHistoryService;
 
     @GetMapping("/all")
-    public ResponseEntity<String> generate(@RequestParam Long facilityId, HttpServletResponse response) throws IllegalAccessException {
+    public ResponseEntity<String> generate(@RequestParam Long facilityId,
+                                           @RequestParam (required = false, defaultValue = "true") boolean current,
+                                           HttpServletResponse response) throws IllegalAccessException {
         if (facilityId == null)   {
             throw new IllegalAccessException("Invalid request parameters");
         }
-        String zipFileName = exportService.bulkExport(facilityId);
+        String zipFileName = exportService.bulkExport(facilityId, current);
         if (!zipFileName.equals("None") && !zipFileName.equals("NO_RECORD")) {
             return new ResponseEntity<>("Record generated successfully.", HttpStatus.OK);
         } else if (zipFileName.equals("NO_RECORD")) {

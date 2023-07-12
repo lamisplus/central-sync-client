@@ -33,7 +33,9 @@ public class SyncServiceImpl implements SyncService {
         return datimId;
 
     }
-    public String authorize(RemoteAccessToken remoteAccessToken) {
+
+
+    public String authorize(RemoteAccessToken remoteAccessToken, Boolean update) {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
@@ -56,6 +58,7 @@ public class SyncServiceImpl implements SyncService {
                 String token = "Bearer " + jwtToken.getIdToken().replace("'", "");
                 log.info("token is {}", token);
                 //saving the remote access token after authentication
+                if(update)remoteAccessTokenRepository.deleteAll();
                 saveRemoteAccessToken(remoteAccessToken);
                 return token;
             }

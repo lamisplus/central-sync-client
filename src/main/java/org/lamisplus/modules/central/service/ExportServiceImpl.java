@@ -46,7 +46,7 @@ public class ExportServiceImpl implements ExportService {
     private final QuarterService quarterService;
 
     @Override
-    public String bulkExport(Long facilityId) {
+    public String bulkExport(Long facilityId, Boolean current) {
         if(!ERROR_LOG.isEmpty()) ERROR_LOG.clear();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyy-MM-dd");
         LocalDate reportStartDate = LocalDate.parse("1980-01-01", formatter);
@@ -60,6 +60,7 @@ public class ExportServiceImpl implements ExportService {
 
         SyncHistory history = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
 
+        if(!current)history=null;
         if(history != null){
             LocalDateTime lastSync = history.getDateLastSync();
             reportStartTime=LocalDateTime.parse(dateUtility.ConvertDateTimeToString(lastSync), timeFormatter);;
@@ -112,12 +113,13 @@ public class ExportServiceImpl implements ExportService {
                 log.info("Writing all exports to a zip file");
                 Date date1 = new Date();
                 String datimCode = getDatimId(facilityId);
+                //log.info("datimCode {}", datimCode);
                 zipFileName = datimCode+"_" + ConstantUtility.DATE_FORMAT.format(date1) + ".zip";
+                //log.info("zipFileName {}", zipFileName);
                 File file = new File(ConstantUtility.TEMP_BATCH_DIR);
                 //fileUtility.zipDirectoryLocked(file, zipFileName, datimCode);
                 fileUtility.zipDirectory(file, ConstantUtility.TEMP_BATCH_DIR + zipFileName);
-
-
+                //log.info("zipFileName {}", zipFileName);
                 //update synchistory
                 int fileSize = (int) fileUtility.getFileSize(ConstantUtility.TEMP_BATCH_DIR + zipFileName);
                 SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (ERROR_LOG.isEmpty()) ? null : ERROR_LOG);
@@ -725,6 +727,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public String getDatimId(Long facilityId)
     {
+        //log.info("facilityId {}", facilityId);
         String datimId = radetUploadTrackersRepository.getDatimCode(facilityId);
         return datimId;
 
