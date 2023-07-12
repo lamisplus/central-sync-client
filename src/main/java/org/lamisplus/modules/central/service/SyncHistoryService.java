@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ public class SyncHistoryService {
         syncHistory.setUploadSize(request.getUploadSize());
         syncHistory.setProcessed(3); //default
         syncHistory.setDateLastSync(LocalDateTime.now());
+        syncHistory.setErrorLog(request.getErrorLog());
         syncHistoryRepository.save(syncHistory);
 
         return entityToDto(syncHistory);
@@ -54,7 +57,11 @@ public class SyncHistoryService {
     }
 
     public List<SyncHistoryResponse> getSyncHistories() {
-        return entitiesToDtos(syncHistoryRepository.findAll());
+        List<SyncHistory> syncHistories = syncHistoryRepository.findAll().stream()
+                .sorted(Comparator.comparing(SyncHistory::getDateLastSync).reversed())
+                .collect(Collectors.toList());
+
+        return entitiesToDtos(syncHistories);
     }
 
     public List<SyncHistoryResponse> entitiesToDtos(List<SyncHistory> syncHistoryList) {
@@ -77,6 +84,7 @@ public class SyncHistoryService {
         response.setProcessedSize(entity.getProcessedSize());
         response.setDateLastSync(entity.getDateLastSync());
         response.setTableName(entity.getTableName());
+        response.setErrorLog(entity.getErrorLog());
 
         return response;
     }

@@ -243,7 +243,7 @@ useEffect(() => {
     const  sendToServerAction = (fileName,facilityId) => {
         setModal2(true)
          //SENDING A POST REQUEST 
-         axios.post(`${baseUrl}export/send-data?fileName=${fileName}&facilityId=${facilityId}`,
+         axios.get(`${baseUrl}export/send-data?fileName=${fileName}&facilityId=${facilityId}`,fileName,
                      { headers: {"Authorization" : `Bearer ${token}`} }
                    )
             .then(response => {
