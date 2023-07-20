@@ -12,7 +12,9 @@ import org.lamisplus.modules.base.controller.vm.LoginVM;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
+import org.lamisplus.modules.central.domain.entity.SyncHistory;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
+import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.service.SyncHistoryService;
 import org.lamisplus.modules.central.utility.HttpConnectionManager;
 import org.springframework.http.*;
@@ -29,6 +31,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.List;
 import java.util.Set;
+
+import static org.lamisplus.modules.central.utility.ConstantUtility.*;
+
 @RestController
 @RequiredArgsConstructor
 @Slf4j
@@ -40,6 +45,7 @@ public class ExportController {
     private String API_URL = "/api/v1/sync/receive-data/";
     private String LOGIN_API = "/api/v1/authenticate";
     private final SyncHistoryService syncHistoryService;
+    private final SyncHistoryRepository historyRepository;
 
     @GetMapping("/all")
     public ResponseEntity<String> generate(@RequestParam Long facilityId,
@@ -60,14 +66,15 @@ public class ExportController {
 
     @GetMapping("/available-files")
     public ResponseEntity<Set<String>> availableFile() throws IOException {
-        return new ResponseEntity<>(fileUtility.listFilesUsingDirectoryStream(ConstantUtility.TEMP_BATCH_DIR), HttpStatus.OK);
+        return new ResponseEntity<>(fileUtility.listFilesUsingDirectoryStream(TEMP_BATCH_DIR), HttpStatus.OK);
     }
 
     @GetMapping("/download/{fileName}")
     public void downloadFile(@PathVariable String fileName, HttpServletResponse response) throws IOException {
 
-        ByteArrayOutputStream byteArrayOutputStream = fileUtility.downloadFile(ConstantUtility.TEMP_BATCH_DIR, fileName);
-        response.setHeader(ConstantUtility.CONTENT_DISPOSITION,  ConstantUtility.ATTACHMENT_FILENAME + fileName);
+        SyncHistory history = historyRepository.getFile(fileName).orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", String.valueOf(fileName)));
+        ByteArrayOutputStream byteArrayOutputStream = fileUtility.downloadFile(history.getFilePath(), fileName);
+        response.setHeader(CONTENT_DISPOSITION,  ATTACHMENT_FILENAME + fileName);
         response.setHeader("Content-Type", "application/octet-stream");
         response.setHeader("Content-Length", Integer.toString(byteArrayOutputStream.size()));
         OutputStream outputStream = response.getOutputStream();
@@ -121,7 +128,9 @@ public class ExportController {
         loginVM.setUsername(remoteAccessToken.getUsername());
         loginVM.setPassword(remoteAccessToken.getPassword());
 
-        byte[] byteRequest = fileUtility.convertZipToByteArray(ConstantUtility.TEMP_BATCH_DIR + fileName);
+        SyncHistory history = historyRepository.getFile(fileName).orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", String.valueOf(fileName)));
+
+        byte[] byteRequest = fileUtility.convertZipToByteArray(history.getFilePath() + File.separator + fileName);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 
@@ -168,7 +177,7 @@ public class ExportController {
     @SneakyThrows
     @PostConstruct
     public void initialize() {
-        new File(ConstantUtility.TEMP_BATCH_DIR).mkdirs();
+        new File(TEMP_BATCH_DIR).mkdirs();
     }
 
     @Getter

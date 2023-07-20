@@ -44,6 +44,7 @@ public class SyncHistory {
     private Long remoteAccessTokenId;
     private Integer uploadSize;
     private Integer processedSize;
+    private String filePath;
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb", name = "error_log", nullable = false)
     private Object errorLog;

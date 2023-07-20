@@ -14,11 +14,13 @@ public class SyncHistoryRequest {
     private Integer uploadSize;
     private Integer processedSize;
     private List errorLog;
+    private String filePath;
 
-    public SyncHistoryRequest(Long organisationUnitId, String tableName, Integer uploadSize, List errorLog) {
+    public SyncHistoryRequest(Long organisationUnitId, String tableName, Integer uploadSize, List errorLog, String filePath) {
         this.organisationUnitId = organisationUnitId;
         this.tableName = tableName;
         this.uploadSize = uploadSize;
         this.errorLog = errorLog;
+        this.filePath = filePath;
     }
 }

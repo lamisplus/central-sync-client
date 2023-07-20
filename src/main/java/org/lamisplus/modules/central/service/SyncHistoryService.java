@@ -30,6 +30,7 @@ public class SyncHistoryService {
         syncHistory.setProcessed(3); //default
         syncHistory.setDateLastSync(LocalDateTime.now());
         syncHistory.setErrorLog(request.getErrorLog());
+        syncHistory.setFilePath(request.getFilePath());
         syncHistoryRepository.save(syncHistory);
 
         return entityToDto(syncHistory);
