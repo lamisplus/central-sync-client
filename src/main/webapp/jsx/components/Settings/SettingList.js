@@ -2,10 +2,9 @@ import React, { useState, useRef, useEffect } from 'react'
 import MaterialTable from 'material-table';
 import axios from "axios";
 import { token as token,  url as baseUrl } from "./../../../api";
-import NewPersonalAccessToken from './NewPersonalAccessToken'
-
+import NewPersonalAccessToken from './NewPersonalAccessToken';
+import UpdatePersonalAccessToken from './UpdateToken';
 import { forwardRef } from 'react';
-import { Link } from 'react-router-dom'
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowUpward from '@material-ui/icons/ArrowUpward';
 import Check from '@material-ui/icons/Check';
@@ -24,15 +23,12 @@ import ViewColumn from '@material-ui/icons/ViewColumn';
 import Button from "@material-ui/core/Button";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 import 'react-widgets/dist/css/react-widgets.css';
-import { MdDashboard, MdDeleteForever, MdModeEdit } from "react-icons/md";
-import {Menu,MenuList,MenuButton,MenuItem,} from "@reach/menu-button";
+import { MdModeEdit } from "react-icons/md";
 import "@reach/menu-button/styles.css";
-
 import { makeStyles } from '@material-ui/core/styles'
-import { useHistory } from "react-router-dom";
-
+import 'semantic-ui-css/semantic.min.css';
+import { Dropdown,Button as Buuton2, Menu,  } from 'semantic-ui-react'
 
 const tableIcons = {
 Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -54,61 +50,21 @@ ThirdStateCheck: forwardRef((props, ref) => <Remove {...props} ref={ref} />),
 ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 };
 
-const useStyles = makeStyles(theme => ({
-    card: {
-        margin: theme.spacing(20),
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center'
-    },
-    form: {
-        width: '100%', // Fix IE 11 issue.
-        marginTop: theme.spacing(3)
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2)
-    },
-    cardBottom: {
-        marginBottom: 20
-    },
-    Select: {
-        height: 45,
-        width: 350
-    },
-    button: {
-        margin: theme.spacing(1)
-    },
-
-    root: {
-        '& > *': {
-            margin: theme.spacing(1)
-        }
-    },
-    input: {
-        display: 'none'
-    } 
-}))
 
 const SettingList = (props) => {
-    let history = useHistory();
-  // The state for our timer
-  const classes = useStyles()
-  const [syncList, setSyncList] = useState( [])
-  const [facilities, setFacilities] = useState( [])
+
   const [serverUrl, setServerUrl] = useState( [])
   const [modal, setModal] = useState(false);
   const toggle = () => setModal(!modal);
   const [showModal, setShowModal] = React.useState(false);
-  const toggleModal = () => setShowModal(!showModal)
+  const toggleModal = () => setShowModal(!showModal);
+  const [showModal2, setShowModal2] = React.useState(false);
+  const toggleModal2 = () => setShowModal2(!showModal2)
   const defaultValues = { facility: "", url: "" }
-  const [uploadDetails, setUploadDetails] = useState(defaultValues);
-  const [saving, setSaving] = useState(false);
+  const [userToken, setUserToken] = useState( { username: "", password: "", url:"" })
   useEffect(() => {
     ServerUrl()
- }, []);
-
-    
-    
+  }, []);
     ///GET LIST OF Remote URL
     async function ServerUrl() {
         axios
@@ -123,10 +79,14 @@ const SettingList = (props) => {
             .catch((error) => {
 
             });
-    
+
     }
-    const syncDataBase =()=> {        
+    const tokenSetup =()=> {        
         setShowModal(!showModal)
+    }
+    const editTokenSetup =(row)=> {        
+        setShowModal2(!showModal2)
+        setUserToken(row)
     }
     
  
@@ -138,7 +98,7 @@ const SettingList = (props) => {
             className=" float-right mr-1"
             //startIcon={<FaUserPlus />}
             style={{backgroundColor:"#014d88"}}
-            onClick={syncDataBase}
+            onClick={tokenSetup}
           >
             <span style={{ textTransform: "capitalize" }}>New Personal Access Token </span>
         </Button>        
@@ -154,8 +114,7 @@ const SettingList = (props) => {
             field: "name",
           },
           { title: "Username", field: "url", filtering: false },
-          { title: " Status", field: "date", filtering: false },
-          //{ title: "Action", field: "actions", filtering: false },
+          { title: "Action", field: "actions", filtering: false },
          
          
         ]}
@@ -163,49 +122,21 @@ const SettingList = (props) => {
             //Id: manager.id,
               name: row.url,
               url: row.username,
-              date:  "Active",
-              actions:""
-            //   <div>
 
-            //       <Menu>
-            //           <MenuButton style={{ backgroundColor:"#3F51B5", color:"#fff", border:"2px solid #3F51B5", borderRadius:"4px", }}>
-            //               Actions <span aria-hidden>▾</span>
-            //           </MenuButton>
-            //           <MenuList style={{ color:"#000 !important"}} >
-
-
-            //               <MenuItem  style={{ color:"#000 !important"}}>
-            //                   <Link
-            //                       to ={{
-            //                           pathname: "/patient-dashboard",
-            //                           state: (row.details && row.details.hospitalNumber ? row.details.hospitalNumber : row.hospitalNumber)
-            //                       }}
-            //                   >
-            //                       <MdDashboard size="15" color="blue" />{" "}<span style={{color: '#000'}}>Re-Generate</span>
-            //                   </Link>
-            //               </MenuItem>
-
-            //               <MenuItem style={{ color:"#000 !important"}}>
-            //                   <Link
-            //                       to={{
-            //                           pathname: "/patient-update-formio",
-            //                           state: (row.details && row.details.hospitalNumber ? row.details.hospitalNumber : row.hospitalNumber)
-            //                       }}
-            //                   >
-            //                       <MdModeEdit size="15" color="blue" />{" "}<span style={{color: '#000'}}>Edit  </span>
-            //                   </Link>
-            //               </MenuItem>
-            //               <MenuItem style={{ color:"#000 !important"}}>
-            //                   <Link
-            //                       //onClick={() => onDelete(row)}
-            //                       >
-            //                       <MdDeleteForever size="15" color="blue" />{" "}
-            //                       <span style={{color: '#000'}}>Delete </span>
-            //                   </Link>
-            //               </MenuItem>
-            //           </MenuList>
-            //       </Menu>
-            //   </div>
+              actions:(<div>
+                <Menu.Menu position='right'  >
+                <Menu.Item >
+                    <Buuton2 style={{backgroundColor:'rgb(153,46,98)'}} primary>
+                    <Dropdown item text='Action'>
+                    <Dropdown.Menu style={{ marginTop:"10px", }}>
+                        <Dropdown.Item  onClick={() =>editTokenSetup(row)}><MdModeEdit />Edit Token</Dropdown.Item>
+                    </Dropdown.Menu>
+                </Dropdown>
+                    </Buuton2>
+                </Menu.Item>
+                </Menu.Menu>
+            </div>)
+            
             }))}
        
                   options={{
@@ -226,7 +157,8 @@ const SettingList = (props) => {
                 }}
       />
     
-    <NewPersonalAccessToken toggleModal={toggleModal} showModal={showModal} ServerUrl={ServerUrl}/>
+    <NewPersonalAccessToken toggleModal={toggleModal} showModal={showModal} ServerUrl={ServerUrl} />
+    <UpdatePersonalAccessToken toggleModal={toggleModal2} showModal={showModal2} ServerUrl={ServerUrl} userToken={userToken}/>
     </div>
   );
 }
