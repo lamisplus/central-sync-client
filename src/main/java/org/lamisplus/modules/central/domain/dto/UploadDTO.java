@@ -12,17 +12,12 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UploadDTO {
-    @NotNull(message = "facilityId is mandatory")
-    private Long facilityId;
-
     @NotBlank(message = "serverUrl is mandatory")
     private String serverUrl;
 
-    //@NotNull(message = "remoteAccessTokenId is mandatory")
-    private Long remoteAccessTokenId;
-
+    @NotNull(message = "name is mandatory")
     private String name;
-//
-//    private List<String> tableList;
 
+    @NotNull(message = "password is mandatory")
+    private String password;
 }

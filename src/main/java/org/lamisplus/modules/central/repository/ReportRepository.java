@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
-    @Query(value = "SELECT hc.client_code AS clientCode, hc.uuid,     " +
+    @Query(value = "SELECT hc.client_code AS clientCode,      " +
             " (CASE WHEN hc.person_uuid IS NULL THEN INITCAP(hc.extra->>'first_name') ELSE INITCAP(pp.first_name) END) AS firstName,      " +
             " (CASE WHEN hc.person_uuid IS NULL THEN INITCAP(hc.extra->>'surname') ELSE INITCAP(pp.surname) END) AS surname,      " +
             " (CASE WHEN hc.person_uuid IS NULL THEN INITCAP(hc.extra->>'middile_name') ELSE INITCAP(pp.other_name) END) AS otherName,      " +
@@ -48,8 +48,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             " hc.num_children AS numberOfChildren,      " +
             " hc.num_wives AS numberOfWives,      " +
             " (CASE WHEN hc.index_client IS true THEN 'Yes' ELSE 'No' END) indexClient,      " +
-            " hc.prep_offered AS prepOffered,      " +
-            " hc.prep_accepted AS prepAccepted,      " +
+            " (CASE WHEN hc.prep_offered IS true THEN 'Yes' ELSE 'No' END)  AS prepOffered,      " +
+            " (CASE WHEN hc.prep_accepted IS true THEN 'Yes' ELSE 'No' END) AS prepAccepted,      " +
             " (CASE WHEN hc.previously_tested IS true THEN 'Yes' ELSE 'No' END) AS previouslyTested,       " +
             " tg.display AS targetGroup,      " +
             " rf.display AS referredFrom,      " +
@@ -58,7 +58,10 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             " preg.display AS pregnacyStatus,      " +
             " hc.breast_feeding AS breastFeeding,      " +
             " relation.display AS indexType,      " +
-            " hc.recency->>'optOutRTRI' AS IfRecencyTestingOptIn,      " +
+            " (CASE WHEN hc.recency->>'optOutRTRI' ILIKE 'true' THEN 'Yes'" +
+            " WHEN hc.recency->>'optOutRTRI' ILIKE 'false' THEN 'No' " +
+            " WHEN hc.recency->>'optOutRTRI' != NULL THEN hc.recency->>'optOutRTRI'" +
+            " ELSE NULL END) AS IfRecencyTestingOptIn,      " +
             " hc.recency->>'rencencyId' AS RecencyID,      " +
             " hc.recency->>'optOutRTRITestName' AS recencyTestType,      " +
             " (CASE WHEN hc.recency->>'optOutRTRITestDate' IS NOT NULL     " +
@@ -117,7 +120,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             " LEFT JOIN base_organisation_unit state ON state.id=facility.parent_organisation_unit_id      " +
             " LEFT JOIN base_organisation_unit lga ON lga.id=state.parent_organisation_unit_id      " +
             " LEFT JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id=hc.facility_id AND boui.name='DATIM_ID'   " +
-            "WHERE hc.archived=0 AND hc.facility_id=?1 AND hc.date_visit >=?2 AND hc.date_visit < ?3", nativeQuery = true)
+            "WHERE hc.archived=0 AND hc.facility_id=?1 AND hc.date_visit >=?2 AND hc.date_visit <= ?3", nativeQuery = true)
     List<HtsReportDto> getHtsReport(Long facilityId, LocalDate start, LocalDate end);
 
 

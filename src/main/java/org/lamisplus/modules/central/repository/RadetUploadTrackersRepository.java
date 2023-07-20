@@ -20,7 +20,7 @@ public interface RadetUploadTrackersRepository extends JpaRepository<RadetUpload
     @Query(value = "Select a.facility_id as id, a.facility_name as facility, a.facility_state as state, a.facility_lga as lga, a.ip_code as ipcode, a.ip_name as ipname from public.aggregate_data a where a.facility_id in (Select organisation_unit_id from public.base_organisation_unit_identifier where code = ?1)", nativeQuery = true)
     RadetUploaders getRadetUploaders(String datimIdList);
 
-    @Query(value = "SELECT code FROM public.base_organisation_unit_identifier  where organisation_unit_id = ?1", nativeQuery = true)
+    @Query(value = "SELECT code FROM public.base_organisation_unit_identifier WHERE organisation_unit_id = ?1 AND name='DATIM_ID'", nativeQuery = true)
     String getDatimCode(Long orgUnit);
 
 
