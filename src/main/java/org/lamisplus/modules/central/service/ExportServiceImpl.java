@@ -84,8 +84,8 @@ public class ExportServiceImpl implements ExportService {
         createdFile.mkdir(); //create the directory for extraction
         try {
             log.info("Initializing data export");
-            //Set<String> fileList = fileUtility.listFilesUsingDirectoryStream(TEMP_BATCH_DIR);
-            //cleanDirectory(fileList);
+            log.info("Extracting data to JSON");
+            syncData(fileFolder);
             log.info("Extracting Extract data to JSON");
             boolean radetIsProcessed = extractExport(facilityId, reportStartDate, reportEndDate, PERIOD, fileFolder);
             log.info("Extracting HTS data to JSON");
@@ -122,18 +122,18 @@ public class ExportServiceImpl implements ExportService {
                     || laboratorySampleIsProcessed || laboratoryTestIsProcessed || eacIsProcessed
                     || laboratoryResultIsProcessed || pharmacyIsProcessed || biometricIsProcessed
                     || enrollmentIsProcessed || observationIsProcessed || statusTrackerIsProcessed) {
-                log.info("Writing all exports to a zip file");
+                //log.info("Writing all exports to a zip file");
                 String datimCode = getDatimId(facilityId);
-                log.info("datimCode {}", datimCode);
+                //log.info("datimCode {}", datimCode);
                 zipFileName = datimCode+"_" + fileFolder + ".zip";
-                log.info("zipFileName {}", zipFileName);
+                //log.info("zipFileName {}", zipFileName);
 
                 String fullPath = createdFile.getPath() + File.separator + zipFileName;
-                log.info("fullPath {}", fullPath);
+                //log.info("fullPath {}", fullPath);
                 File dir = new File(createdFile.getPath() + File.separator);
-                log.info("dir {}", dir.getPath());
+                //log.info("dir {}", dir.getPath());
                 fileUtility.zipDirectory(dir, fullPath, fileFolder);
-                log.info("zipFileName {}", zipFileName);
+                //log.info("zipFileName {}", zipFileName);
                 //update synchistory
                 int fileSize = (int) fileUtility.getFileSize(fullPath);
                 SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (ERROR_LOG.isEmpty()) ? null : ERROR_LOG, folder);
@@ -166,6 +166,32 @@ public class ExportServiceImpl implements ExportService {
        } catch (Exception e) {
            log.info(e.getMessage());
        }
+    }
+
+    public boolean syncData(String fileLocation) {
+        boolean isProcessed = false;
+        try {
+            ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
+            JsonFactory jsonFactory = new JsonFactory();
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator +  "data.json";
+            try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
+                jsonGenerator.setCodec(objectMapper);
+                jsonGenerator.useDefaultPrettyPrinter();
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField("v", "215");
+                jsonGenerator.writeEndObject();
+                isProcessed = true;
+            } catch (IOException e) {
+                addError("data", e.getMessage(), getPrintStackError(e));
+                isProcessed = false;
+                log.error("Error writing data to a JSON file: {}", e.getMessage());
+            }
+        } catch (Exception e) {
+            addError("extract", e.getMessage(), getPrintStackError(e));
+            log.error("Error mapping data: {}", e.getMessage());
+        }
+
+        return false;
     }
 
     /**
