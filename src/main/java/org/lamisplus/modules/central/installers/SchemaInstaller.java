@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 @Order(1)
 @Installer(name = "central-sync-schema-installer",
         description = "Installs the required database tables for central sync module",
-        version = 8)
+        version = 10)
 public class SchemaInstaller extends AcrossLiquibaseInstaller {
     public SchemaInstaller() {
         super("classpath:schema/schema.xml");

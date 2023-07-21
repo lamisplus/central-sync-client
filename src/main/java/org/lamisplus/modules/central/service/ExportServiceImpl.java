@@ -48,6 +48,13 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public String bulkExport(Long facilityId, Boolean current) {
         if(!ERROR_LOG.isEmpty()) ERROR_LOG.clear();
+        File toBeDeleted = new File(TEMP_BATCH_DIR);
+        toBeDeleted.delete();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            log.error("InterruptedException {}", e.getMessage());
+        }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyy-MM-dd");
         LocalDate reportStartDate = LocalDate.parse("1980-01-01", formatter);
         //LocalDate reportEndDate = LocalDate.now().plusDays(ONE_DAY);
@@ -69,41 +76,46 @@ public class ExportServiceImpl implements ExportService {
         final String PERIOD = reportEndDate.getYear()+quarterService.getCurrentQuarter(reportEndDate).getName();
         log.info("PERIOD IS {}", PERIOD);
 
+        Date date1 = new Date();
         String zipFileName = "None";
+        String fileFolder = DATE_FORMAT.format(date1);
+        String folder = TEMP_BATCH_DIR + fileFolder + File.separator;
+        File createdFile = new File(folder);
+        createdFile.mkdir(); //create the directory for extraction
         try {
             log.info("Initializing data export");
-            Set<String> fileList = fileUtility.listFilesUsingDirectoryStream(ConstantUtility.TEMP_BATCH_DIR);
-            cleanDirectory(fileList);
+            //Set<String> fileList = fileUtility.listFilesUsingDirectoryStream(TEMP_BATCH_DIR);
+            //cleanDirectory(fileList);
             log.info("Extracting Extract data to JSON");
-            boolean radetIsProcessed = extractExport(facilityId, reportStartDate, reportEndDate, PERIOD);
+            boolean radetIsProcessed = extractExport(facilityId, reportStartDate, reportEndDate, PERIOD, fileFolder);
             log.info("Extracting HTS data to JSON");
-            boolean htsIsProcessed = htsExport(facilityId, reportStartDate, reportEndDate, PERIOD);
+            boolean htsIsProcessed = htsExport(facilityId, reportStartDate, reportEndDate, PERIOD, fileFolder);
             log.info("Extracting PrEP data to JSON");
-            boolean prepIsProcessed = prepExport(facilityId, reportStartDate, reportEndDate, PERIOD);
+            boolean prepIsProcessed = prepExport(facilityId, reportStartDate, reportEndDate, PERIOD, fileFolder);
             log.info("Extracting Clinic data to JSON");
-            boolean clinicIsProcessed = clinicExport(facilityId, reportStartTime, reportEndTime);
+            boolean clinicIsProcessed = clinicExport(facilityId, reportStartTime, reportEndTime, fileFolder);
             log.info("Extracting Patient data to JSON");
-            boolean patientIsProcessed = patientExport(facilityId, reportStartTime, reportEndTime);
+            boolean patientIsProcessed = patientExport(facilityId, reportStartTime, reportEndTime, fileFolder);
             log.info("Extracting laboratoryOrder data to JSON");
-            boolean laboratoryOrderIsProcessed = laboratoryOrderExport(facilityId, reportStartTime, reportEndTime);
+            boolean laboratoryOrderIsProcessed = laboratoryOrderExport(facilityId, reportStartTime, reportEndTime, fileFolder);
             log.info("Extracting laboratorySample data to JSON");
-            boolean laboratorySampleIsProcessed = laboratorySampleExport(facilityId, reportStartTime, reportEndTime);
+            boolean laboratorySampleIsProcessed = laboratorySampleExport(facilityId, reportStartTime, reportEndTime, fileFolder);
             log.info("Extracting laboratoryTest data to JSON");
-            boolean laboratoryTestIsProcessed = laboratoryTestExport(facilityId, reportStartTime, reportEndTime);
+            boolean laboratoryTestIsProcessed = laboratoryTestExport(facilityId, reportStartTime, reportEndTime, fileFolder);
             log.info("Extracting laboratoryResult data to JSON");
-            boolean laboratoryResultIsProcessed = laboratoryResultExport(facilityId, reportStartTime, reportEndTime);
+            boolean laboratoryResultIsProcessed = laboratoryResultExport(facilityId, reportStartTime, reportEndTime, fileFolder);
             log.info("Extracting Pharmacy data to JSON");
-            boolean pharmacyIsProcessed = pharmacyExport(facilityId, reportStartTime, reportEndTime);
+            boolean pharmacyIsProcessed = pharmacyExport(facilityId, reportStartTime, reportEndTime, fileFolder);
             log.info("Extracting biometric data to JSON");
-            boolean biometricIsProcessed = biometricExport(facilityId, reportStartTime, reportEndTime);
+            boolean biometricIsProcessed = biometricExport(facilityId, reportStartTime, reportEndTime, fileFolder);
             log.info("Extracting enrollment data to JSON");
-            boolean enrollmentIsProcessed = enrollmentExport(facilityId, reportStartTime, reportEndTime);
+            boolean enrollmentIsProcessed = enrollmentExport(facilityId, reportStartTime, reportEndTime, fileFolder);
             log.info("Extracting observation data to JSON");
-            boolean observationIsProcessed = observationExport(facilityId, reportStartTime, reportEndTime);
+            boolean observationIsProcessed = observationExport(facilityId, reportStartTime, reportEndTime, fileFolder);
             log.info("Extracting status tracker data to JSON");
-            boolean statusTrackerIsProcessed = statusTrackerExport(facilityId, reportStartTime, reportEndTime);
+            boolean statusTrackerIsProcessed = statusTrackerExport(facilityId, reportStartTime, reportEndTime, fileFolder);
             log.info("Extracting eac data to JSON");
-            boolean eacIsProcessed = eacExport(facilityId, reportStartTime, reportEndTime);
+            boolean eacIsProcessed = eacExport(facilityId, reportStartTime, reportEndTime, fileFolder);
 
             if (radetIsProcessed || htsIsProcessed || prepIsProcessed
                     || clinicIsProcessed || patientIsProcessed || laboratoryOrderIsProcessed
@@ -111,21 +123,23 @@ public class ExportServiceImpl implements ExportService {
                     || laboratoryResultIsProcessed || pharmacyIsProcessed || biometricIsProcessed
                     || enrollmentIsProcessed || observationIsProcessed || statusTrackerIsProcessed) {
                 log.info("Writing all exports to a zip file");
-                Date date1 = new Date();
                 String datimCode = getDatimId(facilityId);
-                //log.info("datimCode {}", datimCode);
-                zipFileName = datimCode+"_" + ConstantUtility.DATE_FORMAT.format(date1) + ".zip";
-                //log.info("zipFileName {}", zipFileName);
-                File file = new File(ConstantUtility.TEMP_BATCH_DIR);
-                //fileUtility.zipDirectoryLocked(file, zipFileName, datimCode);
-                fileUtility.zipDirectory(file, ConstantUtility.TEMP_BATCH_DIR + zipFileName);
-                //log.info("zipFileName {}", zipFileName);
+                log.info("datimCode {}", datimCode);
+                zipFileName = datimCode+"_" + fileFolder + ".zip";
+                log.info("zipFileName {}", zipFileName);
+
+                String fullPath = createdFile.getPath() + File.separator + zipFileName;
+                log.info("fullPath {}", fullPath);
+                File dir = new File(createdFile.getPath() + File.separator);
+                log.info("dir {}", dir.getPath());
+                fileUtility.zipDirectory(dir, fullPath, fileFolder);
+                log.info("zipFileName {}", zipFileName);
                 //update synchistory
-                int fileSize = (int) fileUtility.getFileSize(ConstantUtility.TEMP_BATCH_DIR + zipFileName);
-                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (ERROR_LOG.isEmpty()) ? null : ERROR_LOG);
+                int fileSize = (int) fileUtility.getFileSize(fullPath);
+                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (ERROR_LOG.isEmpty()) ? null : ERROR_LOG, folder);
                 SyncHistoryResponse syncResponse = syncHistoryService.saveSyncHistory(request);
 
-                cleanDirectory(fileList);
+                //cleanDirectory(fileList);
                 if (syncResponse != null) {
                     log.info("Sync history updated successfully.");
                 }
@@ -145,7 +159,7 @@ public class ExportServiceImpl implements ExportService {
        try {
            for (String fileName : fileList) {
                if (!fileName.contains(".zip")) {
-                   String strFile = ConstantUtility.TEMP_BATCH_DIR + fileName;
+                   String strFile = TEMP_BATCH_DIR + fileName;
                    Files.deleteIfExists(Paths.get(strFile));
                }
            }
@@ -154,18 +168,30 @@ public class ExportServiceImpl implements ExportService {
        }
     }
 
+    /**
+     * Handles Extract data export on client.
+     * @param facilityId
+     * @param reportStartDate
+     * @param reportEndDate
+     * @param fileLocation
+     * @return boolean - true | false
+     */
     @Override
-    public boolean extractExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period) {
+    public boolean extractExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period, String fileLocation) {
         boolean isProcessed = false;
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
             //String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.RADET_FILENAME;
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.EXTRACT_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator +  EXTRACT_FILENAME;
             LocalDate previousQuarterEnd = quarterUtility.getPreviousQuarter(reportEndDate).getEndDate();
             LocalDate previousPreviousQuarterEnd = quarterUtility.getPreviousQuarter(previousQuarterEnd).getEndDate();
+            LocalDate viralLoadGracePeriod = reportEndDate.plusMonths(1);
+            LocalDate currentQterStartDate = quarterService.getCurrentQuarter(reportEndDate).getStartDate();
+            log.info("end date {}", reportEndDate);
+            log.info("viralLoadGracePeriod {}", viralLoadGracePeriod);
             List<RadetReportDto> radetList = repository.getRadetData(facilityId, reportStartDate, reportEndDate.plusDays(1),
-                    previousQuarterEnd, previousPreviousQuarterEnd);
+                    previousQuarterEnd, previousPreviousQuarterEnd, currentQterStartDate, viralLoadGracePeriod);
             System.out.println("Total Extract Generated "+ radetList.size());
             if (!radetList.isEmpty()) {
                 try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
@@ -191,13 +217,21 @@ public class ExportServiceImpl implements ExportService {
         return false;
     }
 
+    /**
+     * Handles HTS data export on client.
+     * @param facilityId
+     * @param reportStartDate
+     * @param reportEndDate
+     * @param fileLocation
+     * @return boolean - true | false
+     */
     @Override
-    public boolean htsExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period) {
+    public boolean htsExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period, String fileLocation) {
         boolean isProcessed = false;
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.HTS_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation +File.separator +  HTS_FILENAME;
             LocalDate previousQuarterEnd = quarterUtility.getPreviousQuarter(reportEndDate).getEndDate();
             LocalDate previousPreviousQuarterEnd = quarterUtility.getPreviousQuarter(previousQuarterEnd).getEndDate();
             List<HtsReportDto> htsList = repository.getHtsReport(facilityId, reportStartDate, reportEndDate);
@@ -224,13 +258,21 @@ public class ExportServiceImpl implements ExportService {
         return isProcessed;
     }
 
+    /**
+     * Handles PrEP data export on client.
+     * @param facilityId
+     * @param reportStartDate
+     * @param reportEndDate
+     * @param fileLocation
+     * @return boolean - true | false
+     */
     @Override
-    public boolean prepExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period) {
+    public boolean prepExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period, String fileLocation) {
         boolean isProcessed = false;
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.PREP_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + PREP_FILENAME;
             List<PrepReportDto> prepList = repository.getPrepReport(facilityId, reportStartDate, reportEndDate);
             System.out.println("Total Prep Generated "+ prepList.size());
             if (!prepList.isEmpty()) {
@@ -255,14 +297,22 @@ public class ExportServiceImpl implements ExportService {
         return isProcessed;
     }
 
+    /**
+     * Handles Patient data export on client.
+     * @param facilityId
+     * @param reportStartDate
+     * @param reportEndDate
+     * @param fileLocation
+     * @return boolean - true | false
+     */
     @Override
-    public boolean patientExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate) {
+    public boolean patientExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate, String fileLocation) {
         boolean isProcessed = false;
          
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.PATIENT_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + PATIENT_FILENAME;
             List<PatientDto> patients = repository.getPatientData(facilityId, reportStartDate, reportEndDate);
             System.out.println("Total Patient Generated "+ patients.size());
             if (!patients.isEmpty()) {
@@ -297,13 +347,13 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public boolean clinicExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+    public boolean clinicExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation) {
         boolean isProcessed = false;
          
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + ConstantUtility.CLINIC_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + CLINIC_FILENAME;
             List<ClinicDataDto> clinics = repository.getClinicData(facilityId, startDate, endDate);
             System.out.println("Total Clinic Generated "+ clinics.size());
             if (!clinics.isEmpty()) {
@@ -336,13 +386,13 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public boolean laboratoryOrderExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+    public boolean laboratoryOrderExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation) {
         boolean isProcessed = false;
          
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + LABORATORY_ORDER_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + LABORATORY_ORDER_FILENAME;
             List<LaboratoryOrderDto> laboratoryOrders = repository.getLaboratoryOrder(facilityId, startDate, endDate);
             System.out.println("Total laboratoryOrder Generated "+ laboratoryOrders.size());
             if (!laboratoryOrders.isEmpty()) {
@@ -376,13 +426,13 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public boolean laboratorySampleExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+    public boolean laboratorySampleExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation) {
         boolean isProcessed = false;
          
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + LABORATORY_SAMPLE_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + LABORATORY_SAMPLE_FILENAME;
             List<LaboratorySampleDto> laboratorySample = repository.getLaboratorySample(facilityId, startDate, endDate);
             System.out.println("Total laboratorySample Generated "+ laboratorySample.size());
             if (!laboratorySample.isEmpty()) {
@@ -415,12 +465,12 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public boolean laboratoryTestExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+    public boolean laboratoryTestExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation) {
         boolean isProcessed = false;
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + LABORATORY_TEST_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + LABORATORY_TEST_FILENAME;
             List<LaboratoryTestDto> laboratoryTest = repository.getLaboratoryTest(facilityId, startDate, endDate);
             System.out.println("Total laboratoryTest Generated "+ laboratoryTest.size());
             if (!laboratoryTest.isEmpty()) {
@@ -453,13 +503,13 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public boolean laboratoryResultExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+    public boolean laboratoryResultExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation) {
         boolean isProcessed = false;
          
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + LABORATORY_RESULT_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + LABORATORY_RESULT_FILENAME;
             List<LaboratoryResultDto> laboratoryResult = repository.getLaboratoryResult(facilityId, startDate, endDate);
             System.out.println("Total laboratoryResult Generated "+ laboratoryResult.size());
             if (!laboratoryResult.isEmpty()) {
@@ -492,13 +542,13 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public boolean pharmacyExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+    public boolean pharmacyExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation) {
         boolean isProcessed = false;
          
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + PHARMACY_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + PHARMACY_FILENAME;
             List<PharmacyDto> pharmacy = repository.getPharmacy(facilityId, startDate, endDate);
             System.out.println("Total pharmacy Generated "+ pharmacy.size());
             if (!pharmacy.isEmpty()) {
@@ -531,13 +581,13 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public boolean biometricExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+    public boolean biometricExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation) {
         boolean isProcessed = false;
          
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = ConstantUtility.TEMP_BATCH_DIR + BIOMETRIC_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + BIOMETRIC_FILENAME;
             List<BiometricDto> biometric = repository.getBiometric(facilityId, startDate, endDate);
             System.out.println("Total biometric Generated "+ biometric.size());
             if (!biometric.isEmpty()) {
@@ -570,13 +620,13 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public boolean enrollmentExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+    public boolean enrollmentExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation) {
         boolean isProcessed = false;
 
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = TEMP_BATCH_DIR + ENROLLMENT_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + ENROLLMENT_FILENAME;
             List<EnrollmentDto> enrollments = repository.getEnrollmentData(facilityId, startDate, endDate);
             System.out.println("Total enrollments Generated "+ enrollments.size());
             if (!enrollments.isEmpty()) {
@@ -609,13 +659,13 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public boolean observationExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+    public boolean observationExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation) {
         boolean isProcessed = false;
 
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = TEMP_BATCH_DIR + OBSERVATION_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + OBSERVATION_FILENAME;
             List<ObservationDto> observations = repository.getObservationData(facilityId, startDate, endDate);
             System.out.println("Total observations Generated "+ observations.size());
             if (!observations.isEmpty()) {
@@ -648,13 +698,13 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public boolean statusTrackerExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+    public boolean statusTrackerExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation) {
         boolean isProcessed = false;
 
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = TEMP_BATCH_DIR + STATUS_TRACKER_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + STATUS_TRACKER_FILENAME;
             List<StatusTrackerDto> statusTrackers = repository.getStatusTrackerData(facilityId, startDate, endDate);
             System.out.println("Total status tracker Generated "+ statusTrackers.size());
             if (!statusTrackers.isEmpty()) {
@@ -687,13 +737,13 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public boolean eacExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate) {
+    public boolean eacExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation) {
         boolean isProcessed = false;
 
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = TEMP_BATCH_DIR + EAC_FILENAME;
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + EAC_FILENAME;
             List<EacDto> eacs = repository.getEacData(facilityId, startDate, endDate);
             System.out.println("Total eac Generated "+ eacs.size());
             if (!eacs.isEmpty()) {

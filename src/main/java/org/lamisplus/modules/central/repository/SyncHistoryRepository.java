@@ -19,4 +19,7 @@ public interface SyncHistoryRepository  extends JpaRepository<SyncHistory, Long>
 
     @Query(value = "SELECT * FROM sync_history WHERE date_last_sync=(SELECT MAX(date_last_sync) from sync_history WHERE organisation_unit_id=?1)", nativeQuery = true)
     Optional<SyncHistory> getDateLastSync(Long facilityId);
+
+    @Query(value = "SELECT * FROM sync_history WHERE table_name ILIKE ?1", nativeQuery = true)
+    Optional<SyncHistory> getFile(String name);
 }

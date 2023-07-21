@@ -2,17 +2,18 @@ package org.lamisplus.modules.central.utility;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import net.lingala.zip4j.ZipFile;
+/*import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
-import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;*/
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,15 +25,33 @@ import java.util.zip.*;
 public class FileUtility {
 
     Set<String> filesListInDir = new HashSet<>();
+    static final Field zipNamesField = getZipNameField();
 
-    public void zipDirectory(File dir, String zipFileName) {
+    private static Field getZipNameField()
+    {
+        try
+        {
+            Field res = ZipOutputStream.class.getDeclaredField("names");
+            res.setAccessible(true);
+            return res;
+        }
+        catch (NoSuchFieldException | SecurityException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public void zipDirectory(File dir, String zipFileName, String folder) throws IOException {
         try (FileOutputStream fileOutputStream = new FileOutputStream(zipFileName);
              ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream)){
-            loadDirectoryFileToList(dir);
-            log.info("filesListInDir {}", filesListInDir);
-            for (String filePath : filesListInDir) {
+            //loadDirectoryFileToList(dir, folder);
+            //log.info("filesListInDir {}", filesListInDir);
+            for (File file : dir.listFiles()) {
+                String filePath = file.getPath();
                 if (!filePath.contains(".zip") && filePath.contains(".json")) {
-                    File file = new File(filePath);
+                    //File file = new File(filePath);
+                    ((HashSet<String>) zipNamesField.get(zipOutputStream)).clear();
                     ZipEntry zipEntry =  new ZipEntry(file.getName());
                     zipOutputStream.putNextEntry(zipEntry);
 
@@ -49,13 +68,13 @@ public class FileUtility {
                 }
 
             }
-        } catch (IOException e) {
+        } catch (IOException | IllegalAccessException e) {
             e.printStackTrace();
-
+            throw new IOException(e.getMessage());
         }
     }
 
-    public void zipDirectoryLocked(File dir, String fileName, String password) {
+    /*public void zipDirectoryLocked(File dir, String fileName, String password) {
         List<File> fileList = Arrays.asList(dir.listFiles())
                 .stream()
                 .filter(file -> file.getName().contains(".json"))
@@ -67,13 +86,16 @@ public class FileUtility {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
-    private void loadDirectoryFileToList(File dir) throws IOException {
+    private void loadDirectoryFileToList(File dir, String folder) throws IOException {
         File[] files = dir.listFiles();
         for (File file : files) {
-            if (file.isFile()) filesListInDir.add(file.getAbsolutePath());
-            else loadDirectoryFileToList(file);
+            String absolutePath = file.getAbsolutePath();
+            if (file.isFile() && (file.getParentFile().equals(folder) || absolutePath.contains(folder))){
+                log.info("absolutePath {}", absolutePath);
+                filesListInDir.add(absolutePath);
+            } else loadDirectoryFileToList(file, folder);
         }
     }
 
@@ -231,7 +253,7 @@ public class FileUtility {
 
     }
 
-    public void lockZipFile(String zipFilePath, String password, List<File> fileList) throws IOException {
+    /*public void lockZipFile(String zipFilePath, String password, List<File> fileList) throws IOException {
         try(ZipFile zipFile = new ZipFile(zipFilePath, password.toCharArray())) {
             ZipParameters zipParameters = new ZipParameters();
             zipParameters.setCompressionMethod(CompressionMethod.DEFLATE);
@@ -245,9 +267,9 @@ public class FileUtility {
             exception.printStackTrace();
             log.error("An errorr occurred while creating zip file: {}", exception.getMessage());
         }
-    }
+    }*/
 
-    public void unlockZipFile(String lockedZipFilePath, String unlockedZipFilePath, String password) throws IOException {
+    /*public void unlockZipFile(String lockedZipFilePath, String unlockedZipFilePath, String password) throws IOException {
         try(ZipFile zipFile = new ZipFile(lockedZipFilePath, password.toCharArray());) {
             if (Files.exists(Paths.get(lockedZipFilePath))) {
                 zipFile.extractAll(unlockedZipFilePath);
@@ -255,7 +277,7 @@ public class FileUtility {
         } catch (ZipException exception) {
             log.error("An errorr occurred while creating zip file: {}", exception.getMessage());
         }
-    }
+    }*/
 
 
 //    @SneakyThrows
