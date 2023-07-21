@@ -296,4 +296,19 @@
                 ADD COLUMN error_log jsonb;
         </sql>
     </changeSet>
+
+    <changeSet failOnError="true" author="Emeka Ilozue" id="20231407-1142">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM pg_attribute
+                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'sync_history')
+                  AND attname = 'file_path';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE IF EXISTS sync_history
+                ADD COLUMN file_path character varying;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

@@ -13,5 +13,7 @@ public interface LaboratoryResultDto {
 	Integer getArchived();
 	LocalDateTime getDateModified();
 	String getModifiedBy();
+	Integer getTestId();
+	String getLabTestName();
 	
 }

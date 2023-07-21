@@ -1,6 +1,7 @@
 package org.lamisplus.modules.central.service;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.central.domain.dto.*;
@@ -393,6 +394,9 @@ public class BuildJson {
                 jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(laboratoryResult.getDateModified()));
                 jsonGenerator.writeStringField(LAST_MODIFIED_BY, laboratoryResult.getModifiedBy());
                 jsonGenerator.writeStringField(ARCHIVED, String.valueOf(laboratoryResult.getArchived()));
+                jsonGenerator.writeStringField(TEST_ID, String.valueOf(laboratoryResult.getTestId()));
+                jsonGenerator.writeStringField(LAB_TEST_NAME, laboratoryResult.getLabTestName());
+
                 jsonGenerator.writeEndObject();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -427,8 +431,11 @@ public class BuildJson {
         }
     }
     public void buildBiometricJson(JsonGenerator jsonGenerator,  List<BiometricDto> biometrics) {
+        //jsonGenerator.configure(JsonWriteFeature.ESCAPE_NON_ASCII.mappedFeature(), true);
+        //jsonGenerator.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
         for (BiometricDto biometric : biometrics) {
             try {
+
                 jsonGenerator.writeStartObject();
                 jsonGenerator.writeStringField(ID, biometric.getUuid());
                 jsonGenerator.writeStringField(DATIM_ID, biometric.getDatimId());
@@ -437,7 +444,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(VERSION_ISO_20, String.valueOf(biometric.getVersionIso20()));
                 jsonGenerator.writeStringField(IMAGE_QUALITY, String.valueOf(biometric.getImageQuality()));
                 jsonGenerator.writeStringField(RECAPTURE, String.valueOf(biometric.getRecapture()));
-                jsonGenerator.writeStringField(HASHED, String.valueOf(biometric.getHashed()));
+                jsonGenerator.writeStringField(HASHED, "");
                 jsonGenerator.writeStringField(COUNT, String.valueOf(biometric.getCount()));
                 jsonGenerator.writeStringField(TEMPLATE, biometric.getTemplate());
                 jsonGenerator.writeStringField(ISO, String.valueOf(biometric.getIso()));
