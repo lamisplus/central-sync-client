@@ -230,7 +230,6 @@ useEffect(() => {
     }
     const  sendToServerAction = (fileName,facilityId) => {
         setModal2(true)
-        console.log("the server call is here")
          //SENDING A POST REQUEST 
          axios.post(`${baseUrl}export/send-data?fileName=${fileName}&facilityId=${facilityId}`,fileName,
                      { headers: {"Authorization" : `Bearer ${token}`} }
