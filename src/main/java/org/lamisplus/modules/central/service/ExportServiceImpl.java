@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.lamisplus.modules.base.service.UserService;
 import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
 import org.lamisplus.modules.central.repository.RadetUploadTrackersRepository;
@@ -16,9 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.Format;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -48,18 +46,19 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public String bulkExport(Long facilityId, Boolean current) {
         if(!ERROR_LOG.isEmpty()) ERROR_LOG.clear();
-        File toBeDeleted = new File(TEMP_BATCH_DIR);
-        toBeDeleted.delete();
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            log.error("InterruptedException {}", e.getMessage());
+        Path path = Paths.get(TEMP_BATCH_DIR);
+        if(!Files.exists(path)) {
+            try {
+                Files.createDirectories(path);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyy-MM-dd");
         LocalDate reportStartDate = LocalDate.parse("1980-01-01", formatter);
         //LocalDate reportEndDate = LocalDate.now().plusDays(ONE_DAY);
 
-        LocalDate reportEndDate = LocalDate.parse("2023-06-30", formatter);
+        LocalDate reportEndDate = LocalDate.parse("2023-09-30", formatter);
 
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime reportStartTime = LocalDateTime.parse("1985-01-01 00:00:00", timeFormatter);
@@ -80,12 +79,18 @@ public class ExportServiceImpl implements ExportService {
         String zipFileName = "None";
         String fileFolder = DATE_FORMAT.format(date1);
         String folder = TEMP_BATCH_DIR + fileFolder + File.separator;
-        File createdFile = new File(folder);
-        createdFile.mkdir(); //create the directory for extraction
+        Path folderPath = Paths.get(folder);
+        Path createdFile = folderPath;
+        try {
+            createdFile = Files.createDirectories(folderPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         try {
             log.info("Initializing data export");
             log.info("Extracting data to JSON");
-            syncData(fileFolder);
+            syncData(fileFolder, current);
             log.info("Extracting Extract data to JSON");
             boolean radetIsProcessed = extractExport(facilityId, reportStartDate, reportEndDate, PERIOD, fileFolder);
             log.info("Extracting HTS data to JSON");
@@ -128,9 +133,9 @@ public class ExportServiceImpl implements ExportService {
                 zipFileName = datimCode+"_" + fileFolder + ".zip";
                 //log.info("zipFileName {}", zipFileName);
 
-                String fullPath = createdFile.getPath() + File.separator + zipFileName;
+                String fullPath = createdFile + File.separator + zipFileName;
                 //log.info("fullPath {}", fullPath);
-                File dir = new File(createdFile.getPath() + File.separator);
+                File dir = new File(createdFile + File.separator);
                 //log.info("dir {}", dir.getPath());
                 fileUtility.zipDirectory(dir, fullPath, fileFolder);
                 //log.info("zipFileName {}", zipFileName);
@@ -168,7 +173,7 @@ public class ExportServiceImpl implements ExportService {
        }
     }
 
-    public boolean syncData(String fileLocation) {
+    public boolean syncData(String fileLocation, Boolean current) {
         boolean isProcessed = false;
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
@@ -178,7 +183,12 @@ public class ExportServiceImpl implements ExportService {
                 jsonGenerator.setCodec(objectMapper);
                 jsonGenerator.useDefaultPrettyPrinter();
                 jsonGenerator.writeStartObject();
-                jsonGenerator.writeStringField("v", "215");
+                jsonGenerator.writeStringField("v", "216");
+                if(current) {
+                    jsonGenerator.writeStringField("init", "false");
+                }else {
+                    jsonGenerator.writeStringField("init", "true");
+                }
                 jsonGenerator.writeEndObject();
                 isProcessed = true;
             } catch (IOException e) {
@@ -217,7 +227,7 @@ public class ExportServiceImpl implements ExportService {
             log.info("end date {}", reportEndDate);
             log.info("viralLoadGracePeriod {}", viralLoadGracePeriod);
             List<RadetReportDto> radetList = repository.getRadetData(facilityId, reportStartDate, reportEndDate.plusDays(1),
-                    previousQuarterEnd, previousPreviousQuarterEnd, currentQterStartDate, viralLoadGracePeriod);
+                    previousQuarterEnd, previousPreviousQuarterEnd, currentQterStartDate);
             System.out.println("Total Extract Generated "+ radetList.size());
             if (!radetList.isEmpty()) {
                 try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
@@ -259,7 +269,7 @@ public class ExportServiceImpl implements ExportService {
             JsonFactory jsonFactory = new JsonFactory();
             String tempFile = TEMP_BATCH_DIR + fileLocation +File.separator +  HTS_FILENAME;
             LocalDate previousQuarterEnd = quarterUtility.getPreviousQuarter(reportEndDate).getEndDate();
-            LocalDate previousPreviousQuarterEnd = quarterUtility.getPreviousQuarter(previousQuarterEnd).getEndDate();
+            //LocalDate previousPreviousQuarterEnd = quarterUtility.getPreviousQuarter(previousQuarterEnd).getEndDate();
             List<HtsReportDto> htsList = repository.getHtsReport(facilityId, reportStartDate, reportEndDate);
             System.out.println("Total HTS Generated "+ htsList.size());
             if (!htsList.isEmpty()) {

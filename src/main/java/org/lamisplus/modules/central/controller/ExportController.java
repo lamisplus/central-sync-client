@@ -137,6 +137,7 @@ public class ExportController {
         //loginVM.setPassword("kitkit");
         //loginVM.setUsername("uskarim");
         headers.set("Authorization", authorizeBeforeSending(loginVM));
+        headers.set("version", "217");
 
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> responseEntity;

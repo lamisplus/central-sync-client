@@ -275,4 +275,11 @@ public class ConstantUtility {
 
     public static final String TREATMENT_METHOD_DATE = "treatmentMethodDate";
     public static final String DATE_OF_ENROLLMENT = "dateOfEnrollment";
+
+    public static final String REGIMEN_LINE = "regimenLine";
+    public static final String SAMPLE_TYPE = "sampleType";
+
+    public static final String NO_OF_PARTNERS_ELICITED = "noOfPartnersElicited";
+    public static final String OFFERED_INS = "offeredIns";
+    public static final String ACCEPTED_INS = "acceptedIns";
 }

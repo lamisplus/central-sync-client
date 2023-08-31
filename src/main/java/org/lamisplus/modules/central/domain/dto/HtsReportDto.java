@@ -67,4 +67,8 @@ public  interface HtsReportDto {
     String getNumberOfCondomsGiven();
     String getNumberOfLubricantsGiven();
     String getUuid();
+    Long getNoOfPartnersElicited();
+    String getOfferedIns();
+    String getAcceptedIns();
+    String getEntryPoint();
 }

@@ -88,6 +88,12 @@ public class BuildJson {
                 jsonGenerator.writeStringField(NUMBER_OF_LUBRICANTS_GIVEN, hts.getNumberOfLubricantsGiven());
                 jsonGenerator.writeStringField(UUID, hts.getUuid());
                 jsonGenerator.writeStringField(PERIOD, period);
+
+                jsonGenerator.writeStringField(NO_OF_PARTNERS_ELICITED, String.valueOf(hts.getNoOfPartnersElicited()));
+                jsonGenerator.writeStringField(OFFERED_INS, hts.getOfferedIns());
+                jsonGenerator.writeStringField(ACCEPTED_INS, hts.getAcceptedIns());
+                jsonGenerator.writeStringField(ENTRY_POINT, hts.getEntryPoint());
+
                 jsonGenerator.writeEndObject();
             } catch (IOException e) {
                 log.error("Error generating HTS JSON: {}", e.getMessage());
@@ -350,6 +356,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(laboratorySample.getDateModified()));
                 jsonGenerator.writeStringField(LAST_MODIFIED_BY, laboratorySample.getModifiedBy());
                 jsonGenerator.writeStringField(ARCHIVED, String.valueOf(laboratorySample.getArchived()));
+                jsonGenerator.writeStringField(SAMPLE_TYPE, laboratorySample.getSampleType());
                 jsonGenerator.writeEndObject();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -422,6 +429,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(pharmacy.getLastModifiedDate()));
                 jsonGenerator.writeStringField(LAST_MODIFIED_BY, pharmacy.getLastModifiedBy());
                 jsonGenerator.writeStringField(ARCHIVED, String.valueOf(pharmacy.getArchived()));
+                jsonGenerator.writeStringField(REGIMEN_LINE, pharmacy.getRegimenLine());
                 jsonGenerator.writeEndObject();
             } catch (Exception e) {
                 e.printStackTrace();
