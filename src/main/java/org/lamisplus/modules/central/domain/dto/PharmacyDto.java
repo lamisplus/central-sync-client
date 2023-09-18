@@ -19,4 +19,7 @@ public interface PharmacyDto {
 	String getLastModifiedBy();
 
 	String getRegimenLine();
+
+	String getDsdModelType();
+	String getDsdModel();
 }

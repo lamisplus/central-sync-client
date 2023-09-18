@@ -282,4 +282,13 @@ public class ConstantUtility {
     public static final String NO_OF_PARTNERS_ELICITED = "noOfPartnersElicited";
     public static final String OFFERED_INS = "offeredIns";
     public static final String ACCEPTED_INS = "acceptedIns";
+
+    public static final String DSD_MODEL_TYPE = "dsdModelType";
+    public static final String PHARMACY_DSD_MODEL = "dsdModel";
+
+    public static final String TEST_UUID = "testUuid";
+
+    public static final String STATUS = "status";
+
+    public static final String HEPATITIS_SCREENING_RESULT = "hepatitisScreeningResult";
 }

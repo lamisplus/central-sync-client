@@ -281,6 +281,8 @@ public class BuildJson {
                 jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(clinic.getLastModifiedDate()));
                 jsonGenerator.writeStringField(NEXT_APPOINTMENT, dateUtility.ConvertDateToString(clinic.getNextAppointment()));
                 jsonGenerator.writeStringField(LAST_MODIFIED_BY, clinic.getLastModifiedBy());
+                jsonGenerator.writeStringField(UUID, clinic.getUuid());
+                jsonGenerator.writeStringField(HEPATITIS_SCREENING_RESULT, clinic.getHepatitisScreeningResult());
                 jsonGenerator.writeStringField(BODY_WEIGHT, String.valueOf(clinic.getBodyWeight()));
                 jsonGenerator.writeEndObject();
             } catch (IOException e) {
@@ -357,6 +359,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(LAST_MODIFIED_BY, laboratorySample.getModifiedBy());
                 jsonGenerator.writeStringField(ARCHIVED, String.valueOf(laboratorySample.getArchived()));
                 jsonGenerator.writeStringField(SAMPLE_TYPE, laboratorySample.getSampleType());
+                jsonGenerator.writeStringField(TEST_UUID, laboratorySample.getTestUuid());
                 jsonGenerator.writeEndObject();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -403,6 +406,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(ARCHIVED, String.valueOf(laboratoryResult.getArchived()));
                 jsonGenerator.writeStringField(TEST_ID, String.valueOf(laboratoryResult.getTestId()));
                 jsonGenerator.writeStringField(LAB_TEST_NAME, laboratoryResult.getLabTestName());
+                jsonGenerator.writeStringField(TEST_UUID, laboratoryResult.getTestUuid());
 
                 jsonGenerator.writeEndObject();
             } catch (Exception e) {
@@ -430,6 +434,9 @@ public class BuildJson {
                 jsonGenerator.writeStringField(LAST_MODIFIED_BY, pharmacy.getLastModifiedBy());
                 jsonGenerator.writeStringField(ARCHIVED, String.valueOf(pharmacy.getArchived()));
                 jsonGenerator.writeStringField(REGIMEN_LINE, pharmacy.getRegimenLine());
+
+                jsonGenerator.writeStringField(DSD_MODEL_TYPE, pharmacy.getDsdModelType());
+                jsonGenerator.writeStringField(PHARMACY_DSD_MODEL, pharmacy.getDsdModel());
                 jsonGenerator.writeEndObject();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -533,6 +540,9 @@ public class BuildJson {
                 jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(trackerDto.getLastModifiedDate()));
                 jsonGenerator.writeStringField(LAST_MODIFIED_BY, trackerDto.getLastModifiedBy());
                 jsonGenerator.writeStringField(ARCHIVED, String.valueOf(trackerDto.getArchived()));
+
+                jsonGenerator.writeStringField(CAUSE_OF_DEATH, trackerDto.getCauseOfDeath());
+                jsonGenerator.writeStringField(VA_CAUSE_OF_DEATH, trackerDto.getVaCauseOfDeath());
                 jsonGenerator.writeEndObject();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -554,6 +564,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(BARRIERS, eac.getBarriers());
                 jsonGenerator.writeStringField(EAC_SESSION_DATE, dateUtility.ConvertDateToString(eac.getEacSessionDate()));
                 jsonGenerator.writeStringField(EAC_UUID, eac.getEacUuid());
+                jsonGenerator.writeStringField(STATUS, eac.getStatus());
                 jsonGenerator.writeStringField(ADHERENCE, eac.getAdherence());
                 jsonGenerator.writeStringField(FOLLOW_UP_DATE, dateUtility.ConvertDateToString(eac.getFollowUpDate()));
                 jsonGenerator.writeStringField(REFERRAL, eac.getReferral());

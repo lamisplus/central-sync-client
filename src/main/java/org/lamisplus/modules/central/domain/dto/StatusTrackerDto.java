@@ -12,4 +12,7 @@ public interface StatusTrackerDto {
 	String getLastModifiedBy();
 	String getHivStatus();
 	LocalDate getStatusDate();
+
+	String getCauseOfDeath();
+	String getVaCauseOfDeath();
 }
