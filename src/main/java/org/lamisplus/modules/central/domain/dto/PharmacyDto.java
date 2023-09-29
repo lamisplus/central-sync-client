@@ -17,4 +17,9 @@ public interface PharmacyDto {
 	LocalDateTime getLastModifiedDate();
 	LocalDate getNextAppointment();
 	String getLastModifiedBy();
+
+	String getRegimenLine();
+
+	String getDsdModelType();
+	String getDsdModel();
 }

@@ -12,5 +12,8 @@ public interface LaboratorySampleDto {
 	Integer getArchived();
 	LocalDateTime getDateModified();
 	String getModifiedBy();
+	String getSampleType();
+
+	String getTestUuid();
 	
 }

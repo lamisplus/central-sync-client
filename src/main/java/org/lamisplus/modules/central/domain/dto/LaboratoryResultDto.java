@@ -15,5 +15,6 @@ public interface LaboratoryResultDto {
 	String getModifiedBy();
 	Integer getTestId();
 	String getLabTestName();
+	String getTestUuid();
 	
 }

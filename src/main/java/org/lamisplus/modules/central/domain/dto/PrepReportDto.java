@@ -28,10 +28,10 @@ public interface PrepReportDto {
     public LocalDate getDateOfRegistration();
     public String getBaseLineRegimen();
 
-    public Integer getBaselineSystolicBp();
-    public Integer getBaselineDiastolicBp();
-    public String getBaselineWeight();
-    public String getBaselineHeight();
+    public Double getBaselineSystolicBp();
+    public Double getBaselineDiastolicBp();
+    public Double getBaselineWeight();
+    public Double getBaselineHeight();
     public String getHIVStatusAtPrepInitiation();
     public String getIndicationForPrep();
     /*    public String getRiskType();

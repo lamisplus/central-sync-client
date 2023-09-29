@@ -23,7 +23,16 @@ public interface ClinicDataDto {
 	LocalDateTime getLastModifiedDate();
 	LocalDate getNextAppointment();
 	String getLastModifiedBy();
-	//LocalDate getDateOfBirth();
-	//Integer getAge();
+	String getUuid();
+	String getHepatitisScreeningResult();
+	String getRegimenType();
+	String getRegimen();
+	String getCd4Count();
+	String getCd4SemiQuantitative();
+	Integer getC4FlowCytometry();
+	String getCd4Type();
+	Boolean getIsCommencement();
+	Long getCd4();
+	Long getCd4Percentage();
 	
 }

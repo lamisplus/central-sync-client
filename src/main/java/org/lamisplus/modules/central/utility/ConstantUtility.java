@@ -275,4 +275,30 @@ public class ConstantUtility {
 
     public static final String TREATMENT_METHOD_DATE = "treatmentMethodDate";
     public static final String DATE_OF_ENROLLMENT = "dateOfEnrollment";
+
+    public static final String REGIMEN_LINE = "regimenLine";
+    public static final String SAMPLE_TYPE = "sampleType";
+
+    public static final String NO_OF_PARTNERS_ELICITED = "noOfPartnersElicited";
+    public static final String OFFERED_INS = "offeredIns";
+    public static final String ACCEPTED_INS = "acceptedIns";
+
+    public static final String DSD_MODEL_TYPE = "dsdModelType";
+    public static final String PHARMACY_DSD_MODEL = "dsdModel";
+
+    public static final String TEST_UUID = "testUuid";
+
+    public static final String STATUS = "status";
+
+    public static final String HEPATITIS_SCREENING_RESULT = "hepatitisScreeningResult";
+
+    public static final String REGIMEN_TYPE = "regimenType";
+    public static final String REGIMEN = "regimen";
+    public static final String CD4_COUNT = "cd4Count";
+    public static final String CD4_SEMI_QUANTITATIVE = "cd4SemiQuantitative";
+    public static final String CD4_FLOW_CYTOMETRY = "cd4FlowCytometry";
+    public static final String CLINIC_CD4_TYPE = "cd4Type";
+    public static final String IS_COMMENCEMENT = "iscommencement";
+    public static final String CD4 = "cd4";
+    public static final String CD4_PERCENTAGE = "cd4Percentage";
 }
