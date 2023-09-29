@@ -25,8 +25,14 @@ public interface ClinicDataDto {
 	String getLastModifiedBy();
 	String getUuid();
 	String getHepatitisScreeningResult();
-
-	//LocalDate getDateOfBirth();
-	//Integer getAge();
+	String getRegimenType();
+	String getRegimen();
+	String getCd4Count();
+	String getCd4SemiQuantitative();
+	Integer getC4FlowCytometry();
+	String getCd4Type();
+	Boolean getIsCommencement();
+	Long getCd4();
+	Long getCd4Percentage();
 	
 }

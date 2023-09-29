@@ -291,4 +291,14 @@ public class ConstantUtility {
     public static final String STATUS = "status";
 
     public static final String HEPATITIS_SCREENING_RESULT = "hepatitisScreeningResult";
+
+    public static final String REGIMEN_TYPE = "regimenType";
+    public static final String REGIMEN = "regimen";
+    public static final String CD4_COUNT = "cd4Count";
+    public static final String CD4_SEMI_QUANTITATIVE = "cd4SemiQuantitative";
+    public static final String CD4_FLOW_CYTOMETRY = "cd4FlowCytometry";
+    public static final String CLINIC_CD4_TYPE = "cd4Type";
+    public static final String IS_COMMENCEMENT = "iscommencement";
+    public static final String CD4 = "cd4";
+    public static final String CD4_PERCENTAGE = "cd4Percentage";
 }

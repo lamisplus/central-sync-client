@@ -222,8 +222,8 @@ public class BuildJson {
                 jsonGenerator.writeStringField(BASELINE_REGIMEN, prep.getBaseLineRegimen());
                 jsonGenerator.writeStringField(BASELINE_SYSTOLIC_BP, String.valueOf(prep.getBaselineSystolicBp()));
                 jsonGenerator.writeStringField(BASELINE_DIASTOLIC_BP, String.valueOf(prep.getBaselineDiastolicBp()));
-                jsonGenerator.writeStringField(BASELINE_T_WEIGHT, prep.getBaselineWeight());
-                jsonGenerator.writeStringField(BASELINE_HEIGHT, prep.getBaselineHeight());
+                jsonGenerator.writeStringField(BASELINE_T_WEIGHT, String.valueOf(prep.getBaselineWeight()));
+                jsonGenerator.writeStringField(BASELINE_HEIGHT, String.valueOf(prep.getBaselineHeight()));
                 jsonGenerator.writeStringField(TARGET_GROUP, prep.getTargetGroup());
                 jsonGenerator.writeStringField(PREP_COMMENCEMENT_DATE, dateUtility.ConvertDateToString(prep.getPrepCommencementDate()));
                 jsonGenerator.writeStringField(BASELINE_URINALYSIS, prep.getBaseLineUrinalysis());
@@ -284,6 +284,16 @@ public class BuildJson {
                 jsonGenerator.writeStringField(UUID, clinic.getUuid());
                 jsonGenerator.writeStringField(HEPATITIS_SCREENING_RESULT, clinic.getHepatitisScreeningResult());
                 jsonGenerator.writeStringField(BODY_WEIGHT, String.valueOf(clinic.getBodyWeight()));
+
+                jsonGenerator.writeStringField(REGIMEN_TYPE, clinic.getRegimenType());
+                jsonGenerator.writeStringField(REGIMEN, clinic.getRegimen());
+                jsonGenerator.writeStringField(CD4_COUNT, clinic.getCd4Count());
+                jsonGenerator.writeStringField(CD4_SEMI_QUANTITATIVE, clinic.getCd4SemiQuantitative());
+                jsonGenerator.writeStringField(CD4_FLOW_CYTOMETRY, String.valueOf(clinic.getC4FlowCytometry()));
+                jsonGenerator.writeStringField(CLINIC_CD4_TYPE, clinic.getCd4Type());
+                jsonGenerator.writeStringField(IS_COMMENCEMENT, String.valueOf(clinic.getIsCommencement()));
+                jsonGenerator.writeStringField(CD4, String.valueOf(clinic.getCd4()));
+                jsonGenerator.writeStringField(CD4_PERCENTAGE, String.valueOf(clinic.getCd4Percentage()));
                 jsonGenerator.writeEndObject();
             } catch (IOException e) {
                 log.error("Error generating Clinic JSON: {}", e.getMessage());

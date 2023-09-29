@@ -55,7 +55,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "            rf.display AS referredFrom,      \n" +
             "            ts.display AS testingSetting,      \n" +
             "            tc.display AS counselingType,      \n" +
-            "            preg.display AS pregnacyStatus,      \n" +
+            "            preg.display AS pregnancyStatus,      \n" +
             "            hc.breast_feeding AS breastFeeding,      \n" +
             "            relation.display AS indexType,      \n" +
             "            (CASE WHEN hc.recency->>'optOutRTRI' ILIKE 'true' THEN 'Yes'\n" +
@@ -108,8 +108,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "            LEFT JOIN hts_risk_stratification hrs ON hrs.code = hc.risk_stratification_code           \n" +
             "            LEFT JOIN patient_person pp ON pp.uuid=hc.person_uuid      \n" +
             "            LEFT JOIN (SELECT * FROM (SELECT p.id, REPLACE(REPLACE(REPLACE(CAST(address_object->>'line' AS text), '\\', ''), ']', ''), '[', '') AS address,       \n" +
-            "            CASE WHEN address_object->>'stateId'  ~ '^\\d(\\.\\d)?$' THEN address_object->>'stateId' ELSE null END  AS stateId,      \n" +
-            "            CASE WHEN address_object->>'district'  ~ '^\\d(\\.\\d)?$' THEN address_object->>'district' ELSE null END  AS lgaId      \n" +
+            "            CASE WHEN address_object->>'stateId'  ~ '^[0-9]+$' THEN address_object->>'stateId' ELSE null END  AS stateId,      \n" +
+            "            CASE WHEN address_object->>'district'  ~ '^[0-9]+$' THEN address_object->>'district' ELSE null END  AS lgaId      \n" +
             "            FROM patient_person p,      \n" +
             "            jsonb_array_elements(p.address-> 'address') with ordinality l(address_object)) as result ) r ON r.id=pp.id      \n" +
             "            LEFT JOIN base_organisation_unit res_state ON res_state.id=CAST(r.stateid AS BIGINT)      \n" +
@@ -156,18 +156,18 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "            boui.code as datimId, res_state.name as residentialState, res_lga.name as residentialLga,      " +
             "            r.address as address, p.contact_point->'contactPoint'->0->'value'->>0 AS phone,      " +
             "            baseline_reg.regimen AS baselineRegimen,      " +
-            "            baseline_pc.systolic AS baselineSystolicBP,      " +
-            "            baseline_pc.diastolic AS baselineDiastolicBP,      " +
-            "            baseline_pc.weight AS baselinetWeight,      " +
+            "            clinic.systolic AS baselineSystolicBP,      " +
+            "            clinic.diastolic AS baselineDiastolicBP,      " +
+            "            baseline_pc.weight AS baselineWeight,      " +
             "            baseline_pc.height AS baselineHeight,    " +
             "            tg.display AS targetGroup,    " +
             "            baseline_pc.encounter_date AS prepCommencementDate,    " +
-            "            baseline_pc.urinalysis->>'result' AS baseLineUrinalysis,   " +
+            "            CAST(baseline_pc.urinalysis->>'result' AS VARCHAR) AS baseLineUrinalysis,   " +
             "            CAST(baseline_pc.urinalysis->>'testDate' AS DATE) AS baseLineUrinalysisDate,   " +
-            "            (CASE WHEN baseline_pc.other_tests_done->>'name'='Creatinine'    " +
-            "            THEN baseline_pc.other_tests_done->>'result' ELSE NULL END) AS baseLineCreatinine,   " +
-            "            baseline_pc.hepatitis->>'result' AS baseLineHepatitisB,   " +
-            "            baseline_pc.hepatitis->>'result' AS baseLineHepatitisC,   " +
+            "            (CASE WHEN clinic.other_tests_done->>'name'='Creatinine'    " +
+            "            THEN CAST(clinic.other_tests_done->>'result' AS VARCHAR) ELSE NULL END) AS baseLineCreatinine,   " +
+            "            clinic.hepatitis->>'result' AS baseLineHepatitisB,   " +
+            "            clinic.hepatitis->>'result' AS baseLineHepatitisC,   " +
             "            current_pi.reason_stopped AS InterruptionReason,   " +
             "            current_pi.encounter_date AS InterruptionDate,   " +
             "             (CASE WHEN baseline_hiv_status.display IS NULL AND base_eli_test.base_eli_hiv_result IS NOT NULL    " +
@@ -188,7 +188,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "            WHEN he.date_started IS NOT NULL THEN 'Positive' ELSE NULL    " +
             "  END) AS currentHivStatus,      " +
             "  current_pc.encounter_date AS DateOfCurrentHIVStatus, " +
-            "            (CASE WHEN current_pc.pregnant IS NOT NULL AND current_pc.pregnant='true' THEN 'Pregnant'      " +
+            "            (CASE WHEN p.sex = 'Male' THEN NULL " +
+            " WHEN current_pc.pregnant IS NOT NULL AND current_pc.pregnant='true' THEN 'Pregnant'      " +
             "            ELSE 'Not Pregnant' END) AS pregnancyStatus, " +
             " (CASE  " +
             " WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display " +
@@ -201,8 +202,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "            FROM patient_person p      " +
             "            INNER JOIN (      " +
             "            SELECT * FROM (SELECT p.id, REPLACE(REPLACE(REPLACE(CAST(address_object->>'line' AS text), '\\', ''), ']', ''), '[', '') AS address,       " +
-            "             CASE WHEN address_object->>'stateId'  ~ '^\\d(\\.\\d)?$' THEN address_object->>'stateId' ELSE null END  AS stateId,      " +
-            "             CASE WHEN address_object->>'district'  ~ '^\\d(\\.\\d)?$' THEN address_object->>'district' ELSE null END  AS lgaId      " +
+            "             CASE WHEN address_object->>'stateId'  ~ '^[0-9]+$' THEN address_object->>'stateId' ELSE null END  AS stateId,      " +
+            "             CASE WHEN address_object->>'district'  ~ '^[0-9]+$' THEN address_object->>'district' ELSE null END  AS lgaId      " +
             "               FROM patient_person p,      " +
             "                     jsonb_array_elements(p.address-> 'address') with ordinality l(address_object)) as result      " +
             "            ) r ON r.id=p.id " +
@@ -239,7 +240,11 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "            LEFT JOIN (SELECT pc.* FROM prep_clinic pc      " +
             "            INNER JOIN (SELECT DISTINCT MIN(encounter_date)encounter_date, person_uuid FROM prep_clinic      " +
             "            GROUP BY person_uuid)min ON min.encounter_date=pc.encounter_date       " +
-            "            AND min.person_uuid=pc.person_uuid)baseline_pc ON baseline_pc.person_uuid=p.uuid      " +
+            "            AND min.person_uuid=pc.person_uuid)baseline_pc ON baseline_pc.person_uuid=p.uuid     " +
+            " LEFT JOIN (SELECT pc.* FROM prep_clinic pc       \n" +
+            "  INNER JOIN (SELECT DISTINCT MIN(encounter_date)encounter_date, person_uuid FROM prep_clinic       \n" +
+            "   WHERE is_commencement=FALSE GROUP BY person_uuid )min ON min.encounter_date=pc.encounter_date        \n" +
+            "    AND min.person_uuid=pc.person_uuid)clinic ON clinic.person_uuid=p.uuid " +
             "            LEFT JOIN prep_regimen baseline_reg ON baseline_reg.id = baseline_pc.regimen_id      " +
             "            LEFT JOIN base_application_codeset baseline_hiv_status ON baseline_hiv_status.code=baseline_pc.hiv_test_result " +
             " LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid " +
@@ -2641,13 +2646,22 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "           ELSE NULL END ) AS pregnancyStatus, \n" +
             "           hac.next_appointment as nextAppointment , \n" +
             "           hac.visit_date as visitDate, \n" +
-            "           funStatus.display as funtionalStatus, \n" +
+            "           funStatus.display as functionalStatus, \n" +
             "           clnicalStage.display as clinicalStage, \n" +
             "           tbStatus.display as tbStatus,\n" +
             "\t\t   hac.archived,\n" +
             "\t\t   hac.last_modified_date AS lastModifiedDate,\n" +
             "\t\t   hac.last_modified_by AS lastModifiedBy,\n" +
-            "\t\t   hac.uuid\n" +
+            "\t\t   hac.uuid, " +
+            "rt.description AS regimentype,\n" +
+            "\t\t\t   reg.description AS regimen,\n" +
+            "\t\t\t   hac.cd4_count AS cd4count,\n" +
+            "\t\t\t   hac.cd4_semi_quantitative AS cd4semiquantitative,\n" +
+            "\t\t\t   hac.cd4_flow_cytometry AS cd4flowcytometry,\n" +
+            "\t\t\t   hac.cd4_type AS cd4type,\n" +
+            "\t\t\t   hac.is_commencement AS iscommencement,\n" +
+            "\t\t\t   hac.cd_4 AS cd4,\n" +
+            "\t\t\t   hac.cd_4_percentage AS cd4percentage\n" +
             "           FROM \n" +
             "                patient_person p \n" +
             "                      INNER JOIN base_organisation_unit facility ON facility.id = facility_id \n" +
@@ -2656,6 +2670,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "                      INNER JOIN base_organisation_unit_identifier boui ON boui.organisation_unit_id = facility_id AND boui.name='DATIM_ID' \n" +
             "                      INNER JOIN hiv_art_clinical hac ON hac.person_uuid = p.uuid  \n" +
             "           LEFT JOIN base_application_codeset preg ON preg.code = hac.pregnancy_status\n" +
+            " LEFT JOIN hiv_regimen_type rt ON rt.id=hac.regimen_type_id\n" +
+            "\t\t\t\t\t\t\t\t  LEFT JOIN hiv_regimen reg ON reg.id=hac.regimen_id " +
             "                  INNER JOIN base_application_codeset funStatus ON funStatus.id = hac.functional_status_id \n" +
             "                  INNER JOIN base_application_codeset clnicalStage ON clnicalStage.id = hac.clinical_stage_id \n" +
             "                  INNER JOIN base_application_codeset tbStatus ON tbStatus.id = CAST(regexp_replace(hac.tb_status, '[^0-9]', '', 'g') AS INTEGER)  \n" +
@@ -2676,8 +2692,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "   INNER JOIN ( \n" +
             "   SELECT * FROM (SELECT p.id, REPLACE(REPLACE(REPLACE(REPLACE(CAST(address_object->>'line' AS text), '\\', ''), ']', ''), '[', ''), '\"', '') AS address, \n" +
             "   REPLACE(REPLACE(REPLACE(CAST(address_object->>'city' AS text), '\\\\', ''), ']', ''), '[', '') AS city, \n" +
-            " CASE WHEN address_object->>'stateId'  ~ '^\\d(\\.\\d)?$' THEN address_object->>'stateId' ELSE null END  AS stateId, \n" +
-            " CASE WHEN address_object->>'district'  ~ '^\\d(\\.\\d)?$' THEN address_object->>'district' ELSE null END  AS lgaId \n" +
+            " CASE WHEN address_object->>'stateId'  ~ '^[0-9]+$' THEN address_object->>'stateId' ELSE null END  AS stateId, \n" +
+            " CASE WHEN address_object->>'district'  ~ '^[0-9]+$' THEN address_object->>'district' ELSE null END  AS lgaId \n" +
             "       FROM patient_person p, \n" +
             " jsonb_array_elements(p.address-> 'address') with ordinality l(address_object)) as result \n" +
             "   ) r ON r.id=p.id \n" +
@@ -2767,7 +2783,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "he.ovc_number AS ovcNumber, he.house_hold_number AS houseHoldNumber, \n" +
             "he.facility_name AS facilityName, he.unique_id AS uniqueId,\n" +
             "he.date_confirmed_hiv AS dateConfirmedHiv, he.date_started AS dateStarted,\n" +
-            "esettings.display AS enrollmenSetting, enpoint.display AS entryPoint,\n" +
+            "esettings.display AS enrollmentSetting, enpoint.display AS entryPoint,\n" +
             "targetg.display AS targetGroup, stareg.display AS statusAtRegistration,\n" +
             "pregsta.display AS pregnancyStatus, tbstat.display AS tbStatus,\n" +
             "he.last_modified_date AS lastModifiedDate, \n" +
@@ -2779,7 +2795,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "LEFT JOIN base_application_codeset esettings ON esettings.id=he.enrollment_setting_id\n" +
             "LEFT JOIN base_application_codeset pregsta ON pregsta.id=he.pregnancy_status_id\n" +
             "LEFT JOIN base_application_codeset tbstat ON tbstat.id=he.tb_status_id\n" +
-            "INNER JOIN base_organisation_unit_identifier facility ON facility.organisation_unit_id=he.facility_id " +
+            "INNER JOIN base_organisation_unit_identifier facility ON facility.organisation_unit_id=he.facility_id AND facility.name='DATIM_ID'" +
             "WHERE he.facility_id=?1 AND he.last_modified_date >= ?2 AND he.last_modified_date <= ?3 ",nativeQuery = true)
     List<EnrollmentDto> getEnrollmentData(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
 
@@ -2788,7 +2804,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "ho.last_modified_by AS lastModifiedBy, ho.date_of_observation AS dateOfObservation, " +
             "ho.person_uuid AS personUuid, ho.type, ho.uuid, CAST(ho.data AS VARCHAR) AS data, ho.archived \n" +
             "FROM hiv_observation ho " +
-            "INNER JOIN base_organisation_unit_identifier facility ON facility.organisation_unit_id=ho.facility_id " +
+            "INNER JOIN base_organisation_unit_identifier facility ON facility.organisation_unit_id=ho.facility_id AND facility.name='DATIM_ID' " +
             "WHERE ho.facility_id=?1 AND ho.last_modified_date >= ?2 AND ho.last_modified_date <= ?3 ",nativeQuery = true)
     List<ObservationDto> getObservationData(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
 
@@ -2799,7 +2815,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "cause_of_death AS causeOfDeath, va_cause_of_death AS vaCauseOfDeath, " +
             "ROW_NUMBER () OVER (PARTITION BY hst.person_id ORDER BY hst.status_date DESC)\n" +
             "FROM hiv_status_tracker hst \n" +
-            "INNER JOIN base_organisation_unit_identifier facility ON facility.organisation_unit_id=hst.facility_id\n" +
+            "INNER JOIN base_organisation_unit_identifier facility ON facility.organisation_unit_id=hst.facility_id AND facility.name='DATIM_ID'" +
             "WHERE hst.auto=false AND hst.facility_id=?1 AND hst.last_modified_date >= ?2 " +
             "AND hst.last_modified_date <= ?3) rn WHERE row_number < 5 ",nativeQuery = true)
     List<StatusTrackerDto> getStatusTrackerData(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
@@ -2810,7 +2826,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "intervention_others AS interventionOthers, comment, follow_up_date AS followUpDate,\n" +
             "eac_session_date AS eacSessionDate,referral,adherence,uuid,status,archived,\n" +
             "facility.code AS datimid FROM hiv_eac_session\n" +
-            "INNER JOIN base_organisation_unit_identifier facility ON facility.organisation_unit_id=hiv_eac_session.facility_id " +
+            "INNER JOIN base_organisation_unit_identifier facility ON facility.organisation_unit_id=hiv_eac_session.facility_id AND facility.name='DATIM_ID'" +
             "WHERE facility_id=?1 AND last_modified_date >= ?2 AND last_modified_date <= ?3 ",nativeQuery = true)
     List<EacDto> getEacData(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate);
 
