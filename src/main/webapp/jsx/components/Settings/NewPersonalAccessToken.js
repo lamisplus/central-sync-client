@@ -56,7 +56,7 @@ const useStyles = makeStyles(theme => ({
 
 
 
-const DatabaseSyn = (props) => {
+const NewToken = (props) => {
     const classes = useStyles()
     const [urlHide, setUrlHide] = useState(false);
     const defaultValues = { username: "", password: "", url:"" }
@@ -137,88 +137,85 @@ const DatabaseSyn = (props) => {
   return (      
       <div >
          
-              <Modal isOpen={props.showModal} toggle={props.toggleModal} className={props.className} size="lg" backdrop={false} backdrop="static">
+            <Modal isOpen={props.showModal} toggle={props.toggleModal} className={props.className} size="lg" backdrop={false} backdrop="static">
               <Form >
-             <ModalHeader toggle={props.toggleModal}>Personal Access Token </ModalHeader>
+                <ModalHeader toggle={props.toggleModal}>Personal Access Token </ModalHeader>
                 <ModalBody>
-                    
-                        <Card >
-                            <CardBody>
-                                <Row >
+                    <Card >
+                    <CardBody>
+                    <Row >
 
-                                <Col md={12}>
-                                <FormGroup>
-                                <Label >Server URL * </Label>
-                                        <Input
-                                            type="text"
-                                            name="url"
-                                            id="url"
-                                            value={patDetails.url} 
-                                            onChange={handleInputChange}
-                                            style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                            required
-                                            />
-                                            {errors.url !=="" ? (
-                                                            <span className={classes.error}>{errors.url}</span>
-                                                        ) : "" }   
-                                </FormGroup>
-                                </Col>                
-                                <Col md={12}>
-                            <FormGroup>
-                            <Label >Username </Label>
-                                    <Input
-                                        type="text"
-                                        name="username"
-                                        id="username" 
-                                        value={patDetails.username}
-                                        onChange={handleInputChange}
-                                        style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                        required
-                                        />
-                                        {errors.username !=="" ? (
-                                            <span className={classes.error}>{errors.username}</span>
-                                        ) : "" }
-                            </FormGroup>
-                            </Col>
                             <Col md={12}>
                             <FormGroup>
-                            <Label >Password </Label>
+                            <Label >Server URL * </Label>
                                     <Input
-                                        type="password"
-                                        name="password"
-                                        id="password" 
-                                        value={patDetails.password}
+                                        type="text"
+                                        name="url"
+                                        id="url"
+                                        value={patDetails.url} 
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
                                         required
                                         />
-                                            {errors.password !=="" ? (
-                                                <span className={classes.error}>{errors.password}</span>
-                                            ) : "" }
+                                        {errors.url !=="" ? (
+                                                        <span className={classes.error}>{errors.url}</span>
+                                                    ) : "" }   
                             </FormGroup>
-                            </Col>                    
-                        </Row>
-                            {saving ? <Spinner /> : ""}
-                            <br/>              
-                                <Button
-                                    type='submit'
-                                    variant='contained'
-                                    //color='primary'
-                                    style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
-                                    //startIcon={<SettingsBackupRestoreIcon />}
-                                    onClick={handleSubmit}
-                                    
-                                >   
-                                    <span style={{ textTransform: "capitalize ", color:"#fff" }}>Connect & Generate Token</span>  
-                                </Button>
-                            </CardBody>
-                        </Card> 
-                    </ModalBody>
-        
-                </Form>
+                            </Col>                
+                            <Col md={12}>
+                        <FormGroup>
+                        <Label >Username </Label>
+                                <Input
+                                    type="text"
+                                    name="username"
+                                    id="username" 
+                                    value={patDetails.username}
+                                    onChange={handleInputChange}
+                                    style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
+                                    required
+                                    />
+                                    {errors.username !=="" ? (
+                                        <span className={classes.error}>{errors.username}</span>
+                                    ) : "" }
+                        </FormGroup>
+                        </Col>
+                        <Col md={12}>
+                        <FormGroup>
+                        <Label >Password </Label>
+                                <Input
+                                    type="password"
+                                    name="password"
+                                    id="password" 
+                                    value={patDetails.password}
+                                    onChange={handleInputChange}
+                                    style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
+                                    required
+                                    />
+                                        {errors.password !=="" ? (
+                                            <span className={classes.error}>{errors.password}</span>
+                                        ) : "" }
+                        </FormGroup>
+                        </Col>                    
+                    </Row>
+                    {saving ? <Spinner /> : ""}
+                    <br/>              
+                        <Button
+                            type='submit'
+                            variant='contained'
+                            //color='primary'
+                            style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
+                            //startIcon={<SettingsBackupRestoreIcon />}
+                            onClick={handleSubmit}   
+                        >   
+                            <span style={{ textTransform: "capitalize ", color:"#fff" }}>Connect & Generate Token</span>  
+                        </Button>
+                    </CardBody>
+                    </Card> 
+                </ModalBody>
+            </Form>
       </Modal>
     </div>
   );
 }
 
-export default DatabaseSyn;
+export default NewToken;
