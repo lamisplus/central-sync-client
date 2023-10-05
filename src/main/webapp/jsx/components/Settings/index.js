@@ -47,7 +47,6 @@ const TabExampleMenuPositionRight = (props) => {
     }
 
     const handleSubmit = (e) => {
-      console.log(patDetails)
       e.preventDefault();      
       setSaving(true);
       axios.post(`${baseUrl}sync/remote-access-token`,
