@@ -115,7 +115,7 @@ const SyncList = (props) => {
   const toggle = () => setModal(!modal);
   const [modal2, setModal2] = useState(false);
   const toggle2 = () => setModal2(!modal2);
-  const defaultValues = { facilityId: "", startDate : "", endDate:"", all:true}
+  const defaultValues = { facilityId: "", startDate : "", endDate:"", all:false}
   const [uploadDetails, setUploadDetails] = useState(defaultValues);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
