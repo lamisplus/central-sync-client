@@ -115,7 +115,7 @@ const SyncList = (props) => {
   const toggle = () => setModal(!modal);
   const [modal2, setModal2] = useState(false);
   const toggle2 = () => setModal2(!modal2);
-  const defaultValues = { facilityId: "", startDate : "", endDate:"", all:true}
+  const defaultValues = { facilityId: "", startDate : "", endDate:"", all:false}
   const [uploadDetails, setUploadDetails] = useState(defaultValues);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -230,7 +230,6 @@ useEffect(() => {
     }
     const  sendToServerAction = (fileName,facilityId) => {
         setModal2(true)
-        console.log("the server call is here")
          //SENDING A POST REQUEST 
          axios.post(`${baseUrl}export/send-data?fileName=${fileName}&facilityId=${facilityId}`,fileName,
                      { headers: {"Authorization" : `Bearer ${token}`} }
