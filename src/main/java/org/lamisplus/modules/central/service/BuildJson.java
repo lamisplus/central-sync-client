@@ -23,6 +23,7 @@ import static org.lamisplus.modules.central.utility.ConstantUtility.NUMBER_OF_LU
 @Component
 @RequiredArgsConstructor
 public class BuildJson {
+    public static final String MASKED = "xxxxxx";
     private final DateUtility dateUtility;
     public void buildHtsJson(JsonGenerator jsonGenerator, List<HtsReportDto> htsList, String period) {
         for (HtsReportDto hts : htsList) {
@@ -34,13 +35,12 @@ public class BuildJson {
                 jsonGenerator.writeStringField(DATIM_CODE, hts.getDatimCode());
                 jsonGenerator.writeStringField(PATIENT_ID, hts.getPatientId());
                 jsonGenerator.writeStringField(CLIENT_CODE, hts.getClientCode());
-                jsonGenerator.writeStringField(FIRST_NAME, hts.getFirstName());
-                jsonGenerator.writeStringField(SURNAME, hts.getSurname());
-                jsonGenerator.writeStringField(OTHER_NAME, hts.getOtherName());
+                jsonGenerator.writeStringField(FIRST_NAME, MASKED);
+                jsonGenerator.writeStringField(SURNAME, MASKED);
+                jsonGenerator.writeStringField(OTHER_NAME, MASKED);
                 jsonGenerator.writeStringField(SEX, hts.getSex());
                 jsonGenerator.writeStringField(AGE, String.valueOf(hts.getAge()));
-                jsonGenerator.writeStringField(DATE_OF_BIRTH, dateUtility.ConvertDateToString(hts.getDateOfBirth()));
-                jsonGenerator.writeStringField(PHONE_NUMBER, hts.getPhoneNumber());
+                jsonGenerator.writeStringField(DATE_OF_BIRTH,MASKED);
                 jsonGenerator.writeStringField(MARITAL_STATUS, hts.getMaritalStatus());
                 jsonGenerator.writeStringField(LGA_OF_RESIDENCE, hts.getLgaOfResidence());
                 jsonGenerator.writeStringField(STATE_OF_RESIDENCE, hts.getStateOfResidence());
@@ -48,7 +48,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(OCCUPATION, hts.getOccupation());
                 jsonGenerator.writeStringField(HTS_LATITUDE, hts.getHtsLatitude());
                 jsonGenerator.writeStringField(HTS_LONGITUDE, hts.getHtsLongitude());
-                jsonGenerator.writeStringField(CLIENT_ADDRESS, hts.getClientAddress());
+                jsonGenerator.writeStringField(CLIENT_ADDRESS, MASKED);
                 jsonGenerator.writeStringField(DATE_VISIT, dateUtility.ConvertDateToString(hts.getDateVisit()));
                 jsonGenerator.writeStringField(FIRST_TIME_VISIT, hts.getFirstTimeVisit());
                 jsonGenerator.writeStringField(NUMBER_OF_CHILDREN, String.valueOf(hts.getNumberOfChildren()));
@@ -204,11 +204,11 @@ public class BuildJson {
                 jsonGenerator.writeStringField(DATIM_ID, prep.getDatimId());
                 jsonGenerator.writeStringField(PERSON_UUID, prep.getPersonUuid());
                 jsonGenerator.writeStringField(HOSPITAL_NUMBER, prep.getHospitalNumber());
-                jsonGenerator.writeStringField(SURNAME, prep.getSurname());
-                jsonGenerator.writeStringField(FIRST_NAME, prep.getFirstName());
+                jsonGenerator.writeStringField(SURNAME, MASKED);
+                jsonGenerator.writeStringField(FIRST_NAME, MASKED);
                 jsonGenerator.writeStringField(HIV_ENROLLMENT_DATE, dateUtility.ConvertDateToString(prep.getHivEnrollmentDate()));
                 jsonGenerator.writeStringField(AGE, String.valueOf(prep.getAge()));
-                jsonGenerator.writeStringField(OTHER_NAME, prep.getOtherName());
+                jsonGenerator.writeStringField(OTHER_NAME, MASKED);
                 jsonGenerator.writeStringField(SEX, prep.getSex());
                 jsonGenerator.writeStringField(DATE_OF_BIRTH, dateUtility.ConvertDateToString(prep.getDateOfBirth()));
                 jsonGenerator.writeStringField(DATE_OF_REGISTRATION, dateUtility.ConvertDateToString(prep.getDateOfRegistration()));
@@ -218,7 +218,7 @@ public class BuildJson {
                 jsonGenerator.writeStringField(RESIDENTIAL_STATE, prep.getResidentialState());
                 jsonGenerator.writeStringField(RESIDENTIAL_LGA, prep.getResidentialLga());
                 //jsonGenerator.writeStringField(ADDRESS, prep.getAddress());
-                jsonGenerator.writeStringField(PHONE, prep.getPhone());
+                jsonGenerator.writeStringField(PHONE, MASKED);
                 jsonGenerator.writeStringField(BASELINE_REGIMEN, prep.getBaseLineRegimen());
                 jsonGenerator.writeStringField(BASELINE_SYSTOLIC_BP, String.valueOf(prep.getBaselineSystolicBp()));
                 jsonGenerator.writeStringField(BASELINE_DIASTOLIC_BP, String.valueOf(prep.getBaselineDiastolicBp()));
@@ -312,9 +312,9 @@ public class BuildJson {
                 jsonGenerator.writeStringField(DATIM_ID, patient.getDatimId());
                 jsonGenerator.writeStringField(PERSON_UUID, patient.getPersonUuid());
                 jsonGenerator.writeStringField(HOSPITAL_NUMBER, patient.getHospitalNumber());
-                jsonGenerator.writeStringField(SURNAME, patient.getSurname());
-                jsonGenerator.writeStringField(PATIENT_FIRST_NAME, patient.getFirstName());
-                jsonGenerator.writeStringField(PATIENT_OTHER_NAME, patient.getOtherName());
+                jsonGenerator.writeStringField(SURNAME, MASKED);
+                jsonGenerator.writeStringField(PATIENT_FIRST_NAME, MASKED);
+                jsonGenerator.writeStringField(PATIENT_OTHER_NAME, MASKED);
                 jsonGenerator.writeStringField(PATIENT_DATE_OF_BIRTH, dateUtility.ConvertDateToString(patient.getDateOfBirth()));
                 jsonGenerator.writeStringField(LAST_MODIFIED_DATE, dateUtility.ConvertDateTimeToString(patient.getLastModifiedDate()));
                 jsonGenerator.writeStringField(LAST_MODIFIED_BY, patient.getLastModifiedBy());
@@ -325,9 +325,9 @@ public class BuildJson {
                 jsonGenerator.writeStringField(PATIENT_RESIDENTIAL_LGA, patient.getResidentialLga());
                 jsonGenerator.writeStringField(TOWN, patient.getTown());
                 jsonGenerator.writeStringField(SEX, patient.getSex());
-                jsonGenerator.writeStringField(ADDRESS, patient.getAddress());
+                jsonGenerator.writeStringField(ADDRESS, MASKED);
                 jsonGenerator.writeStringField(OCCUPATION, patient.getOccupation());
-                jsonGenerator.writeStringField(PHONE, patient.getPhone());
+                jsonGenerator.writeStringField(PHONE, MASKED);
                 jsonGenerator.writeStringField(ARCHIVED, String.valueOf(patient.getArchived()));
                 jsonGenerator.writeEndObject();
             } catch (Exception e) {

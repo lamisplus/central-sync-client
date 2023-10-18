@@ -141,7 +141,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "\t\t  LEFT JOIN base_application_codeset bac ON bac.code = hrs.entry_point\n" +
             "\t\t  LEFT JOIN base_application_codeset modality_code ON modality_code.code = hrs.modality )\n" +
             "\n" +
-            "SELECT * from bio b\n" +
+            "SELECT DISTINCT on (b.clientcode, b.firstname, b.surname) b.clientcode AS code2, * from bio b\n" +
             "LEFT JOIN ins i on i.client_code=b.clientcode\n" +
             "LEFT JOIN strat st on st.strat_client_code=b.clientcode", nativeQuery = true)
     List<HtsReportDto> getHtsReport(Long facilityId, LocalDate start, LocalDate end);
