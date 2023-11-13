@@ -24,12 +24,11 @@ import java.util.List;
 public class SyncServiceImpl implements SyncService {
     private final SyncHistoryRepository syncHistoryRepository;
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
-    private final RadetUploadTrackersRepository radetUploadTrackersRepository;
     private final RemoteAccessTokenRepository accessTokenRepository;
 
     @Override
     public String getDatimId(Long facilityId) {
-        String datimId = radetUploadTrackersRepository.getDatimCode(facilityId);
+        String datimId = syncHistoryRepository.getDatimCode(facilityId);
         return datimId;
 
     }

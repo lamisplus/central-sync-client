@@ -22,4 +22,7 @@ public interface SyncHistoryRepository  extends JpaRepository<SyncHistory, Long>
 
     @Query(value = "SELECT * FROM sync_history WHERE table_name ILIKE ?1", nativeQuery = true)
     Optional<SyncHistory> getFile(String name);
+
+    @Query(value = "SELECT code FROM public.base_organisation_unit_identifier WHERE organisation_unit_id = ?1 AND name='DATIM_ID'", nativeQuery = true)
+    String getDatimCode(Long orgUnit);
 }
