@@ -2,25 +2,50 @@ package org.lamisplus.modules.central.service;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.audit4j.core.util.Log;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.lamisplus.modules.central.config.DomainConfiguration;
+import org.lamisplus.modules.central.config.ResultSetToJsonMapper;
 import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
 import org.lamisplus.modules.central.repository.RadetUploadTrackersRepository;
 import org.lamisplus.modules.central.repository.ReportRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.utility.*;
+import org.lamisplus.modules.patient.domain.entity.Person;
+import org.lamisplus.modules.patient.repository.PersonRepository;
+import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Qualifier;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.sql.DataSource;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 
@@ -42,6 +67,10 @@ public class ExportServiceImpl implements ExportService {
     private static ArrayList ERROR_LOG= new ArrayList<>();
     private final DateUtility dateUtility;
     private final QuarterService quarterService;
+    private final DomainConfiguration domainConfiguration;
+    private final DataSource dataSource;
+    //private final NativeQueryToJson nativeQueryToJson;
+
 
     @Override
     public String bulkExport(Long facilityId, Boolean current) {
@@ -61,8 +90,13 @@ public class ExportServiceImpl implements ExportService {
         LocalDate reportEndDate = LocalDate.parse("2023-09-30", formatter);
 
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime reportStartTime = LocalDateTime.parse("1985-01-01 00:00:00", timeFormatter);
-        LocalDateTime reportEndTime = LocalDateTime.parse(LocalDateTime.now().format(timeFormatter), timeFormatter).plusDays(ONE_DAY);
+        LocalDateTime reportStartTime = LocalDateTime.parse("1985-01-01 01:01:01", timeFormatter);
+        String start = "1985-01-01 01:01:01";
+
+        String end = LocalDateTime.now().format(timeFormatter);
+        System.out.println("end is " + end);
+        LocalDateTime reportEndTime = LocalDateTime.parse(end, timeFormatter);
+        System.out.println("end date is " + reportEndTime);
 
         SyncHistory history = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
 
@@ -92,41 +126,10 @@ public class ExportServiceImpl implements ExportService {
             log.info("Extracting data to JSON");
             syncData(fileFolder, current);
             log.info("Extracting Extract data to JSON");
-            boolean radetIsProcessed = extractExport(facilityId, reportStartDate, reportEndDate, PERIOD, fileFolder);
-            log.info("Extracting HTS data to JSON");
-            boolean htsIsProcessed = htsExport(facilityId, reportStartDate, reportEndDate, PERIOD, fileFolder);
-            log.info("Extracting PrEP data to JSON");
-            boolean prepIsProcessed = prepExport(facilityId, reportStartDate, reportEndDate, PERIOD, fileFolder);
-            log.info("Extracting Clinic data to JSON");
-            boolean clinicIsProcessed = clinicExport(facilityId, reportStartTime, reportEndTime, fileFolder);
-            log.info("Extracting Patient data to JSON");
-            boolean patientIsProcessed = patientExport(facilityId, reportStartTime, reportEndTime, fileFolder);
-            log.info("Extracting laboratoryOrder data to JSON");
-            boolean laboratoryOrderIsProcessed = laboratoryOrderExport(facilityId, reportStartTime, reportEndTime, fileFolder);
-            log.info("Extracting laboratorySample data to JSON");
-            boolean laboratorySampleIsProcessed = laboratorySampleExport(facilityId, reportStartTime, reportEndTime, fileFolder);
-            log.info("Extracting laboratoryTest data to JSON");
-            boolean laboratoryTestIsProcessed = laboratoryTestExport(facilityId, reportStartTime, reportEndTime, fileFolder);
-            log.info("Extracting laboratoryResult data to JSON");
-            boolean laboratoryResultIsProcessed = laboratoryResultExport(facilityId, reportStartTime, reportEndTime, fileFolder);
-            log.info("Extracting Pharmacy data to JSON");
-            boolean pharmacyIsProcessed = pharmacyExport(facilityId, reportStartTime, reportEndTime, fileFolder);
-            log.info("Extracting biometric data to JSON");
-            boolean biometricIsProcessed = biometricExport(facilityId, reportStartTime, reportEndTime, fileFolder);
-            log.info("Extracting enrollment data to JSON");
-            boolean enrollmentIsProcessed = enrollmentExport(facilityId, reportStartTime, reportEndTime, fileFolder);
-            log.info("Extracting observation data to JSON");
-            boolean observationIsProcessed = observationExport(facilityId, reportStartTime, reportEndTime, fileFolder);
-            log.info("Extracting status tracker data to JSON");
-            boolean statusTrackerIsProcessed = statusTrackerExport(facilityId, reportStartTime, reportEndTime, fileFolder);
-            log.info("Extracting eac data to JSON");
-            boolean eacIsProcessed = eacExport(facilityId, reportStartTime, reportEndTime, fileFolder);
 
-            if (radetIsProcessed || htsIsProcessed || prepIsProcessed
-                    || clinicIsProcessed || patientIsProcessed || laboratoryOrderIsProcessed
-                    || laboratorySampleIsProcessed || laboratoryTestIsProcessed || eacIsProcessed
-                    || laboratoryResultIsProcessed || pharmacyIsProcessed || biometricIsProcessed
-                    || enrollmentIsProcessed || observationIsProcessed || statusTrackerIsProcessed) {
+            boolean anytable = exportAnyTable("patient_person", facilityId, "last_modified_date", start, "last_modified_date", end, fileFolder);
+            log.info("Extracting patient_person data to JSON");
+            if (anytable) {
                 //log.info("Writing all exports to a zip file");
                 String datimCode = getDatimId(facilityId);
                 //log.info("datimCode {}", datimCode);
@@ -155,6 +158,7 @@ public class ExportServiceImpl implements ExportService {
 
         } catch (Exception e) {
             log.debug("Something went wrong. Error: {}", e.getMessage());
+            e.printStackTrace();
         }
 
         return zipFileName;
@@ -205,13 +209,98 @@ public class ExportServiceImpl implements ExportService {
     }
 
     /**
-     * Handles Extract data export on client.
+     * Handles table data export on client.
+     * @param tableName
      * @param facilityId
-     * @param reportStartDate
-     * @param reportEndDate
+     * @param startName
+     * @param startDate
+     * @param endName
+     * @param endDate
      * @param fileLocation
      * @return boolean - true | false
      */
+    @Override
+    public boolean exportAnyTable(String tableName, Long facilityId, String startName, String startDate, String endName, String endDate, String fileLocation) {
+        String query = null;
+        //where no update or audit column
+        if(startDate == null){
+            query = "SELECT * FROM %s WHERE facility_id=%d ORDER BY id ASC";
+            query = String.format(query, tableName, facilityId);
+        } else {
+            query = "SELECT * FROM %s WHERE facility_id=%d AND %s >= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE) AND %s <= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE) ORDER BY id ASC";
+            query = String.format(query, tableName, facilityId, startName, startDate, endName, endDate);
+        }
+        JSONArray jsonArray = new JSONArray();
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+            jsonArray = ResultSetToJsonMapper.mapResultSet(rs);
+            List list = jsonArray.toList();
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            ConfigureObjectMapper(objectMapper);
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + tableName + ".json";
+            Log.info("Total " + tableName + " Generated " + list.size());
+
+            objectMapper.writeValue(new File(tempFile), list);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            closeDBConnection(conn);
+            return false;
+        }finally {
+            closeDBConnection(conn);
+        }
+
+        return true;
+    }
+
+    /**
+     * Closes an open db connection.
+     * @param connection
+     * @return void
+     */
+    private void closeDBConnection(Connection connection){
+        if(connection != null){
+            try {
+                connection.close();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Configures ObjectMapper
+     * @param objectMapper
+     * @return void
+     */
+    private void ConfigureObjectMapper(ObjectMapper objectMapper) {
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        JsonDeserializer<LocalDateTime> deserializer = new LocalDateTimeDeserializer(formatter);
+        javaTimeModule.addDeserializer(LocalDateTime.class, deserializer);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        //mapper.configure(DeserializationFeature.)
+        objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+        objectMapper.registerModule(javaTimeModule);
+        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+        objectMapper.writer(new DefaultPrettyPrinter());
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+    }
+
+        /**
+         * Handles Extract data export on client.
+         * @param facilityId
+         * @param reportStartDate
+         * @param reportEndDate
+         * @param fileLocation
+         * @return boolean - true | false
+         */
     @Override
     public boolean extractExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period, String fileLocation) {
         boolean isProcessed = false;

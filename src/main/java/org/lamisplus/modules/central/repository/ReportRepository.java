@@ -2,6 +2,7 @@ package org.lamisplus.modules.central.repository;
 
 import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.domain.entity.Report;
+import org.lamisplus.modules.patient.domain.entity.Person;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,6 @@ import java.util.List;
 
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
-
     @Query(value = "WITH bio AS (SELECT hc.client_code AS clientCode,      \n" +
             "            (CASE WHEN hc.person_uuid IS NULL THEN INITCAP(hc.extra->>'first_name') ELSE INITCAP(pp.first_name) END) AS firstName,      \n" +
             "            (CASE WHEN hc.person_uuid IS NULL THEN INITCAP(hc.extra->>'surname') ELSE INITCAP(pp.surname) END) AS surname,      \n" +

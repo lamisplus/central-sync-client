@@ -7,6 +7,9 @@ public interface ExportService {
     //String bulkExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate);
 
     String bulkExport(Long facilityId, Boolean current);
+
+    boolean exportAnyTable(String tableName, Long facilityId, String startName, String startDate, String endName, String endDate, String fileLocation);
+
     boolean extractExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period, String fileLocation);
     boolean htsExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period, String fileLocation);
     boolean prepExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period, String fileLocation);
