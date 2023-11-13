@@ -25,8 +25,8 @@ public class ConfigTable {
     @Column(name = "update_column", nullable = false)
     private String updateColumn;
 
-    @Column(name = "columns", nullable = false)
-    private String columns;
+    @Column(name = "exclude_columns", nullable = false)
+    private String excludeColumns;
 
     @Column(name = "config_module_id", nullable = false)
     private UUID configModuleId;
