@@ -17,21 +17,12 @@ import org.lamisplus.modules.central.config.DomainConfiguration;
 import org.lamisplus.modules.central.config.ResultSetToJsonMapper;
 import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
-import org.lamisplus.modules.central.repository.RadetUploadTrackersRepository;
 import org.lamisplus.modules.central.repository.ReportRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.utility.*;
-import org.lamisplus.modules.patient.domain.entity.Person;
-import org.lamisplus.modules.patient.repository.PersonRepository;
-import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Qualifier;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,13 +30,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 
@@ -57,7 +45,6 @@ public class ExportServiceImpl implements ExportService {
     private final QuarterUtility quarterUtility;
     private final FileUtility fileUtility;
     private final SyncHistoryService syncHistoryService;
-    private final RadetUploadTrackersRepository radetUploadTrackersRepository;
     private final SyncHistoryRepository syncHistoryRepository;
     private final BuildJson buildJson;
     private final SendWebsocketService sendSyncWebsocketService;
@@ -91,18 +78,18 @@ public class ExportServiceImpl implements ExportService {
 
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime reportStartTime = LocalDateTime.parse("1985-01-01 01:01:01", timeFormatter);
-        String start = "1985-01-01 01:01:01";
 
+        String start = "1985-01-01 01:01:01";
         String end = LocalDateTime.now().format(timeFormatter);
-        System.out.println("end is " + end);
+
         LocalDateTime reportEndTime = LocalDateTime.parse(end, timeFormatter);
-        System.out.println("end date is " + reportEndTime);
 
         SyncHistory history = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
 
         if(!current)history=null;
         if(history != null){
             LocalDateTime lastSync = history.getDateLastSync();
+            end = dateUtility.ConvertDateTimeToString(lastSync);
             reportStartTime=LocalDateTime.parse(dateUtility.ConvertDateTimeToString(lastSync), timeFormatter);;
         }
 
@@ -122,10 +109,10 @@ public class ExportServiceImpl implements ExportService {
         }
 
         try {
-            log.info("Initializing data export");
-            log.info("Extracting data to JSON");
+            log.info("Initializing data export...");
+            log.info("Extracting data to JSON...");
             syncData(fileFolder, current);
-            log.info("Extracting Extract data to JSON");
+            log.info("Extracting Extract data to JSON...");
 
             boolean anytable = exportAnyTable("patient_person", facilityId, "last_modified_date", start, "last_modified_date", end, fileFolder);
             log.info("Extracting patient_person data to JSON");
@@ -253,7 +240,6 @@ public class ExportServiceImpl implements ExportService {
         }finally {
             closeDBConnection(conn);
         }
-
         return true;
     }
 
@@ -902,10 +888,8 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public String getDatimId(Long facilityId)
     {
-        //log.info("facilityId {}", facilityId);
-        String datimId = radetUploadTrackersRepository.getDatimCode(facilityId);
+        String datimId = syncHistoryRepository.getDatimCode(facilityId);
         return datimId;
-
     }
 
     private void addError(String name, String error, String others){

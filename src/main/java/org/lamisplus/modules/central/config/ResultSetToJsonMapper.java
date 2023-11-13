@@ -28,8 +28,7 @@ public class ResultSetToJsonMapper
             for (int index = 1; index <= columnCount; index++)
             {
                 String column = rsmd.getColumnName(index);
-                    Object value = rs.getObject(column);
-                System.out.println("value is " + value);
+                Object value = rs.getObject(column);
                     if (value == null) {
                         jsonObject.put(column, "");
                     } else if (value instanceof Integer) {
