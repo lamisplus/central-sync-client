@@ -16,6 +16,7 @@ public class CentralSyncModule extends AcrossModule {
                 getClass ().getPackage ().getName () + ".service",
                 getClass ().getPackage ().getName () + ".controller",
                 getClass ().getPackage ().getName () + ".utility",
+                getClass ().getPackage ().getName () + ".domain.mapper",
                 "org.springframework.web.socket"
         ));
     }

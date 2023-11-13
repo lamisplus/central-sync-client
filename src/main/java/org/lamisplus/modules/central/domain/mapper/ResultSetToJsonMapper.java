@@ -1,4 +1,4 @@
-package org.lamisplus.modules.central.config;
+package org.lamisplus.modules.central.domain.mapper;
 
 // convenient JDBC result set to JSON array mapper
 
@@ -7,12 +7,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.springframework.stereotype.Component;
+
 import java.util.Date;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 @Slf4j
+@Component
 public class ResultSetToJsonMapper
 {
     public static JSONArray mapResultSet(ResultSet rs) throws SQLException, JSONException
