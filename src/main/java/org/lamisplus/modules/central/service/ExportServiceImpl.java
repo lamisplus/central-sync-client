@@ -222,10 +222,10 @@ public class ExportServiceImpl implements ExportService {
         } else
             //where no update or audit column
         if(startDate == null){
-            query = "SELECT * FROM %s WHERE facility_id=%d ORDER BY id ASC";
+            query = "SELECT * FROM %s WHERE facility_id=%d";
             query = String.format(query, tableName, facilityId);
         } else {
-            query = "SELECT * FROM %s WHERE facility_id=%d AND %s >= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE) AND %s <= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE) ORDER BY id ASC";
+            query = "SELECT * FROM %s WHERE facility_id=%d AND %s >= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE) AND %s <= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE)";
             query = String.format(query, tableName, facilityId, startName, startDate, endName, endDate);
         }
 
@@ -283,10 +283,10 @@ public class ExportServiceImpl implements ExportService {
         Long count=0L;
         try {
             if(facilityId == null){
-                query = "SELECT COUNT(id) FROM %s";
+                query = "SELECT COUNT(*) FROM %s";
                 query = String.format(query, tableName);
             } else{
-                    query = "SELECT COUNT(id) FROM %s WHERE facility_id=%d GROUP BY facility_id";
+                    query = "SELECT COUNT(*) FROM %s WHERE facility_id=%d GROUP BY facility_id";
                     query = String.format(query, tableName, facilityId);
                 }
 
