@@ -15,7 +15,6 @@ import java.util.UUID;
 @Builder
 public class ConfigTable {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private UUID id;
 

@@ -15,7 +15,6 @@ import java.util.UUID;
 @Builder
 public class ConfigModule {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private UUID id;
 
