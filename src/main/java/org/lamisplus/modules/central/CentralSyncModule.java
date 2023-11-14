@@ -12,6 +12,7 @@ public class CentralSyncModule extends AcrossModule {
     public CentralSyncModule() {
         super ();
         addApplicationContextConfigurer (new ComponentScanConfigurer(
+                getClass ().getPackage ().getName () + ".domain",
                 getClass ().getPackage ().getName () + ".repository",
                 getClass ().getPackage ().getName () + ".service",
                 getClass ().getPackage ().getName () + ".controller",

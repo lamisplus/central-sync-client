@@ -29,6 +29,9 @@ public class Config {
     @Column(name = "release_date", nullable = false)
     private LocalDateTime releaseDate;
 
+    @Column(name = "upload_date", nullable = false)
+    private LocalDateTime uploadDate;
+
     @Column(name = "active", nullable = false)
     private Boolean active;
 }
