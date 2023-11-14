@@ -28,6 +28,9 @@ public class ConfigTable {
     @Column(name = "exclude_columns", nullable = false)
     private String excludeColumns;
 
+    @Column(name = "has_facility_id")
+    public Boolean hasFacilityId;
+
     @Column(name = "config_module_id", nullable = false)
     private UUID configModuleId;
 }

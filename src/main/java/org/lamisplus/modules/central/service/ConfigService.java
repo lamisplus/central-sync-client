@@ -6,6 +6,7 @@ import org.lamisplus.modules.central.domain.entity.Config;
 import org.lamisplus.modules.central.repository.ConfigRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,6 +17,7 @@ public class ConfigService {
     public final ConfigRepository repository;
 
     public Config Save(Config config){
+        config.setUploadDate(LocalDateTime.now());
         return repository.save(config);
     }
 
