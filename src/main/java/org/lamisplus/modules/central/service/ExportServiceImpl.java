@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.audit4j.core.util.Log;
 import org.json.JSONArray;
 import org.lamisplus.modules.central.config.DomainConfiguration;
+import org.lamisplus.modules.central.domain.entity.ConfigTable;
 import org.lamisplus.modules.central.domain.mapper.ResultSetToJsonMapper;
 import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
@@ -38,6 +39,7 @@ import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 @Service
 @RequiredArgsConstructor
 public class ExportServiceImpl implements ExportService {
+    public static final int FETCH_SIZE = 10000;
     private final ReportRepository repository;
     private final QuarterUtility quarterUtility;
     private final FileUtility fileUtility;
@@ -45,15 +47,15 @@ public class ExportServiceImpl implements ExportService {
     private final SyncHistoryRepository syncHistoryRepository;
     private final BuildJson buildJson;
     private final SendWebsocketService sendSyncWebsocketService;
-    private static String SYNC_ENDPOINT = "topic/sync";
+    private static final String SYNC_ENDPOINT = "topic/sync";
     private static Integer stat;
-    private static Long ONE_DAY=1L;
-    private static ArrayList ERROR_LOG= new ArrayList<>();
+    private static final Long ONE_DAY=1L;
+    private static final ArrayList ERROR_LOG= new ArrayList<>();
     private final DateUtility dateUtility;
     private final QuarterService quarterService;
     private final DomainConfiguration domainConfiguration;
     private final DataSource dataSource;
-    //private final NativeQueryToJson nativeQueryToJson;
+    private final ConfigTableService configTableService;
 
 
     @Override
@@ -87,7 +89,7 @@ public class ExportServiceImpl implements ExportService {
         if(history != null){
             LocalDateTime lastSync = history.getDateLastSync();
             end = dateUtility.ConvertDateTimeToString(lastSync);
-            reportStartTime=LocalDateTime.parse(dateUtility.ConvertDateTimeToString(lastSync), timeFormatter);;
+            reportStartTime=LocalDateTime.parse(dateUtility.ConvertDateTimeToString(lastSync), timeFormatter);
         }
 
         final String PERIOD = reportEndDate.getYear()+quarterService.getCurrentQuarter(reportEndDate).getName();
@@ -110,22 +112,20 @@ public class ExportServiceImpl implements ExportService {
             log.info("Extracting data to JSON...");
             syncData(fileFolder, current);
             log.info("Extracting Extract data to JSON...");
+            boolean anyTable = false;
 
-            boolean anytable = exportAnyTable("patient_person", facilityId, "last_modified_date", start, "last_modified_date", end, fileFolder);
-            log.info("Extracting patient_person data to JSON");
-            if (anytable) {
-                //log.info("Writing all exports to a zip file");
+            List<ConfigTable> configTables = configTableService.getTablesForSyncing();
+            for(ConfigTable configTable : configTables){
+                facilityId = configTable.getUpdateColumn() == null ? null : facilityId;
+                anyTable = exportAnyTable(configTable.getTableName(), facilityId, configTable.getUpdateColumn(), start, configTable.getUpdateColumn(), end, fileFolder);
+            }
+            if (anyTable) {
                 String datimCode = getDatimId(facilityId);
-                //log.info("datimCode {}", datimCode);
                 zipFileName = datimCode+"_" + fileFolder + ".zip";
-                //log.info("zipFileName {}", zipFileName);
 
                 String fullPath = createdFile + File.separator + zipFileName;
-                //log.info("fullPath {}", fullPath);
                 File dir = new File(createdFile + File.separator);
-                //log.info("dir {}", dir.getPath());
                 fileUtility.zipDirectory(dir, fullPath, fileFolder);
-                //log.info("zipFileName {}", zipFileName);
                 //update synchistory
                 int fileSize = (int) fileUtility.getFileSize(fullPath);
                 SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (ERROR_LOG.isEmpty()) ? null : ERROR_LOG, folder);
@@ -205,8 +205,22 @@ public class ExportServiceImpl implements ExportService {
      */
     @Override
     public boolean exportAnyTable(String tableName, Long facilityId, String startName, String startDate, String endName, String endDate, String fileLocation) {
+        Log.info("Started generating... " + tableName);
+        Long level = 0L;
         String query = null;
-        //where no update or audit column
+        JSONArray jsonArray = new JSONArray();
+        Connection conn = null;
+        Long size = countTableRow(tableName, facilityId);
+        log.info("table count is {}", size);
+        Long split = size/FETCH_SIZE;
+        log.info("split is {}", split);
+        size = split > 1 ? split : FETCH_SIZE;
+
+        if(facilityId == null){
+            query = "SELECT * FROM %s ORDER BY id ASC";
+            query = String.format(query, tableName);
+        } else
+            //where no update or audit column
         if(startDate == null){
             query = "SELECT * FROM %s WHERE facility_id=%d ORDER BY id ASC";
             query = String.format(query, tableName, facilityId);
@@ -214,21 +228,28 @@ public class ExportServiceImpl implements ExportService {
             query = "SELECT * FROM %s WHERE facility_id=%d AND %s >= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE) AND %s <= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE) ORDER BY id ASC";
             query = String.format(query, tableName, facilityId, startName, startDate, endName, endDate);
         }
-        JSONArray jsonArray = new JSONArray();
-        Connection conn = null;
+
         try {
             conn = dataSource.getConnection();
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(query);
-            jsonArray = ResultSetToJsonMapper.mapResultSet(rs);
-            List list = jsonArray.toList();
+            //Statement stmt = conn.createStatement();
+            Statement stmt = conn.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY,
+                    java.sql.ResultSet.CONCUR_READ_ONLY);
+            stmt.setFetchSize(FETCH_SIZE);
+            //recursive fetch to carter for pagination
+            do {
+                ResultSet rs = stmt.executeQuery(query);
+                jsonArray = ResultSetToJsonMapper.mapResultSet(rs);
+                List list = jsonArray.toList();
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            ConfigureObjectMapper(objectMapper);
-            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + tableName + ".json";
-            Log.info("Total " + tableName + " Generated " + list.size());
+                ObjectMapper objectMapper = new ObjectMapper();
+                ConfigureObjectMapper(objectMapper);
+                String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + tableName +"_"+ level + ".json";
+                Log.info("Total " + tableName + " Generated... " + list.size());
 
-            objectMapper.writeValue(new File(tempFile), list);
+                objectMapper.writeValue(new File(tempFile), list);
+
+                level = split > 1 ? ++level : FETCH_SIZE;
+            }while (level < size);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -253,6 +274,41 @@ public class ExportServiceImpl implements ExportService {
                 ex.printStackTrace();
             }
         }
+    }
+
+    private Long countTableRow(String tableName, Long facilityId){
+        log.info("counting table row started... {}", tableName);
+        Connection conn = null;
+        String query;
+        Long count=0L;
+        try {
+            if(facilityId == null){
+                query = "SELECT COUNT(id) FROM %s";
+                query = String.format(query, tableName);
+            } else{
+                    query = "SELECT COUNT(id) FROM %s WHERE facility_id=%d GROUP BY facility_id";
+                    query = String.format(query, tableName, facilityId);
+                }
+
+            conn = dataSource.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+
+            while (rs.next()){
+                count = rs.getLong(1);
+            }
+            return count;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return count;
+
     }
 
     /**
