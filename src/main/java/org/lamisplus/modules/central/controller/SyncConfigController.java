@@ -24,7 +24,7 @@ import java.util.UUID;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/sync-config")
+@RequestMapping("api/v1/sync/sync-config")
 public class SyncConfigController {
     private final ConfigService configService;
     private final ConfigModuleService configModuleService;
