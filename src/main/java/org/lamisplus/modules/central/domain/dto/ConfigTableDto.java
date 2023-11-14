@@ -10,5 +10,6 @@ public class ConfigTableDto {
     private String tableName;
     private String updateColumn;
     private String excludeColumns;
+    public Boolean hasFacilityId;
     private UUID configModuleId;
 }
