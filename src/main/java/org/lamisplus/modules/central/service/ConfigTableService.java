@@ -34,4 +34,8 @@ public class ConfigTableService {
     public void Delete(UUID id){
         repository.deleteById(id);
     }
+
+    public List<ConfigTable> getTablesForSyncing(){
+        return repository.getTablesForSyncing();
+    }
 }
