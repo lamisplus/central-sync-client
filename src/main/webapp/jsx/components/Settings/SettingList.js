@@ -29,6 +29,7 @@ import "@reach/menu-button/styles.css";
 import { makeStyles } from '@material-ui/core/styles'
 import 'semantic-ui-css/semantic.min.css';
 import { Dropdown,Button as Buuton2, Menu,  } from 'semantic-ui-react'
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 const tableIcons = {
 Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -100,20 +101,21 @@ const SettingList = (props) => {
             style={{backgroundColor:"#014d88"}}
             onClick={tokenSetup}
           >
-            <span style={{ textTransform: "capitalize" }}>New Personal Access Token </span>
+            <span style={{ textTransform: "capitalize" }}>Upload Config File </span>
         </Button>        
         <br/><br/>
         <br/>
       <MaterialTable
        icons={tableIcons}
-        title="Personal Access Token List"
+        title="Config Information "
         columns={[
          // { title: " ID", field: "Id" },
           {
-            title: "URLS",
+            title: "Version",
             field: "name",
           },
-          { title: "Username", field: "url", filtering: false },
+          { title: "Date Uploaded", field: "url", filtering: false },
+            { title: "Status", field: "url", filtering: false },
           { title: "Action", field: "actions", filtering: false },
          
          
@@ -129,7 +131,7 @@ const SettingList = (props) => {
                     <Buuton2 style={{backgroundColor:'rgb(153,46,98)'}} primary>
                     <Dropdown item text='Action'>
                     <Dropdown.Menu style={{ marginTop:"10px", }}>
-                        <Dropdown.Item  onClick={() =>editTokenSetup(row)}><MdModeEdit />Edit Token</Dropdown.Item>
+                        <Dropdown.Item  onClick={() =>editTokenSetup(row)}><VisibilityIcon /> View </Dropdown.Item>
                     </Dropdown.Menu>
                 </Dropdown>
                     </Buuton2>

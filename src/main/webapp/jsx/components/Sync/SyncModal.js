@@ -49,17 +49,11 @@ const useStyles = makeStyles(theme => ({
 }))
 
 
-const DatabaseSyn = (props) => {
+const GenerateJsonFile = (props) => {
     const classes = useStyles()
-
-    console.log(props)
-
-
-
   //const samplesdispatched ={"sampleManifests": [] };
-    const DatabaseSynProcess = e => {
+    const GenerateJsonFileProcess = e => {
       e.preventDefault()
-      alert("Processing ")
     //Closing of the modal 
     props.togglestatus();
                     
@@ -106,7 +100,7 @@ const DatabaseSyn = (props) => {
                                               //color='primary'
                                               className={classes.button}
                                               startIcon={<SettingsBackupRestoreIcon />}
-                                              onClick={()=>DatabaseSynProcess()}
+                                              onClick={()=>GenerateJsonFileProcess()}
                                               style={{backgroundColor:"#014d88"}}
                                              
                                           >   
@@ -132,4 +126,4 @@ const DatabaseSyn = (props) => {
   );
 }
 
-export default DatabaseSyn;
+export default GenerateJsonFile;
