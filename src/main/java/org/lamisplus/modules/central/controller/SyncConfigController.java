@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.central.domain.dto.ConfigDto;
 import org.lamisplus.modules.central.domain.dto.ConfigModuleDto;
 import org.lamisplus.modules.central.domain.dto.ConfigTableDto;
+import org.lamisplus.modules.central.domain.dto.ModuleStatus;
 import org.lamisplus.modules.central.domain.entity.Config;
 import org.lamisplus.modules.central.domain.entity.ConfigModule;
 import org.lamisplus.modules.central.domain.entity.ConfigTable;
@@ -87,6 +88,11 @@ public class SyncConfigController {
             configModuleDto.setConfigTables(configTableDtos);
         }
         return configDto;
+    }
+
+    @GetMapping(value = "/modules")
+    public ResponseEntity<List<ModuleStatus>> getModuleCheck() {
+        return ResponseEntity.ok(configModuleService.moduleCheck());
     }
 }
 

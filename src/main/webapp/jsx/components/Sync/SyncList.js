@@ -36,11 +36,15 @@ import { makeStyles } from '@material-ui/core/styles'
 //import SaveIcon from '@material-ui/icons/Save'
 import CancelIcon from '@material-ui/icons/Cancel'
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-//import { Spinner } from 'reactstrap';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import SettingsBackupRestoreIcon from '@material-ui/icons/SettingsBackupRestore';
 import FileSaver from "file-saver";
 import 'semantic-ui-css/semantic.min.css';
 import { Dropdown,Button as Buuton2, Menu,  } from 'semantic-ui-react'
+import Logs from "./Logs";
+import SendToServer from "./SendToServer";
+import Generatekey from "./Generatekey";
+
 
 const tableIcons = {
 Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -112,7 +116,13 @@ const SyncList = (props) => {
   const [syncList, setSyncList] = useState( [])
   const [facilities, setFacilities] = useState( [])
   const [modal, setModal] = useState(false);
+  const [generateKeyModal, setGenerateKeyModal] = useState(false);
+  const [sendToServerModal, setSendToServerModal] = useState(false);
+  const [logModal, setLogModal] = useState(false);
   const toggle = () => setModal(!modal);
+  const toggleLogModal = () => setLogModal(!logModal);
+  const toggleGenerateKeyModal = () => setGenerateKeyModal(!generateKeyModal);
+  const toggleSendToServerModal = () => setSendToServerModal(!sendToServerModal);
   const [modal2, setModal2] = useState(false);
   const toggle2 = () => setModal2(!modal2);
   const defaultValues = { facilityId: "", startDate : "", endDate:"", all:false}
@@ -123,6 +133,7 @@ const SyncList = (props) => {
   const [showErrorTable, setShowErrorTable] = useState(false);
   const [showErrorObj, setShowErrorObj] = useState([]);
   const [showErrorFileObj, setShowErrorFileObj] = useState();
+
 useEffect(() => {
     Facilities();
     JsonSyncHistory();
@@ -214,7 +225,18 @@ useEffect(() => {
     const generateJsonFile =()=> {        
         setModal(!modal)
     }
-
+    const displayGenerateKey =()=> {
+        setGenerateKeyModal(!generateKeyModal)
+    }
+    const displayLogs =()=> {
+        setLogModal(!logModal)
+    }
+    const sendToServerAction =()=> {
+        setSendToServerModal(!sendToServerModal);
+    }
+    const displaySendToServer =()=> {
+        setSendToServerModal(!sendToServerModal)
+    }
     const downloadFile = (fileName) => {
         axios
             .get(`${baseUrl}export/download/${fileName}`,
@@ -228,34 +250,34 @@ useEffect(() => {
             .catch((error) => {
             });
     }
-    const  sendToServerAction = (fileName,facilityId) => {
-        setModal2(true)
-         //SENDING A POST REQUEST 
-         axios.post(`${baseUrl}export/send-data?fileName=${fileName}&facilityId=${facilityId}`,fileName,
-                     { headers: {"Authorization" : `Bearer ${token}`} }
-                   )
-            .then(response => {
-                console.log("the server call is completed")
-            window.setTimeout(() => {
-                toast.success(" Uploading To server Successful!");
-                setModal2(false)
-                JsonSyncHistory()
-            }, 1000);
-            })
-            .catch(error => {
-                console.log("the server call error")
-                //toast.error(" Something went wrong!");
-                if(error.response && error.response.data){
-                    let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-                    toast.error(errorMessage);
-                    setModal2(false)
-                }
-                else{
-                    setModal2(false)
-                    toast.error("Something went wrong. Please try again...");
-                }
-        });
-    }
+    // const  sendToServerAction = (fileName,facilityId) => {
+    //     setModal2(true)
+    //      //SENDING A POST REQUEST
+    //      axios.post(`${baseUrl}export/send-data?fileName=${fileName}&facilityId=${facilityId}`,fileName,
+    //                  { headers: {"Authorization" : `Bearer ${token}`} }
+    //                )
+    //         .then(response => {
+    //             console.log("the server call is completed")
+    //         window.setTimeout(() => {
+    //             toast.success(" Uploading To server Successful!");
+    //             setModal2(false)
+    //             JsonSyncHistory()
+    //         }, 1000);
+    //         })
+    //         .catch(error => {
+    //             //console.log("the server call error")
+    //             //toast.error(" Something went wrong!");
+    //             if(error.response && error.response.data){
+    //                 let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+    //                 toast.error(errorMessage);
+    //                 setModal2(false)
+    //             }
+    //             else{
+    //                 setModal2(false)
+    //                 toast.error("Something went wrong. Please try again...");
+    //             }
+    //     });
+    // }
     const displayErrorTable =(row)=> {        
         setShowErrorTable(true)
         setShowErrorFileObj(row)
@@ -264,7 +286,7 @@ useEffect(() => {
     const backToGenerateJsonFile =()=> {        
         setShowErrorTable(false)
     }
-    
+
  
   return (
     <div>
@@ -309,19 +331,16 @@ useEffect(() => {
                                 <Dropdown item text='Action'>
 
                                 <Dropdown.Menu style={{ marginTop:"10px", }}>
-                                    {row.errorLog===null ? (<>
+
                                         <Dropdown.Item  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
                                         </Dropdown.Item>
                                         <Dropdown.Item  onClick={() => sendToServerAction(row.tableName, row.organisationUnitId)}><CloudUpload color="primary"/> Send To Server
                                         </Dropdown.Item>
-                                    </>)
-                                    :
-                                    (
-                                        <Dropdown.Item  onClick={() => displayErrorTable(row)}><CloudUpload color="primary"/>View Error
+                                        <Dropdown.Item  onClick={() => displayGenerateKey(row)}><VisibilityIcon color="primary"/>View Generate Key
                                         </Dropdown.Item>
-                                    )
+                                        <Dropdown.Item  onClick={() => displayLogs(row)}><VisibilityIcon color="primary"/>View Logs
+                                        </Dropdown.Item>
 
-                                    }
                                 </Dropdown.Menu>
                             </Dropdown>
                                 </Buuton2>
@@ -348,51 +367,7 @@ useEffect(() => {
                 }}
         />
         </>)}
-        {showErrorTable && (<>
-            <Button
-            variant="contained"
-            style={{backgroundColor:"#014d88", }}
-            className=" float-right mr-1"
-            //startIcon={<FaUserPlus />}
-            onClick={backToGenerateJsonFile}
-            >
-            <span style={{ textTransform: "capitalize", color:"#fff" }}> {"<<"} Back</span>
-            </Button>       
-        <br/><br/>
-        <MaterialTable
-         icons={tableIcons}
-            title={"JSON Files Errors -- " + showErrorFileObj && showErrorFileObj.facilityName}
-            columns={[
-            { title: "Name", field: "name", filtering: false },
-            { title: "Error", field: "error", filtering: false },        
-            { title: "Others", field: "others", filtering: false }, 
-            ]}
-            data={ showErrorObj.map((row) => ({
-                //Id: manager.id,
-                name: row.name,
-                error: row.error,
-                others: row.others,
 
-                }))}
-        
-                options={{
-                    headerStyle: {
-                        backgroundColor: "#014d88",
-                        color: "#fff",
-                    },
-                    searchFieldStyle: {
-                        width : '200%',
-                        margingLeft: '250px',
-                    },
-                    filtering: false,
-                    exportButton: true,
-                    searchFieldAlignment: 'left',
-                    pageSizeOptions:[10,20,100],
-                    pageSize:10,
-                    debounceInterval: 400
-         }}
-        />
-        </>)}
         <Modal isOpen={modal} toggle={toggle} className={props.className} size="lg"  backdrop="static">
             <Form >
             <ModalHeader toggle={toggle}>Generate JSON Files</ModalHeader>
@@ -485,7 +460,11 @@ useEffect(() => {
             <ModalBody>
                 <h1>Uploading File To Server. Please wait...</h1>
             </ModalBody>
-        </Modal> 
+        </Modal>
+
+        <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  />
+        <Logs toggleModal={toggleLogModal} showModal={logModal}  />
+        <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal}  />
     </div>
   );
 }
