@@ -11,7 +11,8 @@ public class ModuleStatus {
 	private String name;
 	private String message;
 	private String availableVersion;
-	private String requiredVersion;
+	private String minimumVersion;
+	private String maximumVersion;
 
 	//overriding equals() method
 	/*@Override

@@ -21,8 +21,11 @@ public class ConfigModule {
     @Column(name = "module_name", nullable = false)
     private String moduleName;
 
-    @Column(name = "version", nullable = false)
-    private String version;
+    @Column(name = "min_version", nullable = false)
+    private String minVersion;
+
+    @Column(name = "max_version", nullable = false)
+    private String maxVersion;
 
     @Column(name = "config_id", nullable = false)
     private UUID configId;
