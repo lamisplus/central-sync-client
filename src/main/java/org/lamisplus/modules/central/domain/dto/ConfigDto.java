@@ -13,5 +13,6 @@ public class ConfigDto {
     private String version;
     private LocalDateTime releaseDate;
     private LocalDateTime uploadDate;
+    private Boolean active;
     private List<ConfigModuleDto> configModules;
 }

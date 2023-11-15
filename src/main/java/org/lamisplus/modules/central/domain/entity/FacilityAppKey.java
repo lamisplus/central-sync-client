@@ -22,7 +22,7 @@ public class FacilityAppKey {
     private UUID id;
 
     @Column(name = "facility_id", nullable = false)
-    private String facilityId;
+    private Integer facilityId;
 
     @Column(name = "app_key", nullable = false)
     private String appKey;

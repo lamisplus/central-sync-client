@@ -2,12 +2,6 @@ package org.lamisplus.modules.central.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.lamisplus.modules.central.domain.dto.ConfigDto;
-import org.lamisplus.modules.central.domain.dto.ConfigModuleDto;
-import org.lamisplus.modules.central.domain.dto.ConfigTableDto;
-import org.lamisplus.modules.central.domain.entity.Config;
-import org.lamisplus.modules.central.domain.entity.ConfigModule;
-import org.lamisplus.modules.central.domain.entity.ConfigTable;
 import org.lamisplus.modules.central.domain.entity.FacilityAppKey;
 import org.lamisplus.modules.central.service.FacilityAppKeyService;
 import org.springframework.http.MediaType;
