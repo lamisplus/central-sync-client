@@ -22,6 +22,7 @@ public class ConfigModuleService {
     private final ConfigModuleRepository repository;
 
     public ConfigModule Save(ConfigModule configModule){
+        configModule.setId(java.util.UUID.randomUUID());
         return repository.save(configModule);
     }
 

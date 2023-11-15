@@ -16,6 +16,7 @@ public class ConfigTableService {
     public final ConfigTableRepository repository;
 
     public ConfigTable Save(ConfigTable configTable){
+        configTable.setId(java.util.UUID.randomUUID());
         return repository.save(configTable);
     }
 
