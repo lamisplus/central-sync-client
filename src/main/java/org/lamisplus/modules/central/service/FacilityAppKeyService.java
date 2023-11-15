@@ -19,6 +19,10 @@ public class FacilityAppKeyService {
     public final FacilityAppKeyRepository repository;
 
     public FacilityAppKey Save(FacilityAppKey appKey){
+        List<FacilityAppKey> facilityAppKeys = repository.findFacilityAppKeyByFacilityId(appKey.getFacilityId());
+        if(facilityAppKeys.size()>0){
+            appKey.setId(facilityAppKeys.get(0).getId());
+        }
         return repository.save(appKey);
     }
 
@@ -30,7 +34,7 @@ public class FacilityAppKeyService {
         return repository.findAll();
     }
 
-    public FacilityAppKey FindByFacilityId(String facilityId){
+    public List<FacilityAppKey> FindByFacilityId(int facilityId){
         return repository.findFacilityAppKeyByFacilityId(facilityId);
     }
 

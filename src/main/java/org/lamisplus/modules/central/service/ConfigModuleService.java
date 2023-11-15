@@ -2,11 +2,13 @@ package org.lamisplus.modules.central.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.central.CentralSyncModule;
 import org.lamisplus.modules.central.domain.dto.ModuleProjection;
 import org.lamisplus.modules.central.domain.dto.ModuleStatus;
 import org.lamisplus.modules.central.domain.entity.ConfigModule;
 import org.lamisplus.modules.central.repository.ConfigModuleRepository;
 import org.springframework.stereotype.Service;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,17 +52,25 @@ public class ConfigModuleService {
         Boolean found = false;
         List<ModuleStatus> moduleStatuses = new ArrayList<>();
         //sync modules
-        List<ModuleProjection> syncModules = repository.getActiveConfigModules();
+        List<ConfigModule> syncModules = repository.getActiveConfigModules();
         //app modules
         List<ModuleProjection> appModules = repository.getAppModules();
 
-        for (ModuleProjection syncModule : syncModules) {
+        for (ConfigModule syncModule : syncModules) {
             found = false;
             for (ModuleProjection appModule : appModules) {
                 //where there is a match
-                if(syncModule.getName().equals(appModule.getName())){
-                    //add to list
-                    moduleStatuses.add(new ModuleStatus(syncModule.getName(), SUCCESS_MSG, syncModule.getVersion(), appModule.getVersion()));
+                if(syncModule.getModuleName().equals(appModule.getName())) {
+                    if (ModuleCompatible(syncModule.getMinVersion(), syncModule.getMaxVersion(), appModule.getVersion())) {
+                        moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
+                                SUCCESS_MSG, appModule.getVersion(),
+                                syncModule.getMinVersion(), syncModule.getMaxVersion()));
+                    } else {
+                        moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
+                                ERROR_MSG, appModule.getVersion(),
+                                syncModule.getMinVersion(), syncModule.getMaxVersion()));
+                    }
+
                     found = true;
                     break;
                 }
@@ -68,9 +78,18 @@ public class ConfigModuleService {
             //if not found
             if(!found){
                 //add to list
-                moduleStatuses.add(new ModuleStatus(syncModule.getName(), ERROR_MSG, NOT_FOUND, NOT_FOUND));
+                moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(), ERROR_MSG, NOT_FOUND,
+                        syncModule.getMinVersion(), syncModule.getMaxVersion()));
             }
         }
         return moduleStatuses;
+    }
+
+    private boolean ModuleCompatible(String sMinVersion, String sMaxVersion, String sVersion){
+        DefaultArtifactVersion minVersion = new DefaultArtifactVersion(sMinVersion);
+        DefaultArtifactVersion maxVersion = new DefaultArtifactVersion(sMaxVersion);
+        DefaultArtifactVersion version = new DefaultArtifactVersion(sVersion);
+
+        return version.compareTo(minVersion) >= 0 && version.compareTo(maxVersion) <= 0;
     }
 }

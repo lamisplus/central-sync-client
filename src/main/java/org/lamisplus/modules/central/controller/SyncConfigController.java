@@ -32,7 +32,7 @@ public class SyncConfigController {
     private final SyncMapper mapper;
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ConfigDto> createConfig(@RequestBody ConfigDto configDto) {
+    public ResponseEntity<String> createConfig(@RequestBody ConfigDto configDto) {
         Config config = configService.Save(mapper.toConfig(configDto));
 
         for ( ConfigModuleDto configModuleDto:configDto.getConfigModules()) {
@@ -47,7 +47,7 @@ public class SyncConfigController {
             }
         }
 
-        return ResponseEntity.ok(configDto);
+        return ResponseEntity.ok("Saved successfully");
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
