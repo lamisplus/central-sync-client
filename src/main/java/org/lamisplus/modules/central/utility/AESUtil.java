@@ -14,6 +14,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.UUID;
 
 @Component
 public class AESUtil {
@@ -60,9 +61,9 @@ public class AESUtil {
         return new IvParameterSpec(iv);
     }
 
-    public static void encryptFile(String algorithm, SecretKey key, IvParameterSpec iv,
+    public static void encryptFile(String algorithm, SecretKey key,
                                    File inputFile, File outputFile) throws IOException, NoSuchPaddingException,
-            NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException,
+            NoSuchAlgorithmException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
         Cipher cipher = Cipher.getInstance(algorithm);
         cipher.init(Cipher.ENCRYPT_MODE, key);
@@ -86,7 +87,7 @@ public class AESUtil {
 
     public static void decryptFile(String algorithm, SecretKey key, IvParameterSpec iv,
                                    File encryptedFile, File decryptedFile) throws IOException, NoSuchPaddingException,
-            NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException,
+            NoSuchAlgorithmException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
         Cipher cipher = Cipher.getInstance(algorithm);
         cipher.init(Cipher.DECRYPT_MODE, key);
@@ -145,8 +146,8 @@ public class AESUtil {
                 .decode(cipherText)));
     }
 
-    public static SecretKey getPrivateAESKeyFromDB(RemoteAccessToken remoteAccessToken) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        byte[] keyBytes = DatatypeConverter.parseBase64Binary(remoteAccessToken.getPrKey());
+    public static SecretKey getPrivateAESKeyFromDB(String uuid) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        byte[] keyBytes = DatatypeConverter.parseBase64Binary(uuid);
         SecretKey secret = new SecretKeySpec(Arrays.copyOf(keyBytes, 16), "AES");
         return secret;
     }
@@ -156,6 +157,10 @@ public class AESUtil {
         Cipher decryptCipher = Cipher.getInstance("AES");
         decryptCipher.init(Cipher.DECRYPT_MODE, secretKey);
         byte[] decryptedMessageBytes = decryptCipher.doFinal(bytes);
+
+        //byte[] base64decodedTokenArr = Base64.getDecoder().decode(bytes);
+        //byte[] decryptedMessageBytes = decryptCipher.doFinal(base64decodedTokenArr);
+
         return decryptedMessageBytes;
     }
 
@@ -169,5 +174,9 @@ public class AESUtil {
             e.printStackTrace();
             throw e;
         }
+    }
+
+    public String generateAESKey(RemoteAccessToken remoteAccessToken) throws GeneralSecurityException, IOException {
+        return DatatypeConverter.printBase64Binary(AESUtil.getKeyFromPassword(remoteAccessToken.getPassword(), UUID.randomUUID().toString()).getEncoded());
     }
 }
