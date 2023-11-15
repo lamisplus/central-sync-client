@@ -44,8 +44,6 @@ import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 public class ExportServiceImpl implements ExportService {
     public static final int FETCH_SIZE = 10000;
     public static final String ALGORITHM = "AES";
-    private final ReportRepository repository;
-    private final QuarterUtility quarterUtility;
     private final FileUtility fileUtility;
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository syncHistoryRepository;
@@ -55,8 +53,6 @@ public class ExportServiceImpl implements ExportService {
     private final QuarterService quarterService;
     private final DataSource dataSource;
     private final ConfigTableService configTableService;
-    public static String userDir = System.getProperty ("user.dir");
-
 
 
     /**
@@ -68,7 +64,7 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public String bulkExport(Long facilityId, Boolean current) {
         if(!ERROR_LOG.isEmpty()) ERROR_LOG.clear();
-        //Generate a uuid for the key
+        //Generate uuid for the key
         String uuid = java.util.UUID.randomUUID().toString();
         log.info("uuid is {}", uuid);
         Path path = Paths.get(TEMP_BATCH_DIR);

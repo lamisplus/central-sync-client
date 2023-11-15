@@ -153,14 +153,9 @@ public class AESUtil {
     }
 
     public static byte[] decrypt(byte[] bytes, SecretKey secretKey) throws GeneralSecurityException, IOException {
-
         Cipher decryptCipher = Cipher.getInstance("AES");
         decryptCipher.init(Cipher.DECRYPT_MODE, secretKey);
         byte[] decryptedMessageBytes = decryptCipher.doFinal(bytes);
-
-        //byte[] base64decodedTokenArr = Base64.getDecoder().decode(bytes);
-        //byte[] decryptedMessageBytes = decryptCipher.doFinal(base64decodedTokenArr);
-
         return decryptedMessageBytes;
     }
 

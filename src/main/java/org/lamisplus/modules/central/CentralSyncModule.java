@@ -8,7 +8,7 @@ import com.foreach.across.core.context.configurer.ComponentScanConfigurer;
         modules = {
         })
 public class CentralSyncModule extends AcrossModule {
-    public static final String NAME = "CentralSyncModule";
+    public static final String NAME = "ClientSyncModule";
     public CentralSyncModule() {
         super ();
         addApplicationContextConfigurer (new ComponentScanConfigurer(
