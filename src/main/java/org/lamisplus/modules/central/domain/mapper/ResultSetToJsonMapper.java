@@ -13,25 +13,38 @@ import java.util.Date;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.List;
 
 @Slf4j
 @Component
-public class ResultSetToJsonMapper
-{
-    public static JSONArray mapResultSet(ResultSet rs) throws SQLException, JSONException
-    {
+public class ResultSetToJsonMapper {
+
+
+    /**
+     * maps ResultSet for database to Json Array.
+     * @param resultSet
+     * @param excludedColumn
+     * @return JSONArray
+     */
+    public static JSONArray mapResultSet(ResultSet resultSet, String excludedColumn) throws SQLException, JSONException {
         JSONArray jArray = new JSONArray();
         JSONObject jsonObject = null;
-        ResultSetMetaData rsmd = rs.getMetaData();
+        ResultSetMetaData rsmd = resultSet.getMetaData();
         int columnCount = rsmd.getColumnCount();
         do
         {
             jsonObject = new JSONObject();
-            if(rs.next()) {
+            if(resultSet.next()) {
             for (int index = 1; index <= columnCount; index++)
             {
                 String column = rsmd.getColumnName(index);
-                Object value = rs.getObject(column);
+                //exclude column
+                if(excludedColumn != null && excludedColumn.contains(column)){
+                    log.info("excluded column {}", column);
+                    continue;
+                }
+
+                Object value = resultSet.getObject(column);
                     if (value == null) {
                         jsonObject.put(column, "");
                     } else if (value instanceof Integer) {
@@ -62,7 +75,7 @@ public class ResultSetToJsonMapper
                 }
             }
             jArray.put(jsonObject);
-        }while(rs.next());
+        }while(resultSet.next());
         return jArray;
     }
 }
