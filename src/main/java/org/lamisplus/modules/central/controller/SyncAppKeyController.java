@@ -2,7 +2,10 @@ package org.lamisplus.modules.central.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.central.domain.dto.FacilityAppKeyDto;
 import org.lamisplus.modules.central.domain.entity.FacilityAppKey;
+import org.lamisplus.modules.central.domain.mapper.SyncMapper;
+import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.service.FacilityAppKeyService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +20,8 @@ import java.util.UUID;
 @RequestMapping("api/v1/sync/app-key")
 public class SyncAppKeyController {
     private final FacilityAppKeyService service;
+    private final SyncHistoryRepository syncHistoryRepository;
+    private final SyncMapper mapper;
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FacilityAppKey> create(@RequestBody FacilityAppKey facilityAppKey) {
@@ -25,14 +30,19 @@ public class SyncAppKeyController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<FacilityAppKey>> getAll() {
-        List<FacilityAppKey> keys = service.FindAll();
+    public ResponseEntity<List<FacilityAppKeyDto>> getAll() {
+        List<FacilityAppKeyDto> keys = mapper.toFacilityAppKeyDtoList(service.FindAll());
+        for(FacilityAppKeyDto key : keys){
+            key.setFacilityName(syncHistoryRepository.getFacilityNameById(Long.valueOf(key.getFacilityId())).orElse(""));
+        }
         return ResponseEntity.ok(keys);
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<FacilityAppKey> getById(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok(service.FindById(id));
+    public ResponseEntity<FacilityAppKeyDto> getById(@PathVariable("id") UUID id) {
+        FacilityAppKeyDto key=mapper.toFacilityAppKeyDto(service.FindById(id));
+        key.setFacilityName(syncHistoryRepository.getFacilityNameById(Long.valueOf(key.getFacilityId())).orElse(""));
+        return ResponseEntity.ok(key);
     }
 
     @DeleteMapping(value = "/{id}",
