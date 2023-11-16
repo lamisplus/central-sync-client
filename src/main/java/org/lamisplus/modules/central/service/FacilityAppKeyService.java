@@ -2,6 +2,7 @@ package org.lamisplus.modules.central.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.central.domain.entity.Config;
 import org.lamisplus.modules.central.domain.entity.FacilityAppKey;
 import org.lamisplus.modules.central.repository.ConfigRepository;
@@ -34,8 +35,10 @@ public class FacilityAppKeyService {
         return repository.findAll();
     }
 
-    public List<FacilityAppKey> FindByFacilityId(int facilityId){
-        return repository.findFacilityAppKeyByFacilityId(facilityId);
+    public FacilityAppKey FindByFacilityId(int facilityId){
+        return repository
+                .findByFacilityId(facilityId)
+                .orElseThrow(()-> new EntityNotFoundException(FacilityAppKey.class, "facility id", "facility id"));
     }
 
     public void Delete(UUID id){

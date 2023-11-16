@@ -23,5 +23,4 @@ public interface SyncService {
     void deleteRemoteAccessToken(Long id);
 
     List<SyncHistoryTracker> getSyncHistoryTracker(Long syncHistoryId);
-
 }

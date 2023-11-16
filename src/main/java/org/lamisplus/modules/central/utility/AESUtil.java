@@ -171,7 +171,7 @@ public class AESUtil {
         }
     }
 
-    public String generateAESKey(RemoteAccessToken remoteAccessToken) throws GeneralSecurityException, IOException {
-        return DatatypeConverter.printBase64Binary(AESUtil.getKeyFromPassword(remoteAccessToken.getPassword(), UUID.randomUUID().toString()).getEncoded());
+    public static String generateAESKey(String uuid) throws GeneralSecurityException {
+        return DatatypeConverter.printBase64Binary(AESUtil.getKeyFromPassword(uuid, UUID.randomUUID().toString()).getEncoded());
     }
 }

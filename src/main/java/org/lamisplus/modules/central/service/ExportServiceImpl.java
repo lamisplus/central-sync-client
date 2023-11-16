@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import javax.sql.DataSource;
+import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,7 +36,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 
@@ -47,6 +47,7 @@ public class ExportServiceImpl implements ExportService {
     public static final String ALGORITHM = "AES";
     public static final String SYNC_TRACKER_STATUS = "Generated";
     public static final int UN_ARCHIVED = 0;
+    public static final String START_DATE = "1985-01-01 01:01:01";
     private final FileUtility fileUtility;
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository syncHistoryRepository;
@@ -57,6 +58,9 @@ public class ExportServiceImpl implements ExportService {
     private final QuarterService quarterService;
     private final DataSource dataSource;
     private final ConfigTableService configTableService;
+    private final FacilityAppKeyService facilityAppKeyService;
+
+    private final RSAUtils rsaUtils;
 
 
     /**
@@ -67,10 +71,12 @@ public class ExportServiceImpl implements ExportService {
      */
     @Override
     public String bulkExport(Long facilityId, Boolean current) {
+        boolean anyTable = false;
+        Integer facId = Integer.valueOf(String.valueOf(facilityId));
+        String appKey = facilityAppKeyService.FindByFacilityId(facId).getAppKey();
         if(!ERROR_LOG.isEmpty()) ERROR_LOG.clear();
         //Generate uuid for the key
         String uuid = java.util.UUID.randomUUID().toString();
-        log.info("uuid is {}", uuid);
         Path path = Paths.get(TEMP_BATCH_DIR);
         if(!Files.exists(path)) {
             try {
@@ -79,22 +85,20 @@ public class ExportServiceImpl implements ExportService {
                 e.printStackTrace();
             }
         }
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyy-MM-dd");
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-        String start = "1985-01-01 01:01:01";
+        String start = START_DATE;
         String end = LocalDateTime.now().format(timeFormatter);
 
         SyncHistory history = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
-        if(!current)history=null;
-        if(history != null){
+        //if(!current)history=null;
+        if(!current && history != null){
             LocalDateTime lastSync = history.getDateLastSync();
             end = dateUtility.ConvertDateTimeToString(lastSync);
         }
 
-        Date date1 = new Date();
+        //Date date1 = new Date();
         String zipFileName = "None";
-        String fileFolder = DATE_FORMAT.format(date1);
+        String fileFolder = DATE_FORMAT.format(new Date());
         String folder = TEMP_BATCH_DIR + fileFolder + File.separator;
         Path folderPath = Paths.get(folder);
         Path createdFile = folderPath;
@@ -107,11 +111,14 @@ public class ExportServiceImpl implements ExportService {
         try {
             log.info("Initializing data export...");
             syncData(fileFolder, current);
-            boolean anyTable = false;
+
             List<SyncHistoryTracker> syncHistoryTrackers = new ArrayList<>();
 
             List<ConfigTable> configTables = configTableService.getTablesForSyncing();
             SyncHistoryTracker tracker;
+            //Generate AES key...
+            uuid = AESUtil.generateAESKey(uuid);
+
             for(ConfigTable configTable : configTables){
                 Long facility = configTable.getHasFacilityId() == null || !configTable.getHasFacilityId() ? null : facilityId;
                 tracker = exportAnyTable(configTable.getTableName(), facility, configTable.getUpdateColumn(), start,
@@ -126,18 +133,14 @@ public class ExportServiceImpl implements ExportService {
                 String fullPath = createdFile + File.separator + zipFileName;
                 File dir = new File(createdFile + File.separator);
                 fileUtility.zipDirectory(dir, fullPath, fileFolder);
-                //update synchistory
+                //update sync history
                 int fileSize = (int) fileUtility.getFileSize(fullPath);
-                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (ERROR_LOG.isEmpty()) ? null : ERROR_LOG, folder, uuid);
+                String key = getManagement(uuid, facId, appKey);
+                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (ERROR_LOG.isEmpty()) ? null : ERROR_LOG, folder, key);
                 SyncHistoryResponse syncResponse = syncHistoryService.saveSyncHistory(request);
-                //cleanDirectory(fileList);
-                if (syncResponse != null) {
+                if (syncResponse != null && !syncHistoryTrackers.isEmpty()) {
                     log.info("Sync history updated successfully.");
-                    syncHistoryTrackers = syncHistoryTrackers
-                            .stream()
-                            .map(syncHistoryTracker -> {syncHistoryTracker.setSyncHistoryId(syncResponse.getId()); return syncHistoryTracker;})
-                            .collect(Collectors.toList());
-                    syncHistoryTrackerRepository.saveAll(syncHistoryTrackers);
+                    syncHistoryTrackerRepository.saveAll(getSyncHistoryTrackers(syncHistoryTrackers, syncResponse));
                 }
                 log.info("Data export completed");
             } else {
@@ -149,6 +152,29 @@ public class ExportServiceImpl implements ExportService {
             e.printStackTrace();
         }
         return zipFileName;
+    }
+
+    private static List<SyncHistoryTracker> getSyncHistoryTrackers(List<SyncHistoryTracker> syncHistoryTrackers, SyncHistoryResponse syncResponse) {
+        log.info("started history tracker...");
+        syncHistoryTrackers = syncHistoryTrackers
+                .stream()
+                .map(syncHistoryTracker -> {syncHistoryTracker.setSyncHistoryId(syncResponse.getId()); return syncHistoryTracker;})
+                .collect(Collectors.toList());
+        log.info("ended history tracker...");
+        return syncHistoryTrackers;
+    }
+
+    private String getManagement(String uuid, Integer facilityId, String appKey) {
+        log.info("manage key {}", uuid);
+        try {
+            byte[] keyBytes = DatatypeConverter.parseBase64Binary(uuid);
+            byte[] bytes = rsaUtils.encrypt(keyBytes, appKey);
+            //return as string
+            return DatatypeConverter.printBase64Binary(bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void cleanDirectory(Set<String> fileList) {
@@ -174,7 +200,7 @@ public class ExportServiceImpl implements ExportService {
                 jsonGenerator.setCodec(objectMapper);
                 jsonGenerator.useDefaultPrettyPrinter();
                 jsonGenerator.writeStartObject();
-                jsonGenerator.writeStringField("v", "216");
+                jsonGenerator.writeStringField("v", "217");
                 if(current) {
                     jsonGenerator.writeStringField("init", "false");
                 }else {
@@ -183,12 +209,12 @@ public class ExportServiceImpl implements ExportService {
                 jsonGenerator.writeEndObject();
                 isProcessed = true;
             } catch (IOException e) {
-                addError("data", e.getMessage(), getPrintStackError(e));
+                addError("data", e.getMessage(), getPrintStackError(e), e.getCause().getMessage());
                 isProcessed = false;
                 log.error("Error writing data to a JSON file: {}", e.getMessage());
             }
         } catch (Exception e) {
-            addError("extract", e.getMessage(), getPrintStackError(e));
+            addError("extract", e.getMessage(), getPrintStackError(e), e.getCause().getMessage());
             log.error("Error mapping data: {}", e.getMessage());
         }
 
@@ -269,7 +295,7 @@ public class ExportServiceImpl implements ExportService {
             }while (level < size);
 
         } catch (Exception e) {
-            addError(tableName, e.getMessage(), getPrintStackError(e));
+            addError(tableName, e.getMessage(), getPrintStackError(e), e.getCause().getMessage());
             e.printStackTrace();
             closeDBConnection(conn);
             return tracker;
@@ -360,8 +386,8 @@ public class ExportServiceImpl implements ExportService {
         return syncHistoryRepository.getDatimCode(facilityId);
     }
 
-    private void addError(String name, String error, String others){
-        ERROR_LOG.add(new ErrorLog(name, error, others));
+    private void addError(String name, String error, String others, String category){
+        ERROR_LOG.add(new Log(name, error, others, category));
     }
 
     /**

@@ -12,13 +12,18 @@ import org.lamisplus.modules.central.controller.ExportController;
 import org.lamisplus.modules.central.domain.dto.RemoteUrlDTO;
 import org.lamisplus.modules.central.domain.entity.*;
 import org.lamisplus.modules.central.repository.*;
+import org.lamisplus.modules.central.utility.AESUtil;
 import org.lamisplus.modules.central.utility.HttpConnectionManager;
+import org.lamisplus.modules.central.utility.RSAUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+
+import javax.xml.bind.DatatypeConverter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,6 +35,7 @@ public class SyncServiceImpl implements SyncService {
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
     private final RemoteAccessTokenRepository accessTokenRepository;
+    private final RSAUtils rsaUtils;
 
     @Override
     public String getDatimId(Long facilityId) {
@@ -109,5 +115,4 @@ public class SyncServiceImpl implements SyncService {
                 .sorted(Comparator.comparing(SyncHistoryTracker::getTimeCreated).reversed())
                 .collect(Collectors.toList());
     }
-
 }
