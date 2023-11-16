@@ -15,7 +15,6 @@ import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 import org.lamisplus.modules.central.domain.mapper.ResultSetToJsonMapper;
 import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
-import org.lamisplus.modules.central.repository.ReportRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryTrackerRepository;
 import org.lamisplus.modules.central.utility.*;
@@ -47,6 +46,7 @@ public class ExportServiceImpl implements ExportService {
     public static final int FETCH_SIZE = 10000;
     public static final String ALGORITHM = "AES";
     public static final String SYNC_TRACKER_STATUS = "Generated";
+    public static final int UN_ARCHIVED = 0;
     private final FileUtility fileUtility;
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository syncHistoryRepository;
@@ -111,10 +111,13 @@ public class ExportServiceImpl implements ExportService {
             List<SyncHistoryTracker> syncHistoryTrackers = new ArrayList<>();
 
             List<ConfigTable> configTables = configTableService.getTablesForSyncing();
+            SyncHistoryTracker tracker;
             for(ConfigTable configTable : configTables){
                 Long facility = configTable.getHasFacilityId() == null || !configTable.getHasFacilityId() ? null : facilityId;
-                anyTable = exportAnyTable(configTable.getTableName(), facility, configTable.getUpdateColumn(), start,
+                tracker = exportAnyTable(configTable.getTableName(), facility, configTable.getUpdateColumn(), start,
                         configTable.getUpdateColumn(), end, fileFolder, uuid, configTable.getExcludeColumns());
+                if(tracker != null) anyTable = true;
+                syncHistoryTrackers.add(tracker);
             }
             if (anyTable) {
                 String datimCode = getDatimId(facilityId);
@@ -130,6 +133,11 @@ public class ExportServiceImpl implements ExportService {
                 //cleanDirectory(fileList);
                 if (syncResponse != null) {
                     log.info("Sync history updated successfully.");
+                    syncHistoryTrackers = syncHistoryTrackers
+                            .stream()
+                            .map(syncHistoryTracker -> {syncHistoryTracker.setSyncHistoryId(syncResponse.getId()); return syncHistoryTracker;})
+                            .collect(Collectors.toList());
+                    syncHistoryTrackerRepository.saveAll(syncHistoryTrackers);
                 }
                 log.info("Data export completed");
             } else {
@@ -201,7 +209,7 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public boolean exportAnyTable(String tableName, Long facilityId, String startName, String startDate, String endName, String endDate, String fileLocation, String uuid, String excludeColumn) {
+    public SyncHistoryTracker exportAnyTable(String tableName, Long facilityId, String startName, String startDate, String endName, String endDate, String fileLocation, String uuid, String excludeColumn) {
         log.info("Started generating... " + tableName);
         Long level = 0L;
         String query = null;
@@ -212,6 +220,7 @@ public class ExportServiceImpl implements ExportService {
         Long split = size/FETCH_SIZE;
         size = split > 1 ? split : FETCH_SIZE;
         List list = null;
+        SyncHistoryTracker tracker = null;
 
         if(facilityId == null){
             query = "SELECT * FROM %s";
@@ -238,12 +247,13 @@ public class ExportServiceImpl implements ExportService {
                 jsonArray = ResultSetToJsonMapper.mapResultSet(rs, excludeColumn);
                 list = jsonArray.toList();
 
-                if(size > 0) {
+                if(size >= 1) {
                     ObjectMapper objectMapper = new ObjectMapper();
                     configureObjectMapper(objectMapper);
                     String fileName = tableName +"_"+ fileLocation + ".json";
                     String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + fileName;
-                    log.info("Total " + tableName + " Generated... " + list.size());
+                    Integer fileSize = list.size();
+                    log.info("Total " + tableName + " Generated... " + fileSize);
                     //Get the byte
                     byte[] bytes = objectMapper.writeValueAsBytes(list);
                     //Get a secret from the uuid generated
@@ -251,8 +261,8 @@ public class ExportServiceImpl implements ExportService {
                     //Encrypt the byte
                     bytes = AESUtil.encrypt(bytes, secretKey);
                     FileUtils.writeByteArrayToFile(new File(tempFile), bytes);
-                    SyncHistoryTracker tracker = new SyncHistoryTracker(null, null, fileName, SYNC_TRACKER_STATUS, LocalDateTime.now(), 0, facilityId);
-
+                    tracker = new SyncHistoryTracker(null, null, fileName, fileSize, SYNC_TRACKER_STATUS,
+                            LocalDateTime.now(), UN_ARCHIVED, facilityId);
                 }
                 level = split > 1 ? ++level : FETCH_SIZE;
             }while (level < size);
@@ -260,11 +270,11 @@ public class ExportServiceImpl implements ExportService {
         } catch (Exception e) {
             e.printStackTrace();
             closeDBConnection(conn);
-            return false;
+            return tracker;
         }finally {
             closeDBConnection(conn);
         }
-        return true;
+        return tracker;
     }
 
     /**

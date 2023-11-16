@@ -7,6 +7,7 @@ import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.central.domain.dto.RemoteUrlDTO;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
+import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.central.service.SyncService;
 import org.lamisplus.modules.central.utility.ConstantUtility;
@@ -40,6 +41,11 @@ public class SyncController {
     @DeleteMapping(value = BASE_URL1 + "/remote-access-token/{id}")
     public void deleteRemoteAccessToken(@PathVariable Long id){
         syncService.deleteRemoteAccessToken(id);
+    }
+
+    @DeleteMapping(value = BASE_URL1 + "/history/{id}/tracker")
+    public List<SyncHistoryTracker> getSyncHistoryTracker(@PathVariable Long id){
+        return syncService.getSyncHistoryTracker(id);
     }
 
     @SneakyThrows

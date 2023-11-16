@@ -17,12 +17,17 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SyncServiceImpl implements SyncService {
+    public static final int UN_ARCHIVED = 0;
     private final SyncHistoryRepository syncHistoryRepository;
+    private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
     private final RemoteAccessTokenRepository accessTokenRepository;
 
@@ -32,7 +37,6 @@ public class SyncServiceImpl implements SyncService {
         return datimId;
 
     }
-
 
     public String authorize(RemoteAccessToken remoteAccessToken, Boolean update) {
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -97,6 +101,13 @@ public class SyncServiceImpl implements SyncService {
                 .findById(id)
                 .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "id", String.valueOf(id)));
         remoteAccessTokenRepository.delete(remoteAccessToken);
+    }
+
+    public List<SyncHistoryTracker> getSyncHistoryTracker(Long syncHistoryId){
+        return syncHistoryTrackerRepository.findAllByIdSyncHistoryIdAndArchived(syncHistoryId, UN_ARCHIVED)
+                .stream()
+                .sorted(Comparator.comparing(SyncHistoryTracker::getTimeCreated).reversed())
+                .collect(Collectors.toList());
     }
 
 }

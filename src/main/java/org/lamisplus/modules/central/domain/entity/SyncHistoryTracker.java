@@ -23,8 +23,8 @@ public class SyncHistoryTracker {
     private Long syncHistoryId;
     @Column(name = "file_name")
     private String fileName;
-    /*@Column(name = "record_size")
-    private Integer recordSize;*/
+    @Column(name = "record_size")
+    private Integer recordSize;
     @Column(name = "status")
     private String status;
     @Column(name = "time_created")
