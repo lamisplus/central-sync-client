@@ -128,7 +128,7 @@ public class ExportServiceImpl implements ExportService {
                 fileUtility.zipDirectory(dir, fullPath, fileFolder);
                 //update synchistory
                 int fileSize = (int) fileUtility.getFileSize(fullPath);
-                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (ERROR_LOG.isEmpty()) ? null : ERROR_LOG, folder);
+                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (ERROR_LOG.isEmpty()) ? null : ERROR_LOG, folder, uuid);
                 SyncHistoryResponse syncResponse = syncHistoryService.saveSyncHistory(request);
                 //cleanDirectory(fileList);
                 if (syncResponse != null) {
@@ -215,9 +215,10 @@ public class ExportServiceImpl implements ExportService {
         String query = null;
         JSONArray jsonArray = new JSONArray();
         Connection conn = null;
-        Long size = countTableRow(tableName, facilityId);
-        log.info("Size... " + size);
-        Long split = size/FETCH_SIZE;
+        Long rowSize = countTableRow(tableName, facilityId);
+        Double size = Double.valueOf(rowSize);
+        log.info("Size... " + rowSize);
+        Double split = Double.valueOf(size/FETCH_SIZE);
         size = split > 1 ? split : FETCH_SIZE;
         List list = null;
         SyncHistoryTracker tracker = null;
@@ -247,7 +248,7 @@ public class ExportServiceImpl implements ExportService {
                 jsonArray = ResultSetToJsonMapper.mapResultSet(rs, excludeColumn);
                 list = jsonArray.toList();
 
-                if(size >= 1) {
+                if(rowSize >= 1) {
                     ObjectMapper objectMapper = new ObjectMapper();
                     configureObjectMapper(objectMapper);
                     String fileName = tableName +"_"+ fileLocation + ".json";
@@ -268,6 +269,7 @@ public class ExportServiceImpl implements ExportService {
             }while (level < size);
 
         } catch (Exception e) {
+            addError(tableName, e.getMessage(), getPrintStackError(e));
             e.printStackTrace();
             closeDBConnection(conn);
             return tracker;

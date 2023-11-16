@@ -40,7 +40,6 @@ public class ResultSetToJsonMapper {
                 String column = rsmd.getColumnName(index);
                 //exclude column
                 if(excludedColumn != null && excludedColumn.contains(column)){
-                    log.info("excluded column {}", column);
                     continue;
                 }
 

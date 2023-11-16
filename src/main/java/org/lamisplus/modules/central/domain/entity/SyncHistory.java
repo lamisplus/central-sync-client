@@ -45,6 +45,7 @@ public class SyncHistory {
     private Integer uploadSize;
     private Integer processedSize;
     private String filePath;
+    private String genKey;
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb", name = "error_log", nullable = false)
     private Object errorLog;

@@ -104,7 +104,7 @@ public class SyncServiceImpl implements SyncService {
     }
 
     public List<SyncHistoryTracker> getSyncHistoryTracker(Long syncHistoryId){
-        return syncHistoryTrackerRepository.findAllByIdSyncHistoryIdAndArchived(syncHistoryId, UN_ARCHIVED)
+        return syncHistoryTrackerRepository.findAllBySyncHistoryIdAndArchived(syncHistoryId, UN_ARCHIVED)
                 .stream()
                 .sorted(Comparator.comparing(SyncHistoryTracker::getTimeCreated).reversed())
                 .collect(Collectors.toList());

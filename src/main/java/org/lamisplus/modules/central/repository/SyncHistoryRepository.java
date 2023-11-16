@@ -25,4 +25,7 @@ public interface SyncHistoryRepository  extends JpaRepository<SyncHistory, Long>
 
     @Query(value = "SELECT code FROM base_organisation_unit_identifier WHERE organisation_unit_id = ?1 AND name='DATIM_ID' LIMIT 1", nativeQuery = true)
     String getDatimCode(Long orgUnit);
+
+    @Query(value = "SELECT gen_key from sync_history WHERE id = ?1", nativeQuery = true)
+    Optional<String> getKey(Long id);
 }
