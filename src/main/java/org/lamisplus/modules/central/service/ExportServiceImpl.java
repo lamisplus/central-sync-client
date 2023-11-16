@@ -11,11 +11,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
 import org.lamisplus.modules.central.domain.entity.ConfigTable;
+import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 import org.lamisplus.modules.central.domain.mapper.ResultSetToJsonMapper;
 import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
 import org.lamisplus.modules.central.repository.ReportRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
+import org.lamisplus.modules.central.repository.SyncHistoryTrackerRepository;
 import org.lamisplus.modules.central.utility.*;
 import org.springframework.stereotype.Service;
 
@@ -44,10 +46,12 @@ import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 public class ExportServiceImpl implements ExportService {
     public static final int FETCH_SIZE = 10000;
     public static final String ALGORITHM = "AES";
+    public static final String SYNC_TRACKER_STATUS = "Generated";
     private final FileUtility fileUtility;
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository syncHistoryRepository;
-    private final BuildJson buildJson;
+    private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
+
     private static final ArrayList ERROR_LOG= new ArrayList<>();
     private final DateUtility dateUtility;
     private final QuarterService quarterService;
@@ -104,15 +108,13 @@ public class ExportServiceImpl implements ExportService {
             log.info("Initializing data export...");
             syncData(fileFolder, current);
             boolean anyTable = false;
+            List<SyncHistoryTracker> syncHistoryTrackers = new ArrayList<>();
 
             List<ConfigTable> configTables = configTableService.getTablesForSyncing();
             for(ConfigTable configTable : configTables){
                 Long facility = configTable.getHasFacilityId() == null || !configTable.getHasFacilityId() ? null : facilityId;
-
-
-                /*List<String> excludedColumn = Stream.of(configTable.getExcludeColumns().split(","))
-                        .collect(Collectors.toList());*/
-                anyTable = exportAnyTable(configTable.getTableName(), facility, configTable.getUpdateColumn(), start, configTable.getUpdateColumn(), end, fileFolder, uuid, configTable.getExcludeColumns());
+                anyTable = exportAnyTable(configTable.getTableName(), facility, configTable.getUpdateColumn(), start,
+                        configTable.getUpdateColumn(), end, fileFolder, uuid, configTable.getExcludeColumns());
             }
             if (anyTable) {
                 String datimCode = getDatimId(facilityId);
@@ -236,12 +238,12 @@ public class ExportServiceImpl implements ExportService {
                 jsonArray = ResultSetToJsonMapper.mapResultSet(rs, excludeColumn);
                 list = jsonArray.toList();
 
-                ObjectMapper objectMapper = new ObjectMapper();
-                configureObjectMapper(objectMapper);
-                String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + tableName +"_"+ level + ".json";
-                log.info("Total " + tableName + " Generated... " + list.size());
-
                 if(size > 0) {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    configureObjectMapper(objectMapper);
+                    String fileName = tableName +"_"+ fileLocation + ".json";
+                    String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + fileName;
+                    log.info("Total " + tableName + " Generated... " + list.size());
                     //Get the byte
                     byte[] bytes = objectMapper.writeValueAsBytes(list);
                     //Get a secret from the uuid generated
@@ -249,6 +251,8 @@ public class ExportServiceImpl implements ExportService {
                     //Encrypt the byte
                     bytes = AESUtil.encrypt(bytes, secretKey);
                     FileUtils.writeByteArrayToFile(new File(tempFile), bytes);
+                    SyncHistoryTracker tracker = new SyncHistoryTracker(null, null, fileName, SYNC_TRACKER_STATUS, LocalDateTime.now(), 0, facilityId);
+
                 }
                 level = split > 1 ? ++level : FETCH_SIZE;
             }while (level < size);
