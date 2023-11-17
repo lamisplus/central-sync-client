@@ -2,7 +2,9 @@ package org.lamisplus.modules.central.service;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
+import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
+import org.lamisplus.modules.central.repository.SyncHistoryTrackerRepository;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SyncHistoryService {
     private final SyncHistoryRepository syncHistoryRepository;
+    private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
 
     private String getFacilityNameById(Long facilityId) {
         Optional<String> optional = syncHistoryRepository.getFacilityNameById(facilityId);
@@ -99,5 +102,18 @@ public class SyncHistoryService {
             history.setProcessed(status);
             syncHistoryRepository.save(history);
         }
+    }
+
+    public Boolean updateSyncHistoryTracker(Long syncHistoryTrackerId) {
+        Boolean updated = false;
+        Optional<SyncHistoryTracker> existingRecord = syncHistoryTrackerRepository.findById(syncHistoryTrackerId);
+        if (existingRecord.isPresent()) {
+            SyncHistoryTracker historyTracker = existingRecord.get();
+            historyTracker.setTimeCreated(LocalDateTime.now());
+            historyTracker.setStatus("Synced");
+            syncHistoryTrackerRepository.save(historyTracker);
+            updated = true;
+        }
+        return updated;
     }
 }

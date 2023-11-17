@@ -13,8 +13,10 @@ import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
+import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
+import org.lamisplus.modules.central.repository.SyncHistoryTrackerRepository;
 import org.lamisplus.modules.central.service.SyncHistoryService;
 import org.lamisplus.modules.central.utility.HttpConnectionManager;
 import org.springframework.http.*;
@@ -46,6 +48,7 @@ public class ExportController {
     private String LOGIN_API = "/api/v1/authenticate";
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository historyRepository;
+    private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
 
     @GetMapping("/all")
     public ResponseEntity<String> generate(@RequestParam Long facilityId,
@@ -118,7 +121,6 @@ public class ExportController {
 
     @PostMapping("/send-data")
     public ResponseEntity<String> sendDataToAPI(@RequestParam("fileName") String fileName, @RequestParam("facilityId") Long facilityId) {
-
         LoginVM loginVM = new LoginVM();
         RemoteAccessToken remoteAccessToken = accessTokenRepository
                 .findOneAccess()
@@ -130,7 +132,7 @@ public class ExportController {
 
         SyncHistory history = historyRepository.getFile(fileName).orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", String.valueOf(fileName)));
 
-        byte[] byteRequest = fileUtility.convertZipToByteArray(history.getFilePath() + File.separator + fileName);
+        byte[] byteRequest = fileUtility.convertFileToByteArray(history.getFilePath() + File.separator + fileName);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 
@@ -153,6 +155,46 @@ public class ExportController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending data: " + e.getMessage());
         }
 
+        return ResponseEntity.ok("Data sent successfully. Response: " + responseEntity.getBody());
+    }
+
+    @PostMapping("/data/file")
+    public ResponseEntity<String> sendFileDataToAPI(@RequestParam("syncHistoryId") Long syncHistoryId,
+                                                    @RequestParam("facilityId") Long facilityId) {
+        LoginVM loginVM = new LoginVM();
+        RemoteAccessToken remoteAccessToken = accessTokenRepository
+                .findOneAccess()
+                .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
+
+        String USE_API_URL = checkUrl(remoteAccessToken).concat(API_URL);
+        loginVM.setUsername(remoteAccessToken.getUsername());
+        loginVM.setPassword(remoteAccessToken.getPassword());
+        ResponseEntity<String> responseEntity = null;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        headers.set("Authorization", authorizeBeforeSending(loginVM));
+        headers.set("version", "217");
+        List<SyncHistoryTracker> trackers = syncHistoryTrackerRepository.findAllBySyncHistoryIdAndStatusAndArchived(syncHistoryId, "Generated", 0);
+        SyncHistory history = historyRepository.findById(syncHistoryId).orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", "file"));
+
+        for (SyncHistoryTracker tracker : trackers){
+            byte[] byteRequest = fileUtility.convertFileToByteArray(history.getFilePath() + File.separator + tracker.getFileName());
+
+            RestTemplate restTemplate = new RestTemplate();
+            try {
+                String apiUrl = USE_API_URL + facilityId;
+                HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
+
+                responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
+                if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                    syncHistoryService.updateSyncHistoryTracker(tracker.getId());
+                }
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending data: " + e.getMessage());
+            }
+        }
         return ResponseEntity.ok("Data sent successfully. Response: " + responseEntity.getBody());
     }
 

@@ -194,8 +194,26 @@ public class FileUtility {
 //        return bytes / megabytes;
 //    }
 
-    public byte[] convertZipToByteArray(String zipFilePath) {
+    /*public byte[] convertZipToByteArray(String zipFilePath) {
         try (FileInputStream fis = new FileInputStream(zipFilePath);
+             BufferedInputStream bis = new BufferedInputStream(fis);
+             ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+
+            byte[] buffer = new byte[2048];
+            int bytesRead;
+            while ((bytesRead = bis.read(buffer)) != -1) {
+                bos.write(buffer, 0, bytesRead);
+            }
+
+            return bos.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }*/
+
+    public byte[] convertFileToByteArray(String filePath) {
+        try (FileInputStream fis = new FileInputStream(filePath);
              BufferedInputStream bis = new BufferedInputStream(fis);
              ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
 

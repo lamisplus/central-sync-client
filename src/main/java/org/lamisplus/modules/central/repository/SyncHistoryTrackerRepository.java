@@ -13,4 +13,6 @@ public interface SyncHistoryTrackerRepository extends JpaRepository<SyncHistoryT
     List<SyncHistoryTracker> findAllBySyncHistoryId(Long syncHistoryId);
 
     List<SyncHistoryTracker> findAllBySyncHistoryIdAndArchived(Long syncHistoryId, int archived);
+
+    List<SyncHistoryTracker> findAllBySyncHistoryIdAndStatusAndArchived(Long syncHistoryId, String status, int archived);
 }

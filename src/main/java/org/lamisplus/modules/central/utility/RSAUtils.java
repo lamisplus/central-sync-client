@@ -45,6 +45,11 @@ public class RSAUtils {
         return this.publicKey;
     }
 
+    /**
+     * read Private Key.
+     * @Param prKey
+     * @return PrivateKey
+     */
     public PrivateKey readPrivateKey(String prKey) throws GeneralSecurityException {
         PrivateKey key;
         String fileString =  prKey;
@@ -56,6 +61,10 @@ public class RSAUtils {
         return key;
     }
 
+    /**
+     * read RSA Public Key.
+     * @return Public Key
+     */
     public PublicKey readRSAPublicKey(String facilityAppKey) throws GeneralSecurityException {
         byte[] keyBytes = DatatypeConverter.parseBase64Binary(facilityAppKey);
         X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(keyBytes);
@@ -64,6 +73,10 @@ public class RSAUtils {
         return key;
     }
 
+    /**
+     * encrypt message with facility key.
+     * @return HashMap<String, String>
+     */
     public byte[] encrypt(byte[] bytes, String facilityAppKey) throws GeneralSecurityException {
         log.info("encrypt start ---");
         Cipher encryptCipher = Cipher.getInstance("RSA");
@@ -73,11 +86,15 @@ public class RSAUtils {
         return encryptedMessageBytes;
     }
 
+    /**
+     * generate and return Key.
+     * @return HashMap<String, String>
+     */
     public HashMap<String, String> keyGenerateAndReturnKey() {
         String publicKeyPEM;
         String privateKeyPEM;
         HashMap<String, String> keys = null;
-        log.info("main method of generator");
+        //log.info("main method of generator");
         try {
             this.generateSecureKeys();
             this.createKeys();
@@ -95,6 +112,12 @@ public class RSAUtils {
         return keys;
     }
 
+    /**
+     * decrypting message with Private Key.
+     * @param encryptedMessageBytes
+     * @param prKey
+     * @return String
+     */
     public String decryptWithPrivateKey(byte[] encryptedMessageBytes, String prKey) throws GeneralSecurityException {
         PrivateKey privateKey = this.readPrivateKey(prKey);
         Cipher decryptCipher = Cipher.getInstance("RSA");

@@ -154,6 +154,12 @@ public class ExportServiceImpl implements ExportService {
         return zipFileName;
     }
 
+    /**
+     * get Sync History Trackers.
+     * @param syncHistoryTrackers
+     * @param syncResponse
+     * @return List<SyncHistoryTracker>
+     */
     private static List<SyncHistoryTracker> getSyncHistoryTrackers(List<SyncHistoryTracker> syncHistoryTrackers, SyncHistoryResponse syncResponse) {
         log.info("started history tracker...");
         syncHistoryTrackers = syncHistoryTrackers
@@ -164,11 +170,19 @@ public class ExportServiceImpl implements ExportService {
         return syncHistoryTrackers;
     }
 
+    /**
+     * manage keys.
+     * @param uuid
+     * @param appKey
+     * @return String
+     */
     private String getManagement(String uuid, String appKey) {
         log.info("manage key {}", uuid);
         try {
             byte[] keyBytes = DatatypeConverter.parseBase64Binary(uuid);
             //byte[] bytes = rsaUtils.encrypt(keyBytes, appKey);
+
+            //encrypt aes key
             byte[] encryptedKey = this.rsaUtils.encrypt(uuid.getBytes(StandardCharsets.UTF_8), appKey);
 
             //return as string
