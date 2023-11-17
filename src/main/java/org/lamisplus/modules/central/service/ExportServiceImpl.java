@@ -53,9 +53,8 @@ public class ExportServiceImpl implements ExportService {
     private final SyncHistoryRepository syncHistoryRepository;
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
 
-    private static final ArrayList ERROR_LOG= new ArrayList<>();
+    private static final ArrayList LOG = new ArrayList<>();
     private final DateUtility dateUtility;
-    private final QuarterService quarterService;
     private final DataSource dataSource;
     private final ConfigTableService configTableService;
     private final FacilityAppKeyService facilityAppKeyService;
@@ -72,9 +71,8 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public String bulkExport(Long facilityId, Boolean current) {
         boolean anyTable = false;
-        Integer facId = Integer.valueOf(String.valueOf(facilityId));
-        String appKey = facilityAppKeyService.FindByFacilityId(facId).getAppKey();
-        if(!ERROR_LOG.isEmpty()) ERROR_LOG.clear();
+        String appKey = facilityAppKeyService.FindByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
+        if(!LOG.isEmpty()) LOG.clear();
         //Generate uuid for the key
         String uuid = java.util.UUID.randomUUID().toString();
         Path path = Paths.get(TEMP_BATCH_DIR);
@@ -85,18 +83,16 @@ public class ExportServiceImpl implements ExportService {
                 e.printStackTrace();
             }
         }
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String start = START_DATE;
-        String end = LocalDateTime.now().format(timeFormatter);
+        String end = dateUtility.ConvertDateTimeToString(LocalDateTime.now());
 
         SyncHistory history = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
         //if(!current)history=null;
         if(!current && history != null){
             LocalDateTime lastSync = history.getDateLastSync();
-            end = dateUtility.ConvertDateTimeToString(lastSync);
+            start = dateUtility.ConvertDateTimeToString(lastSync);
         }
 
-        //Date date1 = new Date();
         String zipFileName = "None";
         String fileFolder = DATE_FORMAT.format(new Date());
         String folder = TEMP_BATCH_DIR + fileFolder + File.separator;
@@ -115,16 +111,19 @@ public class ExportServiceImpl implements ExportService {
             List<SyncHistoryTracker> syncHistoryTrackers = new ArrayList<>();
 
             List<ConfigTable> configTables = configTableService.getTablesForSyncing();
-            SyncHistoryTracker tracker;
+
             //Generate AES key...
             uuid = AESUtil.generateAESKey(uuid);
 
             for(ConfigTable configTable : configTables){
+                List<SyncHistoryTracker> trackers;
                 Long facility = configTable.getHasFacilityId() == null || !configTable.getHasFacilityId() ? null : facilityId;
-                tracker = exportAnyTable(configTable.getTableName(), facility, configTable.getUpdateColumn(), start,
+                trackers = exportAnyTable(configTable.getTableName(), facility, configTable.getUpdateColumn(), start,
                         configTable.getUpdateColumn(), end, fileFolder, uuid, configTable.getExcludeColumns());
-                if(tracker != null) anyTable = true;
-                syncHistoryTrackers.add(tracker);
+                if(!trackers.isEmpty()) {
+                    anyTable = true;
+                    syncHistoryTrackers.addAll(trackers);
+                }
             }
             if (anyTable) {
                 String datimCode = getDatimId(facilityId);
@@ -135,8 +134,8 @@ public class ExportServiceImpl implements ExportService {
                 fileUtility.zipDirectory(dir, fullPath, fileFolder);
                 //update sync history
                 int fileSize = (int) fileUtility.getFileSize(fullPath);
-                String key = getManagement(uuid, facId, appKey);
-                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (ERROR_LOG.isEmpty()) ? null : ERROR_LOG, folder, key);
+                String key = getManagement(uuid, appKey);
+                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (LOG.isEmpty()) ? null : LOG, folder, key);
                 SyncHistoryResponse syncResponse = syncHistoryService.saveSyncHistory(request);
                 if (syncResponse != null && !syncHistoryTrackers.isEmpty()) {
                     log.info("Sync history updated successfully.");
@@ -164,7 +163,7 @@ public class ExportServiceImpl implements ExportService {
         return syncHistoryTrackers;
     }
 
-    private String getManagement(String uuid, Integer facilityId, String appKey) {
+    private String getManagement(String uuid, String appKey) {
         log.info("manage key {}", uuid);
         try {
             byte[] keyBytes = DatatypeConverter.parseBase64Binary(uuid);
@@ -235,8 +234,9 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public SyncHistoryTracker exportAnyTable(String tableName, Long facilityId, String startName, String startDate, String endName, String endDate, String fileLocation, String uuid, String excludeColumn) {
+    public List<SyncHistoryTracker> exportAnyTable(String tableName, Long facilityId, String startName, String startDate, String endName, String endDate, String fileLocation, String uuid, String excludeColumn) {
         log.info("Started generating... " + tableName);
+        List<SyncHistoryTracker> trackers = new ArrayList<>();
         Long level = 0L;
         String query = null;
         JSONArray jsonArray = new JSONArray();
@@ -290,6 +290,7 @@ public class ExportServiceImpl implements ExportService {
                     FileUtils.writeByteArrayToFile(new File(tempFile), bytes);
                     tracker = new SyncHistoryTracker(null, null, fileName, fileSize, SYNC_TRACKER_STATUS,
                             LocalDateTime.now(), UN_ARCHIVED, facilityId);
+                    trackers.add(tracker);
                 }
                 level = split > 1 ? ++level : FETCH_SIZE;
             }while (level < size);
@@ -298,11 +299,11 @@ public class ExportServiceImpl implements ExportService {
             addError(tableName, e.getMessage(), getPrintStackError(e), e.getCause().getMessage());
             e.printStackTrace();
             closeDBConnection(conn);
-            return tracker;
+            return trackers;
         }finally {
             closeDBConnection(conn);
         }
-        return tracker;
+        return trackers;
     }
 
     /**
@@ -387,7 +388,7 @@ public class ExportServiceImpl implements ExportService {
     }
 
     private void addError(String name, String error, String others, String category){
-        ERROR_LOG.add(new Log(name, error, others, category));
+        LOG.add(new Log(name, error, others, category, LocalDateTime.now()));
     }
 
     /**

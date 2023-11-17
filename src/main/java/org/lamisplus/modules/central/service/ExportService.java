@@ -7,7 +7,7 @@ import java.util.List;
 public interface ExportService {
     String bulkExport(Long facilityId, Boolean current);
 
-    SyncHistoryTracker exportAnyTable(String tableName, Long facilityId, String startName, String startDate, String endName, String endDate, String fileLocation, String uuid, String excludeColumn);
+    List<SyncHistoryTracker> exportAnyTable(String tableName, Long facilityId, String startName, String startDate, String endName, String endDate, String fileLocation, String uuid, String excludeColumn);
 
     String getDatimId(Long facilityId);
 
