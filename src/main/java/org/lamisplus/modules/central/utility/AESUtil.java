@@ -152,14 +152,14 @@ public class AESUtil {
         return secret;
     }
 
-    public static byte[] decrypt(byte[] bytes, SecretKey secretKey) throws GeneralSecurityException, IOException {
+    public static byte[] decrypt(byte[] bytes, SecretKey secretKey) throws GeneralSecurityException {
         Cipher decryptCipher = Cipher.getInstance("AES");
         decryptCipher.init(Cipher.DECRYPT_MODE, secretKey);
         byte[] decryptedMessageBytes = decryptCipher.doFinal(bytes);
         return decryptedMessageBytes;
     }
 
-    public static byte[] encrypt(byte[] bytes, SecretKey secretKey) throws GeneralSecurityException, Exception {
+    public static byte[] encrypt(byte[] bytes, SecretKey secretKey) throws GeneralSecurityException {
         try{
             Cipher encryptCipher = Cipher.getInstance("AES");
             encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);

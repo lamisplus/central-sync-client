@@ -24,6 +24,7 @@ import javax.crypto.SecretKey;
 import javax.sql.DataSource;
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,7 +45,6 @@ import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 @RequiredArgsConstructor
 public class ExportServiceImpl implements ExportService {
     public static final int FETCH_SIZE = 10000;
-    public static final String ALGORITHM = "AES";
     public static final String SYNC_TRACKER_STATUS = "Generated";
     public static final int UN_ARCHIVED = 0;
     public static final String START_DATE = "1985-01-01 01:01:01";
@@ -53,7 +53,7 @@ public class ExportServiceImpl implements ExportService {
     private final SyncHistoryRepository syncHistoryRepository;
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
 
-    private static final ArrayList LOG = new ArrayList<>();
+    private static final ArrayList MESSAGE_LOG = new ArrayList<>();
     private final DateUtility dateUtility;
     private final DataSource dataSource;
     private final ConfigTableService configTableService;
@@ -72,9 +72,10 @@ public class ExportServiceImpl implements ExportService {
     public String bulkExport(Long facilityId, Boolean current) {
         boolean anyTable = false;
         String appKey = facilityAppKeyService.FindByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
-        if(!LOG.isEmpty()) LOG.clear();
+        if(!MESSAGE_LOG.isEmpty()) MESSAGE_LOG.clear();
         //Generate uuid for the key
         String uuid = java.util.UUID.randomUUID().toString();
+        log.info("uuid is {}", uuid);
         Path path = Paths.get(TEMP_BATCH_DIR);
         if(!Files.exists(path)) {
             try {
@@ -135,7 +136,7 @@ public class ExportServiceImpl implements ExportService {
                 //update sync history
                 int fileSize = (int) fileUtility.getFileSize(fullPath);
                 String key = getManagement(uuid, appKey);
-                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (LOG.isEmpty()) ? null : LOG, folder, key);
+                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (MESSAGE_LOG.isEmpty()) ? null : MESSAGE_LOG, folder, key);
                 SyncHistoryResponse syncResponse = syncHistoryService.saveSyncHistory(request);
                 if (syncResponse != null && !syncHistoryTrackers.isEmpty()) {
                     log.info("Sync history updated successfully.");
@@ -167,9 +168,11 @@ public class ExportServiceImpl implements ExportService {
         log.info("manage key {}", uuid);
         try {
             byte[] keyBytes = DatatypeConverter.parseBase64Binary(uuid);
-            byte[] bytes = rsaUtils.encrypt(keyBytes, appKey);
+            //byte[] bytes = rsaUtils.encrypt(keyBytes, appKey);
+            byte[] encryptedKey = this.rsaUtils.encrypt(uuid.getBytes(StandardCharsets.UTF_8), appKey);
+
             //return as string
-            return DatatypeConverter.printBase64Binary(bytes);
+            return DatatypeConverter.printBase64Binary(encryptedKey);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -388,7 +391,7 @@ public class ExportServiceImpl implements ExportService {
     }
 
     private void addError(String name, String error, String others, String category){
-        LOG.add(new Log(name, error, others, category, LocalDateTime.now()));
+        MESSAGE_LOG.add(new Log(name, error, others, category, LocalDateTime.now()));
     }
 
     /**
@@ -422,19 +425,5 @@ public class ExportServiceImpl implements ExportService {
             e.printStackTrace();
         }
         return getBytes;
-    }
-
-    public void decrypt(String key, String fileLocation, String tableName){
-        String tempFile = TEMP_BATCH_DIR +  fileLocation + File.separator + tableName + ".json";
-        String deTempFile = TEMP_BATCH_DIR +  fileLocation + File.separator + tableName + "_decrypted.json";
-        try {
-            SecretKey secretKey = AESUtil.getPrivateAESKeyFromDB(key);
-            log.info("started decrypting...");
-            AESUtil.decryptFile(ALGORITHM, secretKey, AESUtil.generateIv(),new File(tempFile), new File(deTempFile));
-            log.info("done decrypting...");
-
-        } catch (GeneralSecurityException | IOException e) {
-            e.printStackTrace();
-        }
     }
 }

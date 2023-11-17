@@ -10,6 +10,4 @@ public interface ExportService {
     List<SyncHistoryTracker> exportAnyTable(String tableName, Long facilityId, String startName, String startDate, String endName, String endDate, String fileLocation, String uuid, String excludeColumn);
 
     String getDatimId(Long facilityId);
-
-    void decrypt(String key, String fileLocation, String tableName);
 }

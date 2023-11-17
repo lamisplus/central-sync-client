@@ -10,9 +10,12 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
 import javax.xml.bind.DatatypeConverter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.HashMap;
 
 @Component
 @RequiredArgsConstructor
@@ -42,9 +45,9 @@ public class RSAUtils {
         return this.publicKey;
     }
 
-    public PrivateKey readPrivateKey(RemoteAccessToken remoteAccessToken) throws GeneralSecurityException {
+    public PrivateKey readPrivateKey(String prKey) throws GeneralSecurityException {
         PrivateKey key;
-        String fileString =  remoteAccessToken.getPrKey();
+        String fileString =  prKey;
         if(StringUtils.isBlank(fileString)) throw new EntityNotFoundException(RemoteAccessToken.class, "Private key", "Private key");
         byte[] keyBytes = DatatypeConverter.parseBase64Binary(fileString);
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
@@ -68,5 +71,36 @@ public class RSAUtils {
         byte[] encryptedMessageBytes = encryptCipher.doFinal(bytes);
         log.info("encrypt end ---");
         return encryptedMessageBytes;
+    }
+
+    public HashMap<String, String> keyGenerateAndReturnKey() {
+        String publicKeyPEM;
+        String privateKeyPEM;
+        HashMap<String, String> keys = null;
+        log.info("main method of generator");
+        try {
+            this.generateSecureKeys();
+            this.createKeys();
+
+            // THIS IS PEM:
+            publicKeyPEM = DatatypeConverter.printBase64Binary(this.getPublicKey().getEncoded());
+            privateKeyPEM = DatatypeConverter.printBase64Binary(this.getPrivateKey().getEncoded());
+            keys = new HashMap<>();
+            keys.put("privateKeyPEM", privateKeyPEM);
+            keys.put("publicKeyPEM", publicKeyPEM);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return keys;
+    }
+
+    public String decryptWithPrivateKey(byte[] encryptedMessageBytes, String prKey) throws GeneralSecurityException {
+        PrivateKey privateKey = this.readPrivateKey(prKey);
+        Cipher decryptCipher = Cipher.getInstance("RSA");
+        decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
+        byte[] decryptedMessageBytes = decryptCipher.doFinal(encryptedMessageBytes);
+        String decryptedMessage = new String(decryptedMessageBytes, StandardCharsets.UTF_8);
+        return decryptedMessage;
     }
 }

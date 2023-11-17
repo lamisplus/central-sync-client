@@ -196,9 +196,4 @@ public class ExportController {
         }
         return remoteAccessToken.getUrl();
     }
-
-    @GetMapping("/decrypt")
-    public void getDecrypt(@RequestParam String key, @RequestParam String location, @RequestParam String tableName) {
-        exportService.decrypt(key, location, tableName);
-    }
 }

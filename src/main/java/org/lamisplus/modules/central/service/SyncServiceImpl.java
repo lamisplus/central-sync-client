@@ -19,18 +19,25 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import javax.xml.bind.DatatypeConverter;
+import java.io.File;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.lamisplus.modules.central.utility.ConstantUtility.TEMP_BATCH_DIR;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SyncServiceImpl implements SyncService {
     public static final int UN_ARCHIVED = 0;
+    public static final String ALGORITHM = "AES";
     private final SyncHistoryRepository syncHistoryRepository;
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
@@ -114,5 +121,19 @@ public class SyncServiceImpl implements SyncService {
                 .stream()
                 .sorted(Comparator.comparing(SyncHistoryTracker::getTimeCreated).reversed())
                 .collect(Collectors.toList());
+    }
+
+    public void decrypt(String key, String fileLocation, String tableName){
+        String tempFile = TEMP_BATCH_DIR +  fileLocation + File.separator + tableName + ".json";
+        String deTempFile = TEMP_BATCH_DIR +  fileLocation + File.separator + tableName + "_decrypted.json";
+        try {
+            SecretKey secretKey = AESUtil.getPrivateAESKeyFromDB(key);
+            log.info("started decrypting...");
+            AESUtil.decryptFile(ALGORITHM, secretKey, AESUtil.generateIv(),new File(tempFile), new File(deTempFile));
+            log.info("done decrypting...");
+
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+        }
     }
 }
