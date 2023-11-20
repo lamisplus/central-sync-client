@@ -2,14 +2,12 @@ package org.lamisplus.modules.central.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.lamisplus.modules.central.CentralSyncModule;
 import org.lamisplus.modules.central.domain.dto.MessageType;
 import org.lamisplus.modules.central.domain.dto.ModuleProjection;
 import org.lamisplus.modules.central.domain.dto.ModuleStatus;
 import org.lamisplus.modules.central.domain.entity.ConfigModule;
 import org.lamisplus.modules.central.repository.ConfigModuleRepository;
 import org.springframework.stereotype.Service;
-import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +18,6 @@ import java.util.UUID;
 @Slf4j
 public class ConfigModuleService {
     private static final String NOT_FOUND = "N/A";
-    private static final String ERROR_MSG = "ERROR";
-    private static final String SUCCESS_MSG = "SUCCESS";
     private final ConfigModuleRepository repository;
 
     public ConfigModule Save(ConfigModule configModule){
@@ -62,7 +58,10 @@ public class ConfigModuleService {
             for (ModuleProjection appModule : appModules) {
                 //where there is a match
                 if(syncModule.getModuleName().equals(appModule.getName())) {
-                    if (ModuleCompatible(syncModule.getMinVersion(), syncModule.getMaxVersion(), appModule.getVersion())) {
+                    int max = Integer.valueOf(syncModule.getMaxVersion().replace(".", ""));
+                    int min = Integer.valueOf(syncModule.getMinVersion().replace(".", ""));
+                    int appVersion = Integer.valueOf(appModule.getVersion().replace(".", ""));
+                    if (appVersion >= min && appVersion <= max) {
                         moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
                                 MessageType.SUCCESS, appModule.getVersion(),
                                 syncModule.getMinVersion(), syncModule.getMaxVersion()));
@@ -84,13 +83,5 @@ public class ConfigModuleService {
             }
         }
         return moduleStatuses;
-    }
-
-    private boolean ModuleCompatible(String sMinVersion, String sMaxVersion, String sVersion){
-        DefaultArtifactVersion minVersion = new DefaultArtifactVersion(sMinVersion);
-        DefaultArtifactVersion maxVersion = new DefaultArtifactVersion(sMaxVersion);
-        DefaultArtifactVersion version = new DefaultArtifactVersion(sVersion);
-
-        return version.compareTo(minVersion) >= 0 && version.compareTo(maxVersion) <= 0;
     }
 }

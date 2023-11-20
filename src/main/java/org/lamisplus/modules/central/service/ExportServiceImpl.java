@@ -38,7 +38,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 
 @Slf4j
@@ -170,6 +169,7 @@ public class ExportServiceImpl implements ExportService {
                 .stream()
                 .map(syncHistoryTracker -> {
                     syncHistoryTracker.setSyncHistoryId(syncResponse.getId());
+                    syncHistoryTracker.setUuid(java.util.UUID.randomUUID());
                     syncHistoryTracker.setSyncHistoryUuid(syncResponse.getUuid());
                     return syncHistoryTracker;
                 })
@@ -474,14 +474,24 @@ public class ExportServiceImpl implements ExportService {
      * @return String
      */
     public String encryptCredentials(LoginVM login, String appKey, String history, String tracker, String fileName){
-        CredentialDto credential = new CredentialDto(login.getUsername(), login.getPassword(), history, tracker, fileName);
+        CredentialDto credential = new CredentialDto(login.getUsername(), login.getPassword());
+        FileDetail detail = new FileDetail(history, tracker, fileName);
         try {
             byte[] credentialBytes = SerializationUtils.serialize(credential);
+            log.info("converted credentials to byte");
+            //byte[] fileDetailBytes = SerializationUtils.serialize(detail);
+            //log.info("converted file detail to byte");
 
             //encrypt aes key
             byte[] encryptedCredential = this.rsaUtils.encrypt(credentialBytes, appKey);
+            log.info("encrypting credential...");
+            //byte[] encryptedDetail = this.rsaUtils.encrypt(fileDetailBytes, appKey);
+            //log.info("encrypting file details...");
 
+            //HashMap<String, String> credentialDetails = new HashMap<>();
             //return as string
+            //credentialDetails.put(CREDENTIAL, DatatypeConverter.printBase64Binary(encryptedCredential));
+            //credentialDetails.put(DETAIL, DatatypeConverter.printBase64Binary(encryptedDetail));
             return DatatypeConverter.printBase64Binary(encryptedCredential);
         } catch (Exception e) {
             e.printStackTrace();

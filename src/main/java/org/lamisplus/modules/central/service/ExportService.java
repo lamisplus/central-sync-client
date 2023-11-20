@@ -3,6 +3,7 @@ package org.lamisplus.modules.central.service;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
 import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 
+import java.util.HashMap;
 import java.util.List;
 
 public interface ExportService {

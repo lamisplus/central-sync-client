@@ -32,10 +32,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 
@@ -48,7 +45,6 @@ public class ExportController {
     public static final int ARCHIVED = 0;
     public static final String AUTHORIZATION = "Authorization";
     public static final String VERSION = "version";
-    public static final String CREDENTIAL = "credential";
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final RemoteAccessTokenRepository accessTokenRepository;
@@ -211,10 +207,13 @@ public class ExportController {
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.set(AUTHORIZATION, authorizeBeforeSending(loginVM));
             headers.set(VERSION, "217");
-            headers.set(CREDENTIAL, exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString(), tracker.getFileName()));
+            String credentialDetail = exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString(), tracker.getFileName());
+            headers.set(CREDENTIAL, credentialDetail);
+            log.info("done with encryption and passed to header");
 
             try {
-                String apiUrl = USE_API_URL + datimId;
+                String apiUrl = USE_API_URL + datimId + "/" + history.getUuid() + "/" + tracker.getUuid() + "/" + tracker.getFileName();
+                log.info("apiUrl {}", apiUrl);
                 HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
 
                 responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
@@ -224,6 +223,7 @@ public class ExportController {
                     break;
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending data: " + e.getMessage());
             }
         }

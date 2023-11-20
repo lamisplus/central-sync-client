@@ -39,7 +39,7 @@ public class SyncHistoryTracker {
     private UUID syncHistoryUuid;
 
     @Basic
-    @Column(name = "uuid", updatable = false, unique = true)
+    @Column(name = "uuid", updatable = false)
     private UUID uuid;
 
     @PrePersist
