@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
 import javax.xml.bind.DatatypeConverter;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -75,6 +74,8 @@ public class RSAUtils {
 
     /**
      * encrypt message with facility key.
+     * @param bytes
+     * @param facilityAppKey
      * @return HashMap<String, String>
      */
     public byte[] encrypt(byte[] bytes, String facilityAppKey) throws GeneralSecurityException {

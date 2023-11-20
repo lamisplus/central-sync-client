@@ -21,7 +21,6 @@ import org.lamisplus.modules.central.service.SyncHistoryService;
 import org.lamisplus.modules.central.utility.HttpConnectionManager;
 import org.springframework.http.*;
 import org.lamisplus.modules.central.service.ExportService;
-import org.lamisplus.modules.central.utility.ConstantUtility;
 import org.lamisplus.modules.central.utility.FileUtility;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,7 +56,7 @@ public class ExportController {
         if (facilityId == null)   {
             throw new IllegalAccessException("Invalid request parameters");
         }
-        String zipFileName = exportService.bulkExport(facilityId, current);
+        String zipFileName = exportService.generateFilesForSyncing(facilityId, current);
         if (!zipFileName.equals("None") && !zipFileName.equals("NO_RECORD")) {
             return new ResponseEntity<>("Record generated successfully.", HttpStatus.OK);
         } else if (zipFileName.equals("NO_RECORD")) {

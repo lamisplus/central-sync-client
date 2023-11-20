@@ -16,6 +16,7 @@ import org.hibernate.annotations.TypeDefs;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -46,6 +47,9 @@ public class SyncHistory {
     private Integer processedSize;
     private String filePath;
     private String genKey;
+    @Basic
+    @Column(name = "uuid", updatable = false, unique = true)
+    private UUID uuid;
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb", name = "error_log", nullable = false)
     private Object errorLog;
@@ -75,5 +79,10 @@ public class SyncHistory {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    @PrePersist
+    public void setUuid(){
+        if(uuid == null) uuid = UUID.randomUUID();
     }
 }

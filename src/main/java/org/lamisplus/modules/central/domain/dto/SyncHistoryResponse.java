@@ -3,6 +3,7 @@ package org.lamisplus.modules.central.domain.dto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 public class SyncHistoryResponse {
@@ -17,4 +18,5 @@ public class SyncHistoryResponse {
     private Integer processedSize;
     private String facilityName;
     private Object errorLog;
+    private UUID uuid;
 }

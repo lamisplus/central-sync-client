@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -33,4 +34,16 @@ public class SyncHistoryTracker {
     private Integer archived;
     @Column(name = "facility_id")
     private Long facilityId;
+
+    @Column(name = "sync_history_uuid")
+    private UUID syncHistoryUuid;
+
+    @Basic
+    @Column(name = "uuid", updatable = false, unique = true)
+    private UUID uuid;
+
+    @PrePersist
+    public void setUuid(){
+        if(uuid == null) uuid = UUID.randomUUID();
+    }
 }

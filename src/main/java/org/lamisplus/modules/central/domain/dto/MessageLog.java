@@ -7,10 +7,10 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-public class Log {
+public class MessageLog {
     private String name;
-    private String error;
+    private String message;
     private String others;
-    private String category;
+    private MessageType category;
     private LocalDateTime timeCreated;
 }

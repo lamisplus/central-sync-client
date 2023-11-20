@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ModuleStatus {
 	private String name;
-	private String message;
+	private MessageType message;
 	private String availableVersion;
 	private String minimumVersion;
 	private String maximumVersion;

@@ -90,6 +90,7 @@ public class SyncHistoryService {
         response.setDateLastSync(entity.getDateLastSync());
         response.setTableName(entity.getTableName());
         response.setErrorLog(entity.getErrorLog());
+        response.setUuid(entity.getUuid());
 
         return response;
     }

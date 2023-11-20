@@ -3,6 +3,7 @@ package org.lamisplus.modules.central.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.central.CentralSyncModule;
+import org.lamisplus.modules.central.domain.dto.MessageType;
 import org.lamisplus.modules.central.domain.dto.ModuleProjection;
 import org.lamisplus.modules.central.domain.dto.ModuleStatus;
 import org.lamisplus.modules.central.domain.entity.ConfigModule;
@@ -63,11 +64,11 @@ public class ConfigModuleService {
                 if(syncModule.getModuleName().equals(appModule.getName())) {
                     if (ModuleCompatible(syncModule.getMinVersion(), syncModule.getMaxVersion(), appModule.getVersion())) {
                         moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
-                                SUCCESS_MSG, appModule.getVersion(),
+                                MessageType.SUCCESS, appModule.getVersion(),
                                 syncModule.getMinVersion(), syncModule.getMaxVersion()));
                     } else {
                         moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
-                                ERROR_MSG, appModule.getVersion(),
+                                MessageType.WARNING, appModule.getVersion(),
                                 syncModule.getMinVersion(), syncModule.getMaxVersion()));
                     }
 
@@ -78,7 +79,7 @@ public class ConfigModuleService {
             //if not found
             if(!found){
                 //add to list
-                moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(), ERROR_MSG, NOT_FOUND,
+                moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(), MessageType.ERROR, NOT_FOUND,
                         syncModule.getMinVersion(), syncModule.getMaxVersion()));
             }
         }
