@@ -9,7 +9,9 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.json.JSONArray;
+import org.lamisplus.modules.base.controller.vm.LoginVM;
 import org.lamisplus.modules.central.domain.entity.ConfigTable;
 import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 import org.lamisplus.modules.central.domain.mapper.ResultSetToJsonMapper;
@@ -69,7 +71,6 @@ public class ExportServiceImpl implements ExportService {
      */
     @Override
     public String generateFilesForSyncing(Long facilityId, Boolean current) {
-
         boolean anyTable = false;
         String appKey = facilityAppKeyService.FindByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
 
@@ -139,7 +140,8 @@ public class ExportServiceImpl implements ExportService {
                 fileUtility.zipDirectory(dir, fullPath, fileFolder);
                 //update sync history
                 int fileSize = (int) fileUtility.getFileSize(fullPath);
-                String key = getManagement(uuid, appKey);
+                //encrypted key
+                String key = manageKey(uuid, appKey);
                 SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (MESSAGE_LOG.isEmpty()) ? null : MESSAGE_LOG, folder, key);
                 SyncHistoryResponse syncResponse = syncHistoryService.saveSyncHistory(request);
                 if (syncResponse != null && !syncHistoryTrackers.isEmpty()) {
@@ -180,7 +182,7 @@ public class ExportServiceImpl implements ExportService {
      * @param appKey
      * @return String
      */
-    private String getManagement(String uuid, String appKey) {
+    private String manageKey(String uuid, String appKey) {
         log.info("manage key {}", uuid);
         try {
             byte[] keyBytes = DatatypeConverter.parseBase64Binary(uuid);
@@ -462,4 +464,29 @@ public class ExportServiceImpl implements ExportService {
         }
         return getBytes;
     }
+
+    /**
+     * module encrypt Credentials
+     * @param login
+     * @param appKey
+     * @param history
+     * @param tracker
+     * @return String
+     */
+    public String encryptCredentials(LoginVM login, String appKey, String history, String tracker){
+        CredentialDto credential = new CredentialDto(login.getUsername(), login.getPassword(), history, tracker);
+        try {
+            byte[] credentialBytes = SerializationUtils.serialize(credential);
+
+            //encrypt aes key
+            byte[] encryptedCredential = this.rsaUtils.encrypt(credentialBytes, appKey);
+
+            //return as string
+            return DatatypeConverter.printBase64Binary(encryptedCredential);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

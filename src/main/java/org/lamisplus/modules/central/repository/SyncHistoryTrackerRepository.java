@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface SyncHistoryTrackerRepository extends JpaRepository<SyncHistoryTracker, Long> {
@@ -14,5 +15,7 @@ public interface SyncHistoryTrackerRepository extends JpaRepository<SyncHistoryT
 
     List<SyncHistoryTracker> findAllBySyncHistoryIdAndArchived(Long syncHistoryId, int archived);
 
-    List<SyncHistoryTracker> findAllBySyncHistoryIdAndStatusAndArchived(Long syncHistoryId, String status, int archived);
+    List<SyncHistoryTracker> findAllBySyncHistoryUuidAndStatusAndArchived(UUID syncHistoryUuid, String status, int archived);
+
+    Optional<SyncHistoryTracker> findByUuid(UUID syncHistoryTrackerUuid);
 }

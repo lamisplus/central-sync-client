@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
@@ -17,6 +18,7 @@ import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryTrackerRepository;
+import org.lamisplus.modules.central.service.FacilityAppKeyService;
 import org.lamisplus.modules.central.service.SyncHistoryService;
 import org.lamisplus.modules.central.utility.HttpConnectionManager;
 import org.springframework.http.*;
@@ -30,8 +32,10 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 
@@ -40,6 +44,11 @@ import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 @Slf4j
 @RequestMapping("/api/v1/export")
 public class ExportController {
+    public static final String GENERATED = "Generated";
+    public static final int ARCHIVED = 0;
+    public static final String AUTHORIZATION = "Authorization";
+    public static final String VERSION = "version";
+    public static final String CREDENTIALS = "credentials";
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final RemoteAccessTokenRepository accessTokenRepository;
@@ -48,6 +57,7 @@ public class ExportController {
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository historyRepository;
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
+    private final FacilityAppKeyService facilityAppKeyService;
 
     @GetMapping("/all")
     public ResponseEntity<String> generate(@RequestParam Long facilityId,
@@ -158,30 +168,49 @@ public class ExportController {
     }
 
     @PostMapping("/data/file")
-    public ResponseEntity<String> sendFileDataToAPI(@RequestParam("syncHistoryId") Long syncHistoryId,
+    public ResponseEntity<String> sendFileDataToAPI(@RequestParam("syncHistoryUuid") UUID syncHistoryUuid,
+                                                    @RequestParam(value = "syncHistoryTrackerUuid", required = false) UUID syncHistoryTrackerUuid,
                                                     @RequestParam("facilityId") Long facilityId) {
         LoginVM loginVM = new LoginVM();
         RemoteAccessToken remoteAccessToken = accessTokenRepository
                 .findOneAccess()
                 .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
+        List<SyncHistoryTracker> trackers = new ArrayList<>();
 
         String USE_API_URL = checkUrl(remoteAccessToken).concat(API_URL);
         loginVM.setUsername(remoteAccessToken.getUsername());
         loginVM.setPassword(remoteAccessToken.getPassword());
+
+        if(syncHistoryTrackerUuid != null){
+            SyncHistoryTracker tracker = syncHistoryTrackerRepository
+                    .findByUuid(syncHistoryTrackerUuid)
+                    .orElseThrow(()-> new EntityNotFoundException(SyncHistoryTracker.class, "uuid", "uuid"));
+            trackers.add(tracker);
+        } else {
+            trackers = syncHistoryTrackerRepository
+                    .findAllBySyncHistoryUuidAndStatusAndArchived(syncHistoryUuid, GENERATED, ARCHIVED);
+        }
+        SyncHistory history = historyRepository.findByUuid(syncHistoryUuid).orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", "file"));
+
+        return getStringResponseEntity(facilityId, loginVM, trackers, USE_API_URL, history);
+        //if (response != null && response.getStatusCode() == HttpStatus.OK) return INTERNAL_SERVER_ERROR;
+        //return ResponseEntity.ok("Data sent successfully. Response: " + responseEntity.getBody());
+    }
+
+    private ResponseEntity<String> getStringResponseEntity(Long facilityId, LoginVM loginVM, List<SyncHistoryTracker> trackers, String USE_API_URL, SyncHistory history) {
         ResponseEntity<String> responseEntity = null;
+        String appKey = facilityAppKeyService.FindByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-
-        headers.set("Authorization", authorizeBeforeSending(loginVM));
-        headers.set("version", "217");
-        List<SyncHistoryTracker> trackers = syncHistoryTrackerRepository.findAllBySyncHistoryIdAndStatusAndArchived(syncHistoryId, "Generated", 0);
-        SyncHistory history = historyRepository.findById(syncHistoryId).orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", "file"));
-
-        for (SyncHistoryTracker tracker : trackers){
+        for (SyncHistoryTracker tracker : trackers) {
             byte[] byteRequest = fileUtility.convertFileToByteArray(history.getFilePath() + File.separator + tracker.getFileName());
 
             RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.set(AUTHORIZATION, authorizeBeforeSending(loginVM));
+            headers.set(VERSION, "217");
+            headers.set(CREDENTIALS, exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString()));
+
             try {
                 String apiUrl = USE_API_URL + facilityId;
                 HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
@@ -189,12 +218,14 @@ public class ExportController {
                 responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
                 if (responseEntity.getStatusCode() == HttpStatus.OK) {
                     syncHistoryService.updateSyncHistoryTracker(tracker.getId());
+                }else {
+                    break;
                 }
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending data: " + e.getMessage());
             }
         }
-        return ResponseEntity.ok("Data sent successfully. Response: " + responseEntity.getBody());
+        return responseEntity;
     }
 
     @GetMapping("/sync-histories")

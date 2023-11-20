@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface SyncHistoryRepository  extends JpaRepository<SyncHistory, Long> {
@@ -28,4 +29,6 @@ public interface SyncHistoryRepository  extends JpaRepository<SyncHistory, Long>
 
     @Query(value = "SELECT gen_key from sync_history WHERE id = ?1", nativeQuery = true)
     Optional<String> getKey(Long id);
+
+    Optional<SyncHistory> findByUuid(UUID syncHistoryUuid);
 }
