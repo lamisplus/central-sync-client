@@ -170,7 +170,7 @@ public class ExportServiceImpl implements ExportService {
                 .stream()
                 .map(syncHistoryTracker -> {
                     syncHistoryTracker.setSyncHistoryId(syncResponse.getId());
-                    syncHistoryTracker.setUuid(syncResponse.getUuid());
+                    syncHistoryTracker.setSyncHistoryUuid(syncResponse.getUuid());
                     return syncHistoryTracker;
                 })
                 .collect(Collectors.toList());
@@ -473,8 +473,8 @@ public class ExportServiceImpl implements ExportService {
      * @param tracker
      * @return String
      */
-    public String encryptCredentials(LoginVM login, String appKey, String history, String tracker){
-        CredentialDto credential = new CredentialDto(login.getUsername(), login.getPassword(), history, tracker);
+    public String encryptCredentials(LoginVM login, String appKey, String history, String tracker, String fileName){
+        CredentialDto credential = new CredentialDto(login.getUsername(), login.getPassword(), history, tracker, fileName);
         try {
             byte[] credentialBytes = SerializationUtils.serialize(credential);
 

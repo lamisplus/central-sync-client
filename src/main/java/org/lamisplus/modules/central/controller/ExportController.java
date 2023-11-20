@@ -48,7 +48,7 @@ public class ExportController {
     public static final int ARCHIVED = 0;
     public static final String AUTHORIZATION = "Authorization";
     public static final String VERSION = "version";
-    public static final String CREDENTIALS = "credentials";
+    public static final String CREDENTIAL = "credential";
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final RemoteAccessTokenRepository accessTokenRepository;
@@ -167,19 +167,22 @@ public class ExportController {
         return ResponseEntity.ok("Data sent successfully. Response: " + responseEntity.getBody());
     }
 
-    @PostMapping("/data/file")
+    @PostMapping("/file/data")
     public ResponseEntity<String> sendFileDataToAPI(@RequestParam("syncHistoryUuid") UUID syncHistoryUuid,
                                                     @RequestParam(value = "syncHistoryTrackerUuid", required = false) UUID syncHistoryTrackerUuid,
-                                                    @RequestParam("facilityId") Long facilityId) {
-        LoginVM loginVM = new LoginVM();
+                                                    @RequestParam("facilityId") Long facilityId,
+                                                    @RequestBody LoginVM loginVM) {
+        if(loginVM.getUsername() == null || loginVM.getPassword() == null){
+            throw new EntityNotFoundException(LoginVM.class, "Username or Password", "not found");
+        }
         RemoteAccessToken remoteAccessToken = accessTokenRepository
                 .findOneAccess()
                 .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
-        List<SyncHistoryTracker> trackers = new ArrayList<>();
 
+        List<SyncHistoryTracker> trackers = new ArrayList<>();
         String USE_API_URL = checkUrl(remoteAccessToken).concat(API_URL);
-        loginVM.setUsername(remoteAccessToken.getUsername());
-        loginVM.setPassword(remoteAccessToken.getPassword());
+        //loginVM.setUsername(remoteAccessToken.getUsername());
+        //loginVM.setPassword(remoteAccessToken.getPassword());
 
         if(syncHistoryTrackerUuid != null){
             SyncHistoryTracker tracker = syncHistoryTrackerRepository
@@ -193,12 +196,11 @@ public class ExportController {
         SyncHistory history = historyRepository.findByUuid(syncHistoryUuid).orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", "file"));
 
         return getStringResponseEntity(facilityId, loginVM, trackers, USE_API_URL, history);
-        //if (response != null && response.getStatusCode() == HttpStatus.OK) return INTERNAL_SERVER_ERROR;
-        //return ResponseEntity.ok("Data sent successfully. Response: " + responseEntity.getBody());
     }
 
     private ResponseEntity<String> getStringResponseEntity(Long facilityId, LoginVM loginVM, List<SyncHistoryTracker> trackers, String USE_API_URL, SyncHistory history) {
         ResponseEntity<String> responseEntity = null;
+        String datimId = historyRepository.getDatimCode(facilityId);
         String appKey = facilityAppKeyService.FindByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
 
         for (SyncHistoryTracker tracker : trackers) {
@@ -209,10 +211,10 @@ public class ExportController {
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.set(AUTHORIZATION, authorizeBeforeSending(loginVM));
             headers.set(VERSION, "217");
-            headers.set(CREDENTIALS, exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString()));
+            headers.set(CREDENTIAL, exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString(), tracker.getFileName()));
 
             try {
-                String apiUrl = USE_API_URL + facilityId;
+                String apiUrl = USE_API_URL + datimId;
                 HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
 
                 responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);

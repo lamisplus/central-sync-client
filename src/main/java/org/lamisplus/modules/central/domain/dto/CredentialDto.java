@@ -14,4 +14,5 @@ public class CredentialDto implements Serializable {
     private String password;
     private String history;
     private String tracker;
+    private String fileName;
 }
