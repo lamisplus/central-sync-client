@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import { Modal, ModalHeader, ModalBody,Form,FormFeedback,
-Row,Col, Card,CardBody, FormGroup, Input, Label} from 'reactstrap';
+Row,Col, Card,CardBody, FormGroup, Input, Label, Table} from 'reactstrap';
 import Button from '@material-ui/core/Button'
 import { makeStyles } from '@material-ui/core/styles'
 
@@ -59,51 +59,24 @@ const useStyles = makeStyles(theme => ({
 const NewToken = (props) => {
     const classes = useStyles()
     const [urlHide, setUrlHide] = useState(false);
-    const defaultValues = { username: "", password: "", url:"" }
+    const defaultValues = { file: "",}
     const [patDetails, setPatDetails] = useState(defaultValues);
     const [saving, setSaving] = useState(false);
-    const [serverUrl, setServerUrl] = useState( [])
+
     const [errors, setErrors] = useState({});
+    const [dataJSONFile, setDataJSONFile] = useState(null)
+    const [dataJSONFileContent, setDataJSONFileContent] = useState(null)
 
-
-    useEffect(() => {
-      ServerUrl()
-    }, []);
-        ///GET LIST OF Facilities
-        async function ServerUrl() {
-          axios
-              .get(`${baseUrl}sync/remote-urls`,
-              { headers: {"Authorization" : `Bearer ${token}`} }
-              )
-              .then((response) => {
-                  setServerUrl(
-                      Object.entries(response.data).map(([key, value]) => ({
-                          label: value.url,
-                          value: value.id,
-                        }))
-                  );
-              })
-              .catch((error) => {
-  
-              });
-      
-      }
-    
     const handleInputChange = e => {
       setPatDetails ({...patDetails,  [e.target.name]: e.target.value});
     }
     /*****  Validation */
     const validate = () => {
     let temp = { ...errors };
-    temp.username = patDetails.username
+    temp.file = patDetails.file
         ? ""
-        : "Username is required";
-        temp.password = patDetails.password
-        ? ""
-        : "Password is required";
-        temp.url = patDetails.url
-        ? ""
-        : "Server URL is required";
+        : "File is required";
+
         setErrors({
             ...temp,
         });
@@ -112,16 +85,16 @@ const NewToken = (props) => {
 
     const handleSubmit = (e) => {
       e.preventDefault();
-            if (validate()) {      
+            //if (validate()) {
                     setSaving(true);
-                    axios.post(`${baseUrl}sync/remote-access-token`,patDetails,
+                    axios.post(`${baseUrl}sync/sync-config`,dataJSONFile,
                      { headers: {"Authorization" : `Bearer ${token}`}},
                     
                     )
                         .then(response => {
                             setSaving(false);
                             props.ServerUrl()
-                            toast.success("Token Generated Successful");
+                            toast.success("Config File Uploaded Successful");
                             props.toggleModal()
 
                         })
@@ -130,10 +103,26 @@ const NewToken = (props) => {
                             toast.error("Something went wrong");
                             props.toggleModal();
                         });
-            };
+            //};
         }
 
-      
+    const readFileOnUpload = (uploadedFile) =>{
+        const fileReader = new FileReader();
+        //patDetails.file=true
+        fileReader.onloadend = ()=>{
+            try{
+                setDataJSONFile(JSON.parse(fileReader.result));
+                //console.log(JSON.parse(fileReader.result))
+                setDataJSONFileContent(fileReader.result)
+            }catch(e){
+                setDataJSONFile("**Not valid JSON file!**");
+            }
+        }
+        if( uploadedFile!== undefined)
+            fileReader.readAsText(uploadedFile);
+    }
+
+
   return (      
       <div >
          
@@ -144,58 +133,24 @@ const NewToken = (props) => {
                     <Card >
                     <CardBody>
                     <Row >
-
-                            <Col md={12}>
+                        <Col md={12}>
                             <FormGroup>
-                            <Label >Server URL * </Label>
+                            <Label >Config File</Label>
                                     <Input
-                                        type="text"
-                                        name="url"
-                                        id="url"
-                                        value={patDetails.url} 
-                                        onChange={handleInputChange}
+                                        type="file"
+                                        name="file"
+                                        id="file"
+                                        value={patDetails.file}
+                                        onChange={(e)=>readFileOnUpload(e.target.files[0])}
                                         style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
                                         required
                                         />
-                                        {errors.url !=="" ? (
-                                                        <span className={classes.error}>{errors.url}</span>
-                                                    ) : "" }   
-                            </FormGroup>
-                            </Col>                
-                            <Col md={12}>
-                        <FormGroup>
-                        <Label >Username </Label>
-                                <Input
-                                    type="text"
-                                    name="username"
-                                    id="username" 
-                                    value={patDetails.username}
-                                    onChange={handleInputChange}
-                                    style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                    required
-                                    />
-                                    {errors.username !=="" ? (
-                                        <span className={classes.error}>{errors.username}</span>
-                                    ) : "" }
-                        </FormGroup>
-                        </Col>
-                        <Col md={12}>
-                        <FormGroup>
-                        <Label >Password </Label>
-                                <Input
-                                    type="password"
-                                    name="password"
-                                    id="password" 
-                                    value={patDetails.password}
-                                    onChange={handleInputChange}
-                                    style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                    required
-                                    />
-                                        {errors.password !=="" ? (
-                                            <span className={classes.error}>{errors.password}</span>
+                                        {errors.file !=="" ? (
+                                            <span className={classes.error}>{errors.file}</span>
                                         ) : "" }
-                        </FormGroup>
-                        </Col>                    
+
+                            </FormGroup>
+                            </Col>
                     </Row>
                     {saving ? <Spinner /> : ""}
                     <br/>              
@@ -207,7 +162,7 @@ const NewToken = (props) => {
                             //startIcon={<SettingsBackupRestoreIcon />}
                             onClick={handleSubmit}   
                         >   
-                            <span style={{ textTransform: "capitalize ", color:"#fff" }}>Connect & Generate Token</span>  
+                            <span style={{ textTransform: "capitalize ", color:"#fff" }}>Upload Config File</span>
                         </Button>
                     </CardBody>
                     </Card> 
