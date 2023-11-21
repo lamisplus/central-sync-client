@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
+import org.lamisplus.modules.central.domain.dto.SyncDetailDto;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
@@ -164,11 +165,8 @@ public class ExportController {
     }
 
     @PostMapping("/file/data")
-    public ResponseEntity<String> sendFileDataToAPI(@RequestParam("syncHistoryUuid") UUID syncHistoryUuid,
-                                                    @RequestParam(value = "syncHistoryTrackerUuid", required = false) UUID syncHistoryTrackerUuid,
-                                                    @RequestParam("facilityId") Long facilityId,
-                                                    @RequestBody LoginVM loginVM) {
-        if(loginVM.getUsername() == null || loginVM.getPassword() == null){
+    public ResponseEntity<String> sendFileDataToAPI(@RequestBody SyncDetailDto syncDetailDto) {
+        if(syncDetailDto.getUsername() == null || syncDetailDto.getPassword() == null){
             throw new EntityNotFoundException(LoginVM.class, "Username or Password", "not found");
         }
         RemoteAccessToken remoteAccessToken = accessTokenRepository
@@ -177,21 +175,25 @@ public class ExportController {
 
         List<SyncHistoryTracker> trackers = new ArrayList<>();
         String USE_API_URL = checkUrl(remoteAccessToken).concat(API_URL);
-        //loginVM.setUsername(remoteAccessToken.getUsername());
-        //loginVM.setPassword(remoteAccessToken.getPassword());
 
-        if(syncHistoryTrackerUuid != null){
+
+        if(syncDetailDto.getSyncHistoryTrackerUuid() != null){
             SyncHistoryTracker tracker = syncHistoryTrackerRepository
-                    .findByUuid(syncHistoryTrackerUuid)
+                    .findByUuid(java.util.UUID.fromString(syncDetailDto.getSyncHistoryTrackerUuid()))
                     .orElseThrow(()-> new EntityNotFoundException(SyncHistoryTracker.class, "uuid", "uuid"));
             trackers.add(tracker);
         } else {
             trackers = syncHistoryTrackerRepository
-                    .findAllBySyncHistoryUuidAndStatusAndArchived(syncHistoryUuid, GENERATED, ARCHIVED);
+                    .findAllBySyncHistoryUuidAndStatusAndArchived(java.util.UUID.fromString(syncDetailDto.getSyncHistoryUuid()), GENERATED, ARCHIVED);
         }
-        SyncHistory history = historyRepository.findByUuid(syncHistoryUuid).orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", "file"));
+        SyncHistory history = historyRepository
+                .findByUuid(java.util.UUID.fromString(syncDetailDto.getSyncHistoryUuid()))
+                .orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", "file"));
+        LoginVM loginVM = new LoginVM();
+        loginVM.setUsername(syncDetailDto.getUsername());
+        loginVM.setPassword(syncDetailDto.getPassword());
 
-        return getStringResponseEntity(facilityId, loginVM, trackers, USE_API_URL, history);
+        return getStringResponseEntity(syncDetailDto.getFacilityId(), loginVM, trackers, USE_API_URL, history);
     }
 
     private ResponseEntity<String> getStringResponseEntity(Long facilityId, LoginVM loginVM, List<SyncHistoryTracker> trackers, String USE_API_URL, SyncHistory history) {
@@ -207,8 +209,9 @@ public class ExportController {
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.set(AUTHORIZATION, authorizeBeforeSending(loginVM));
             headers.set(VERSION, "217");
-            String credentialDetail = exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString(), tracker.getFileName());
-            headers.set(CREDENTIAL, credentialDetail);
+            //String credentialDetail = exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString(), tracker.getFileName());
+            //log.info("encrypted credential is {}", credentialDetail);
+            //headers.set(CREDENTIAL, credentialDetail);
             log.info("done with encryption and passed to header");
 
             try {

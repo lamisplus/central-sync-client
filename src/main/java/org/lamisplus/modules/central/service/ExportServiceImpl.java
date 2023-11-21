@@ -475,16 +475,17 @@ public class ExportServiceImpl implements ExportService {
      */
     public String encryptCredentials(LoginVM login, String appKey, String history, String tracker, String fileName){
         CredentialDto credential = new CredentialDto(login.getUsername(), login.getPassword());
+        log.info("credential is {}", credential);
         FileDetail detail = new FileDetail(history, tracker, fileName);
         try {
-            byte[] credentialBytes = SerializationUtils.serialize(credential);
-            log.info("converted credentials to byte");
+            byte[] credentialBytes = DatatypeConverter.parseBase64Binary(credential.toString());
+            //SerializationUtils.serialize(credential);
+            log.info("credentialBytes {}", credentialBytes);
             //byte[] fileDetailBytes = SerializationUtils.serialize(detail);
-            //log.info("converted file detail to byte");
 
-            //encrypt aes key
+            //encrypt rsa key
             byte[] encryptedCredential = this.rsaUtils.encrypt(credentialBytes, appKey);
-            log.info("encrypting credential...");
+            //log.info("encrypted Credential... {}", encryptedCredential);
             //byte[] encryptedDetail = this.rsaUtils.encrypt(fileDetailBytes, appKey);
             //log.info("encrypting file details...");
 
@@ -493,6 +494,7 @@ public class ExportServiceImpl implements ExportService {
             //credentialDetails.put(CREDENTIAL, DatatypeConverter.printBase64Binary(encryptedCredential));
             //credentialDetails.put(DETAIL, DatatypeConverter.printBase64Binary(encryptedDetail));
             return DatatypeConverter.printBase64Binary(encryptedCredential);
+            //return new String(encryptedCredential, StandardCharsets.UTF_8);
         } catch (Exception e) {
             e.printStackTrace();
         }
