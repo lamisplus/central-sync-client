@@ -133,6 +133,7 @@ const SyncList = (props) => {
   const [showErrorTable, setShowErrorTable] = useState(false);
   const [showErrorObj, setShowErrorObj] = useState([]);
   const [showErrorFileObj, setShowErrorFileObj] = useState();
+    const [rowObj, setRowObj] = useState(null);
 
 useEffect(() => {
     Facilities();
@@ -231,8 +232,9 @@ useEffect(() => {
     const displayLogs =()=> {
         setLogModal(!logModal)
     }
-    const sendToServerAction =()=> {
+    const sendToServerAction =(rowObj)=> {
         setSendToServerModal(!sendToServerModal);
+        setRowObj(rowObj)
     }
     const displaySendToServer =()=> {
         setSendToServerModal(!sendToServerModal)
@@ -462,7 +464,7 @@ useEffect(() => {
             </ModalBody>
         </Modal>
 
-        <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  />
+        <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
         <Logs toggleModal={toggleLogModal} showModal={logModal}  />
         <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal}  />
     </div>

@@ -57,9 +57,11 @@ const useStyles = makeStyles(theme => ({
 
 
 const SendToServer = (props) => {
+    const rowObj=props.rowObj!==null ? props.rowObj : {};
+    //console.log(rowObj)
     const classes = useStyles()
     const [urlHide, setUrlHide] = useState(false);
-    const defaultValues = { username: "", password: "", url:"" }
+    const defaultValues = { username: "", password: "", syncHistoryUuid:rowObj.id, syncHistoryTrackerUuid:rowObj.uuid, facilityId: rowObj.organisationUnitId }
     const [patDetails, setPatDetails] = useState(defaultValues);
     const [saving, setSaving] = useState(false);
     const [serverUrl, setServerUrl] = useState( [])
@@ -101,9 +103,7 @@ const SendToServer = (props) => {
         temp.password = patDetails.password
             ? ""
             : "Password is required";
-        temp.url = patDetails.url
-            ? ""
-            : "Server URL is required";
+
         setErrors({
             ...temp,
         });
@@ -114,7 +114,7 @@ const SendToServer = (props) => {
         e.preventDefault();
         if (validate()) {
             setSaving(true);
-            axios.post(`${baseUrl}sync/remote-access-token`,patDetails,
+            axios.post(`${baseUrl}export/file/data`,patDetails,
                 { headers: {"Authorization" : `Bearer ${token}`}},
 
             )

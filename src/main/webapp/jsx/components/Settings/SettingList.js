@@ -3,7 +3,6 @@ import MaterialTable from 'material-table';
 import axios from "axios";
 import { token as token,  url as baseUrl } from "./../../../api";
 import NewPersonalAccessToken from './NewPersonalAccessToken';
-import UpdatePersonalAccessToken from './UpdateToken';
 import { forwardRef } from 'react';
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowUpward from '@material-ui/icons/ArrowUpward';
@@ -54,27 +53,25 @@ ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 
 const SettingList = (props) => {
 
-  const [serverUrl, setServerUrl] = useState( [])
+  const [serverConfig, setServerConfig] = useState( [])
   const [modal, setModal] = useState(false);
   const toggle = () => setModal(!modal);
   const [showModal, setShowModal] = React.useState(false);
   const toggleModal = () => setShowModal(!showModal);
-  const [showModal2, setShowModal2] = React.useState(false);
-  const toggleModal2 = () => setShowModal2(!showModal2)
-  const defaultValues = { facility: "", url: "" }
-  const [userToken, setUserToken] = useState( { username: "", password: "", url:"" })
+  const [configDetailObj, setConfigDetailObj] = useState(null)
+    const [showConfigView, setShowConfigView] = useState(false)
   useEffect(() => {
-    ServerUrl()
+      ServerConfigFile()
   }, []);
     ///GET LIST OF Remote URL
-    async function ServerUrl() {
+    async function ServerConfigFile() {
         axios
-            .get(`${baseUrl}sync/remote-urls`,
+            .get(`${baseUrl}sync/sync-config`,
             { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {
                 
-                setServerUrl(response.data)
+                setServerConfig(response.data)
                 
             })
             .catch((error) => {
@@ -82,12 +79,15 @@ const SettingList = (props) => {
             });
 
     }
-    const tokenSetup =()=> {        
+    const uploadConfigFile =()=> {
         setShowModal(!showModal)
     }
-    const editTokenSetup =(row)=> {        
-        setShowModal2(!showModal2)
-        setUserToken(row)
+    const viewConfigDetail =(row)=> {
+        setShowConfigView(true)
+        setConfigDetailObj(row)
+    }
+    const backButton =()=> {
+        setShowConfigView(false)
     }
     
  
@@ -99,68 +99,112 @@ const SettingList = (props) => {
             className=" float-right mr-1"
             //startIcon={<FaUserPlus />}
             style={{backgroundColor:"#014d88"}}
-            onClick={tokenSetup}
+            onClick={showConfigView ? backButton : uploadConfigFile}
           >
-            <span style={{ textTransform: "capitalize" }}>Upload Config File </span>
+            <span style={{ textTransform: "capitalize" }}>{showConfigView ? "<< Back" : "Upload Config File"} </span>
         </Button>        
         <br/><br/>
         <br/>
-      <MaterialTable
-       icons={tableIcons}
-        title="Config Information "
-        columns={[
-         // { title: " ID", field: "Id" },
-          {
-            title: "Version",
-            field: "name",
-          },
-          { title: "Date Uploaded", field: "url", filtering: false },
-            { title: "Status", field: "url", filtering: false },
-          { title: "Action", field: "actions", filtering: false },
-         
-         
-        ]}
-        data={ serverUrl.map((row) => ({
-            //Id: manager.id,
-              name: row.url,
-              url: row.username,
+        {!showConfigView && (
+              <MaterialTable
+               icons={tableIcons}
+                title="Config Information "
+                columns={[
+                        { title: " File Name", field: "name" },
+                        {
+                        title: "Version",
+                        field: "version",
+                        },
+                        { title: "Release Date", field: "releaseDate", filtering: false },
+                        { title: "Upload Date", field: "uploadDate", filtering: false },
+                        {title: "Status", field: "status", filtering: false },
+                        { title: "Action", field: "actions", filtering: false },
 
-              actions:(<div>
-                <Menu.Menu position='right'  >
-                <Menu.Item >
-                    <Buuton2 style={{backgroundColor:'rgb(153,46,98)'}} primary>
-                    <Dropdown item text='Action'>
-                    <Dropdown.Menu style={{ marginTop:"10px", }}>
-                        <Dropdown.Item  onClick={() =>editTokenSetup(row)}><VisibilityIcon /> View </Dropdown.Item>
-                    </Dropdown.Menu>
-                </Dropdown>
-                    </Buuton2>
-                </Menu.Item>
-                </Menu.Menu>
-            </div>)
-            
-            }))}
-       
-                  options={{
-                    headerStyle: {
-                        backgroundColor: "#014d88",
-                        color: "#fff",
-                    },
-                    searchFieldStyle: {
-                        width : '200%',
-                        margingLeft: '250px',
-                    },
-                    filtering: false,
-                    exportButton: false,
-                    searchFieldAlignment: 'left',
-                    pageSizeOptions:[10,20,100],
-                    pageSize:10,
-                    debounceInterval: 400
-                }}
-      />
-    
-    <NewPersonalAccessToken toggleModal={toggleModal} showModal={showModal} ServerUrl={ServerUrl} />
-    <UpdatePersonalAccessToken toggleModal={toggleModal2} showModal={showModal2} ServerUrl={ServerUrl} userToken={userToken}/>
+
+                ]}
+                data={ serverConfig.map((row) => ({
+                    //Id: manager.id,
+                      name: row.name,
+                      version: row.version,
+                      releaseDate: row.releaseDate,
+                      uploadDate: row.uploadDate,
+                      status:row.active===true ? "Active" : "previous",
+                      actions:(<div>
+                        <Menu.Menu position='right'  >
+                        <Menu.Item >
+                            <Buuton2 style={{backgroundColor:'rgb(153,46,98)'}} primary>
+                            <Dropdown item text='Action'>
+                            <Dropdown.Menu style={{ marginTop:"10px", }}>
+                                <Dropdown.Item  onClick={() =>viewConfigDetail(row)}><VisibilityIcon /> View </Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>
+                            </Buuton2>
+                        </Menu.Item>
+                        </Menu.Menu>
+                    </div>)
+
+                    }))}
+
+                          options={{
+                            headerStyle: {
+                                backgroundColor: "#014d88",
+                                color: "#fff",
+                            },
+                            searchFieldStyle: {
+                                width : '200%',
+                                margingLeft: '250px',
+                            },
+                            filtering: false,
+                            exportButton: false,
+                            searchFieldAlignment: 'left',
+                            pageSizeOptions:[10,20,100],
+                            pageSize:10,
+                            debounceInterval: 400
+                        }}
+                 />
+        )}
+        {showConfigView && (
+            <>
+
+                <MaterialTable
+                    icons={tableIcons}
+                    title={"Config Information - " + configDetailObj.name}
+                    columns={[
+                        { title: " Module Name", field: "moduleName" },
+                        {
+                            title: "Version",
+                            field: "version",
+                        },
+                    ]}
+                    data={ configDetailObj.configModules.map((row) => ({
+                        //Id: manager.id,
+                        moduleName: row.moduleName,
+                        version: row.version,
+
+
+                    }))}
+
+                    options={{
+                        headerStyle: {
+                            backgroundColor: "#014d88",
+                            color: "#fff",
+                        },
+                        searchFieldStyle: {
+                            width : '200%',
+                            margingLeft: '250px',
+                        },
+                        filtering: false,
+                        exportButton: false,
+                        searchFieldAlignment: 'left',
+                        pageSizeOptions:[10,20,100],
+                        pageSize:10,
+                        debounceInterval: 400
+                    }}
+                />
+            </>
+        )}
+            <NewPersonalAccessToken toggleModal={toggleModal} showModal={showModal} ServerUrl={serverConfig} />
+
     </div>
   );
 }
