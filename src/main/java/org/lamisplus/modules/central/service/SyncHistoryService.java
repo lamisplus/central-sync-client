@@ -9,10 +9,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Comparator;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -91,6 +88,7 @@ public class SyncHistoryService {
         response.setTableName(entity.getTableName());
         response.setErrorLog(entity.getErrorLog());
         response.setUuid(entity.getUuid());
+        response.setPercentageSynced(getPercentageSynced(entity.getUuid()));
 
         return response;
     }
@@ -116,5 +114,12 @@ public class SyncHistoryService {
             updated = true;
         }
         return updated;
+    }
+
+    private int getPercentageSynced(UUID syncHistoryUuid){
+        int allFiles = syncHistoryTrackerRepository.countByUuid(syncHistoryUuid);
+        int syncedFile = syncHistoryTrackerRepository.countByUuidAndStatus(syncHistoryUuid, "Synced");
+
+        return syncedFile/allFiles * 100;
     }
 }

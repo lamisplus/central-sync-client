@@ -19,4 +19,5 @@ public class SyncHistoryResponse {
     private String facilityName;
     private Object errorLog;
     private UUID uuid;
+    private int percentageSynced;
 }

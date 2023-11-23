@@ -209,8 +209,8 @@ public class ExportController {
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.set(AUTHORIZATION, authorizeBeforeSending(loginVM));
             headers.set(VERSION, "217");
-            //String credentialDetail = exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString(), tracker.getFileName());
-            //log.info("encrypted credential is {}", credentialDetail);
+            String credentialDetail = exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString(), tracker.getFileName());
+            log.info("encrypted credential is {}", credentialDetail);
             //headers.set(CREDENTIAL, credentialDetail);
             log.info("done with encryption and passed to header");
 
