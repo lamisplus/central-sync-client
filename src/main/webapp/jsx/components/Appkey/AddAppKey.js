@@ -88,7 +88,7 @@ const useStyles = makeStyles(theme => ({
 
 const Index = (props) => {
     const classes = useStyles()
-    const defaultValues = { appKey: "", facilityId:"", id:""}
+    const defaultValues = { appKey: "", facilityId:"", id:"", serverUrl:""}
     const [appKeyObj, setAppKeyObj] = useState(null);
     const [keyDetails, setKeyDetails] = useState(defaultValues);
     const [facilities, setFacilities] = useState( [])
@@ -143,8 +143,6 @@ const Index = (props) => {
     };
 
     const handleInputChange = e => {
-        console.log(e.target.value)
-        console.log(e.target.name)
         setKeyDetails ({...keyDetails,  [e.target.name]: e.target.value});
     }
 
@@ -192,6 +190,24 @@ const Index = (props) => {
             {appKeyObj===null ?
                 (<>
                     <Row >
+                        <Col md={12}>
+                            <FormGroup>
+                                <Label >Server URL *</Label>
+                                <Input
+                                    type="text"
+                                    name="serverUrl"
+                                    id="serverUrl"
+                                    onChange={handleInputChange}
+                                    style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
+                                    vaulue={keyDetails.serverUrl}
+                                >
+
+                                </Input>
+                                {errors.serverUrl !=="" ? (
+                                    <span className={classes.error}>{errors.serverUrl}</span>
+                                ) : "" }
+                            </FormGroup>
+                        </Col>
                         <Col md={12}>
                             <FormGroup>
                                 <Label >Facility *</Label>

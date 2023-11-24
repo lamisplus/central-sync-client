@@ -254,7 +254,8 @@ useEffect(() => {
     }
     const sendToServerAction =(rowObj)=> {
         setSendToServerModal(!sendToServerModal);
-        setRowObj(rowObj)src/main/webapp/jsx/components/Sync/SendToServer.js
+        setRowObj(rowObj)
+        //src/main/webapp/jsx/components/Sync/SendToServer.js
     }
     const displaySendToServer =()=> {
         setSendToServerModal(!sendToServerModal)
