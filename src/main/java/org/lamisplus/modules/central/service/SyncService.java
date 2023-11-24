@@ -30,4 +30,5 @@ public interface SyncService {
     String authorizeBeforeSending(LoginVM loginVM, Long facilitId) throws RuntimeException;
 
     String checkUrl(FacilityAppKey appkey);
+}
 

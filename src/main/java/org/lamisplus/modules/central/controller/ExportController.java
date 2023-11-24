@@ -14,7 +14,6 @@ import org.lamisplus.modules.central.domain.dto.SyncDetailDto;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
 import org.lamisplus.modules.central.domain.entity.FacilityAppKey;
-import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
 import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 import org.lamisplus.modules.central.repository.FacilityAppKeyRepository;
@@ -24,7 +23,6 @@ import org.lamisplus.modules.central.repository.SyncHistoryTrackerRepository;
 import org.lamisplus.modules.central.service.FacilityAppKeyService;
 import org.lamisplus.modules.central.service.SyncHistoryService;
 import org.lamisplus.modules.central.service.SyncService;
-import org.lamisplus.modules.central.utility.HttpConnectionManager;
 import org.springframework.http.*;
 import org.lamisplus.modules.central.service.ExportService;
 import org.lamisplus.modules.central.utility.FileUtility;
@@ -51,7 +49,6 @@ public class ExportController {
     public static final String VERSION = "version";
     private final FileUtility fileUtility;
     private final ExportService exportService;
-    private final RemoteAccessTokenRepository accessTokenRepository;
     private final FacilityAppKeyRepository facilityAppKeyRepository;
     private String API_URL = "/api/v1/sync/receive-data/";
     private String LOGIN_API = "/api/v1/authenticate";
@@ -182,6 +179,8 @@ public class ExportController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.set(AUTHORIZATION, syncService.authorizeBeforeSending(loginVM, facilityId));
+
+            //TODO: get version for database
             headers.set(VERSION, "217");
             String credentialDetail = exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString(), tracker.getFileName());
             log.info("encrypted credential is {}", credentialDetail);
@@ -238,6 +237,5 @@ public class ExportController {
     public static class JWTToken {
         @JsonProperty("id_token")
         private String idToken;
-
     }
 }
