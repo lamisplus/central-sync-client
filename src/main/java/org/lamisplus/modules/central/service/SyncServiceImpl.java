@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
 import org.lamisplus.modules.central.controller.ExportController;
@@ -39,10 +40,13 @@ public class SyncServiceImpl implements SyncService {
     public static final int UN_ARCHIVED = 0;
     public static final String ALGORITHM = "AES";
     private final SyncHistoryRepository syncHistoryRepository;
+    private final FacilityAppKeyRepository facilityAppKeyRepository;
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
     private final RemoteAccessTokenRepository remoteAccessTokenRepository;
     private final RemoteAccessTokenRepository accessTokenRepository;
     private final RSAUtils rsaUtils;
+    private String API_URL = "/api/v1/sync/receive-data/";
+    private String LOGIN_API = "/api/v1/authenticate";
 
     @Override
     public String getDatimId(Long facilityId) {
@@ -136,4 +140,44 @@ public class SyncServiceImpl implements SyncService {
             e.printStackTrace();
         }
     }
+
+    public String authorizeBeforeSending(LoginVM loginVM, Long facilitId) throws RuntimeException {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        log.info("loginVM is {}", loginVM);
+        try {
+            FacilityAppKey facilityAppKey = facilityAppKeyRepository
+                    .findByFacilityId(facilitId.intValue())
+                    .orElseThrow(()-> new EntityNotFoundException(FacilityAppKey.class, "App Key", "not available"));
+
+            String USE_LOGIN_API = checkUrl(facilityAppKey).concat(LOGIN_API);
+            String connect = new HttpConnectionManager().post(loginVM, null, USE_LOGIN_API);
+
+            //For serializing the date on the sync queue
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            ExportController.JWTToken jwtToken = objectMapper.readValue(connect, ExportController.JWTToken.class);
+
+            if (jwtToken.getIdToken() != null) {
+                String token = "Bearer " + jwtToken.getIdToken().replace("'", "");
+                //log.info("token is {}", token);
+                return token;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
+        return null;
+    }
+
+    public String checkUrl(FacilityAppKey appKey){
+        if(appKey.getServerUrl() == null || StringUtils.isAllBlank(appKey.getServerUrl())){
+            throw new EntityNotFoundException(FacilityAppKey.class, "App key", "not available");
+        }
+        return appKey.getServerUrl();
+    }
+
 }

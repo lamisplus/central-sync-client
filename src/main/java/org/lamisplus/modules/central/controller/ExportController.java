@@ -13,14 +13,17 @@ import org.lamisplus.modules.base.controller.vm.LoginVM;
 import org.lamisplus.modules.central.domain.dto.SyncDetailDto;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
+import org.lamisplus.modules.central.domain.entity.FacilityAppKey;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
 import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
+import org.lamisplus.modules.central.repository.FacilityAppKeyRepository;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryTrackerRepository;
 import org.lamisplus.modules.central.service.FacilityAppKeyService;
 import org.lamisplus.modules.central.service.SyncHistoryService;
+import org.lamisplus.modules.central.service.SyncService;
 import org.lamisplus.modules.central.utility.HttpConnectionManager;
 import org.springframework.http.*;
 import org.lamisplus.modules.central.service.ExportService;
@@ -49,12 +52,14 @@ public class ExportController {
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final RemoteAccessTokenRepository accessTokenRepository;
+    private final FacilityAppKeyRepository facilityAppKeyRepository;
     private String API_URL = "/api/v1/sync/receive-data/";
     private String LOGIN_API = "/api/v1/authenticate";
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository historyRepository;
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
     private final FacilityAppKeyService facilityAppKeyService;
+    private final SyncService syncService;
 
     @GetMapping("/all")
     public ResponseEntity<String> generate(@RequestParam Long facilityId,
@@ -92,40 +97,9 @@ public class ExportController {
         response.flushBuffer();
     }
 
-    public String authorizeBeforeSending(LoginVM loginVM) throws RuntimeException {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-        log.info("loginVM is {}", loginVM);
-        try {
-            RemoteAccessToken remoteAccessToken = accessTokenRepository
-                    .findOneAccess()
-                    .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
-
-            String USE_LOGIN_API = checkUrl(remoteAccessToken).concat(LOGIN_API);
-            String connect = new HttpConnectionManager().post(loginVM, null, USE_LOGIN_API);
-
-            //For serializing the date on the sync queue
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule());
-            objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-            JWTToken jwtToken = objectMapper.readValue(connect, JWTToken.class);
-
-            if (jwtToken.getIdToken() != null) {
-                String token = "Bearer " + jwtToken.getIdToken().replace("'", "");
-                //log.info("token is {}", token);
-                return token;
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
-        }
-        return null;
-    }
 
 
-    @PostMapping("/send-data")
+    /*@PostMapping("/send-data")
     public ResponseEntity<String> sendDataToAPI(@RequestParam("fileName") String fileName, @RequestParam("facilityId") Long facilityId) {
         LoginVM loginVM = new LoginVM();
         RemoteAccessToken remoteAccessToken = accessTokenRepository
@@ -163,18 +137,18 @@ public class ExportController {
 
         return ResponseEntity.ok("Data sent successfully. Response: " + responseEntity.getBody());
     }
-
+*/
     @PostMapping("/file/data")
     public ResponseEntity<String> sendFileDataToAPI(@RequestBody SyncDetailDto syncDetailDto) {
         if(syncDetailDto.getUsername() == null || syncDetailDto.getPassword() == null){
             throw new EntityNotFoundException(LoginVM.class, "Username or Password", "not found");
         }
-        RemoteAccessToken remoteAccessToken = accessTokenRepository
-                .findOneAccess()
-                .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
+        FacilityAppKey facilityAppKey = facilityAppKeyRepository
+                .findByFacilityId(syncDetailDto.getFacilityId().intValue())
+                .orElseThrow(()-> new EntityNotFoundException(FacilityAppKey.class, "App Key", "not available"));
 
         List<SyncHistoryTracker> trackers = new ArrayList<>();
-        String USE_API_URL = checkUrl(remoteAccessToken).concat(API_URL);
+        String USE_API_URL = syncService.checkUrl(facilityAppKey).concat(API_URL);
 
 
         if(syncDetailDto.getSyncHistoryTrackerUuid() != null){
@@ -207,7 +181,7 @@ public class ExportController {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.set(AUTHORIZATION, authorizeBeforeSending(loginVM));
+            headers.set(AUTHORIZATION, syncService.authorizeBeforeSending(loginVM, facilityId));
             headers.set(VERSION, "217");
             String credentialDetail = exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString(), tracker.getFileName());
             log.info("encrypted credential is {}", credentialDetail);
@@ -265,12 +239,5 @@ public class ExportController {
         @JsonProperty("id_token")
         private String idToken;
 
-    }
-
-    private String checkUrl(RemoteAccessToken remoteAccessToken){
-        if(remoteAccessToken.getUrl() == null || StringUtils.isAllBlank(remoteAccessToken.getUrl())){
-            throw new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available");
-        }
-        return remoteAccessToken.getUrl();
     }
 }
