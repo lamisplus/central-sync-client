@@ -26,4 +26,7 @@ public class FacilityAppKey {
 
     @Column(name = "app_key", nullable = false)
     private String appKey;
+
+    @Column(name = "server_url", nullable = false)
+    private String serverUrl;
 }
