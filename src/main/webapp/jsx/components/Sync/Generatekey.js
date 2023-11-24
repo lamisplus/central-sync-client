@@ -10,7 +10,7 @@ import { Spinner } from 'reactstrap';
 import axios from "axios";
 import { DropzoneArea } from 'material-ui-dropzone';
 import SettingsBackupRestoreIcon from '@material-ui/icons/SettingsBackupRestore';
-import { Input } from '@material-ui/core';
+import { Input, Typography } from '@material-ui/core';
 
 
 
@@ -78,7 +78,9 @@ const GenerateKey = (props) => {
                             <CardBody>
                                 <Row >
                                     <Col md={12} >
-                                        <Input value={props.genKey} readOnly width="100%" marginBottom={2} />
+                                        <Typography marginBottom={2}>
+                                        {props.genKey}
+                                        </Typography>
 
                                         <Alert color="primary" >
                                             <p style={{marginTop: '.7rem' }}>

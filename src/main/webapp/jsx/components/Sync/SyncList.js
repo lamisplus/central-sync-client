@@ -44,6 +44,7 @@ import { Dropdown,Button as Buuton2, Menu,  } from 'semantic-ui-react'
 import Logs from "./Logs";
 import SendToServer from "./SendToServer";
 import Generatekey from "./Generatekey";
+import ProgressBar from "react-bootstrap/ProgressBar";
 
 
 const tableIcons = {
@@ -142,6 +143,21 @@ useEffect(() => {
     JsonSyncHistory();
     }, []);
 
+    const varient = (value) => {
+        // console.log(value);
+        if (value <= 20) {
+          return "danger";
+        } else if (value > 20 && value <= 69) {
+          return "warning";
+        } else if (value >= 70 && value <= 99) {
+          return "info";
+        } else if (value === 100) {
+          return "success";
+        } else {
+          return "success";
+        }
+      };
+
     /*****  Validation */
     const validate = () => {
         let temp = { ...errors };
@@ -239,6 +255,7 @@ useEffect(() => {
     const sendToServerAction =(rowObj)=> {
         setSendToServerModal(!sendToServerModal);
         setRowObj(rowObj)
+        //src/main/webapp/jsx/components/Sync/SendToServer.js
     }
     const displaySendToServer =()=> {
         setSendToServerModal(!sendToServerModal)
@@ -318,6 +335,7 @@ useEffect(() => {
             },
             { title: "File Name ", field: "tableName", filtering: false },
             { title: "Upload Size ", field: "uploadSize", filtering: false },
+            { title: "Upload Percentage ", field: "uploadPercentage", filtering: false },
             { title: "Date Generated ", field: "date", filtering: false },
             { title: "Status", field: "status", filtering: false },         
             { title: "Action", field: "actions", filtering: false }, 
@@ -327,6 +345,13 @@ useEffect(() => {
                 facilityName: row.facilityName,
                 tableName: row.tableName,
                 uploadSize: row.uploadSize,
+                uploadPercentage: (<div>
+                    <ProgressBar
+                        now={row.percentageSynced}
+                        variant={varient(row.percentageSynced)}
+                        label={`${row.percentageSynced}%`}
+                        />
+                </div>),
                 date:  moment(row.dateLastSync).format("LLLL"),
                 status: row.errorLog===null ? row.processed===0 ? "Processing" : "Completed" : "Error",
                 //errorLog: row.errorLog,
@@ -340,7 +365,7 @@ useEffect(() => {
 
                                         <Dropdown.Item  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
                                         </Dropdown.Item>
-                                        <Dropdown.Item  onClick={() => sendToServerAction(row.tableName, row.organisationUnitId)}><CloudUpload color="primary"/> Send To Server
+                                        <Dropdown.Item  onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
                                         </Dropdown.Item>
                                         <Dropdown.Item  onClick={() => displayGenerateKey(row)}><VisibilityIcon color="primary"/>View Generate Key
                                         </Dropdown.Item>
@@ -468,7 +493,7 @@ useEffect(() => {
             </ModalBody>
         </Modal>
 
-        <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
+        <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal} rowObj={rowObj}/>
         <Logs toggleModal={toggleLogModal} showModal={logModal} errorLogsToDisplay={errorLogsToDisplay}  />
         <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal} genKey={genKey}  />
     </div>

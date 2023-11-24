@@ -57,15 +57,24 @@ const useStyles = makeStyles(theme => ({
 
 
 const SendToServer = (props) => {
-    const rowObj=props.rowObj!==null ? props.rowObj : {};
-    //console.log(rowObj)
+    const [rowObj, setRowObj]=useState(null);
+    // const rowObj=props.rowObj!==null ? props.rowObj : {};
     const classes = useStyles()
     const [urlHide, setUrlHide] = useState(false);
-    const defaultValues = { username: "", password: "", syncHistoryUuid:rowObj.id, syncHistoryTrackerUuid:rowObj.uuid, facilityId: rowObj.organisationUnitId }
-    const [patDetails, setPatDetails] = useState(defaultValues);
+    // const defaultValues = { username: "", password: "", syncHistoryUuid:rowObj.id, syncHistoryTrackerUuid:rowObj.uuid, facilityId: rowObj.organisationUnitId }
+    const [patDetails, setPatDetails] = useState({});
     const [saving, setSaving] = useState(false);
     const [serverUrl, setServerUrl] = useState( [])
     const [errors, setErrors] = useState({});
+    console.log(rowObj)
+    console.log(patDetails)
+
+    useEffect(()=>{
+        if(props.rowObj){
+            setRowObj(props.rowObj);
+            setPatDetails({...patDetails, syncHistoryUuid:props.rowObj.id, syncHistoryTrackerUuid:props.rowObj.uuid, facilityId: props.rowObj.organisationUnitId})
+        }
+    },[props.rowObj])
 
 
     useEffect(() => {
@@ -92,6 +101,7 @@ const SendToServer = (props) => {
     }
 
     const handleInputChange = e => {
+        console.log(patDetails);
         setPatDetails ({...patDetails,  [e.target.name]: e.target.value});
     }
     /*****  Validation */
@@ -120,7 +130,7 @@ const SendToServer = (props) => {
             )
                 .then(response => {
                     setSaving(false);
-                    props.ServerUrl()
+                    // props.ServerUrl()
                     toast.success("Token Generated Successful");
                     props.toggleModal()
 
