@@ -10,4 +10,5 @@ public class FacilityAppKeyDto {
     private Integer facilityId;
     private String facilityName;
     private String appKey;
+    private String serverUrl;
 }

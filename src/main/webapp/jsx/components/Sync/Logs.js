@@ -86,7 +86,7 @@ const useStyles = makeStyles(theme => ({
 const Logs = (props) => {
     const classes = useStyles()
 
-    console.log(props)
+    const errorLogsData = props.errorLogsToDisplay === null ? [] : props.errorLogsToDisplay;
 
 
 
@@ -118,10 +118,10 @@ const Logs = (props) => {
                                 { title: "Error", field: "error", filtering: false },
                                 { title: "Others", field: "others", filtering: false },
                             ]}
-                            data={ [].map((row) => ({
+                            data={errorLogsData.map((row) => ({
                                 //Id: manager.id,
                                 name: row.name,
-                                error: row.error,
+                                error: row.message,
                                 others: row.others,
 
                             }))}

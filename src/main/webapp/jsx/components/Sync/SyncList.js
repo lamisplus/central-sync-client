@@ -117,8 +117,10 @@ const SyncList = (props) => {
   const [facilities, setFacilities] = useState( [])
   const [modal, setModal] = useState(false);
   const [generateKeyModal, setGenerateKeyModal] = useState(false);
+  const [genKey, setGenKey] = useState("");
   const [sendToServerModal, setSendToServerModal] = useState(false);
   const [logModal, setLogModal] = useState(false);
+  const [errorLogsToDisplay, setErrorLogsToDisplay] = useState([]);
   const toggle = () => setModal(!modal);
   const toggleLogModal = () => setLogModal(!logModal);
   const toggleGenerateKeyModal = () => setGenerateKeyModal(!generateKeyModal);
@@ -226,10 +228,12 @@ useEffect(() => {
     const generateJsonFile =()=> {        
         setModal(!modal)
     }
-    const displayGenerateKey =()=> {
+    const displayGenerateKey =(row)=> {
+        setGenKey(row.genKey);
         setGenerateKeyModal(!generateKeyModal)
     }
-    const displayLogs =()=> {
+    const displayLogs =(row)=> {
+        setErrorLogsToDisplay(row.errorLog)
         setLogModal(!logModal)
     }
     const sendToServerAction =(rowObj)=> {
@@ -465,8 +469,8 @@ useEffect(() => {
         </Modal>
 
         <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
-        <Logs toggleModal={toggleLogModal} showModal={logModal}  />
-        <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal}  />
+        <Logs toggleModal={toggleLogModal} showModal={logModal} errorLogsToDisplay={errorLogsToDisplay}  />
+        <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal} genKey={genKey}  />
     </div>
   );
 }
