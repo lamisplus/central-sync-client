@@ -87,6 +87,7 @@ const useStyles = makeStyles(theme => ({
 
 
 const Index = (props) => {
+
     const classes = useStyles()
     const defaultValues = { appKey: "", facilityId:"", id:"", serverUrl:""}
     const [appKeyObj, setAppKeyObj] = useState(null);
@@ -98,7 +99,7 @@ const Index = (props) => {
     useEffect(() => {
         Facilities();
         AppKeyHistory();
-    }, []);
+    }, [props]);
     async function AppKeyHistory() {
         axios
             .get(`${baseUrl}sync/app-key`,
@@ -187,7 +188,7 @@ const Index = (props) => {
                 <span style={{ textTransform: "capitalize" }}>{ "<< Back" } </span>
             </Button>
             <br/><br/>
-            {appKeyObj===null ?
+            {props.keyObj===null ?
                 (<>
                     <Row >
                         <Col md={12}>
@@ -268,60 +269,9 @@ const Index = (props) => {
                 (<>
                     <Row >
                         <Col md={12}>
-                            <FormGroup>
-                                <Label >Facility *</Label>
-                                <Input
-                                    type="select"
-                                    name="facilityId"
-                                    id="facilityId"
-                                    onChange={handleInputChange}
-                                    style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                    vaulue={keyDetails.facilityId}
-                                >
-                                    <option > </option>
-                                    {facilities.map(({ label, value }) => (
-                                        <option key={value} value={value}>
-                                            {label}
-                                        </option>
-                                    ))}
-                                </Input>
-                                {errors.facilityId !=="" ? (
-                                    <span className={classes.error}>{errors.facilityId}</span>
-                                ) : "" }
-                            </FormGroup>
+                            <p>APP KEY : {props.keyObj && props.keyObj!==null ? props.keyObj.appKey : ""}</p>
                         </Col>
-                        <Col md={12}>
-                            <FormGroup>
-                                <Label >Key</Label>
-                                <Input
-                                    type="text"
-                                    name="appKey"
-                                    id="appKey"
-                                    value={keyDetails.appKey}
-                                    onChange={handleInputChange}
-                                    style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                    required
-                                />
-                                {errors.appKey !=="" ? (
-                                    <span className={classes.error}>{errors.appKey}</span>
-                                ) : "" }
-
-                            </FormGroup>
-                        </Col>
-
                     </Row>
-                    {saving ? <Spinner /> : ""}
-                    <br/>
-                    <Button
-                        type='submit'
-                        variant='contained'
-                        //color='primary'
-                        style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
-                        //startIcon={<SettingsBackupRestoreIcon />}
-                        onClick={handleSubmit}
-                    >
-                        <span style={{ textTransform: "capitalize ", color:"#fff" }}>Save Key</span>
-                    </Button>
                 </>)
             }
 

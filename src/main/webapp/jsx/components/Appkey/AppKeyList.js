@@ -105,7 +105,7 @@ const AppKeyList = (props) => {
     const classes = useStyles()
     const [keyList, setKeyList] = useState( [])
     const [appKeysListTable, showAppKeysListTable] = useState( true)
-
+    const [keyObj, setKeyObj] = useState( null)
     useEffect(() => {
         AppKeyHistory();
     }, []);
@@ -125,8 +125,9 @@ const AppKeyList = (props) => {
     const createAppKey =()=> {
         showAppKeysListTable(false)
     }
-    const UpdateKey =()=> {
+    const UpdateKey =(rowObj)=> {
         showAppKeysListTable(false)
+        setKeyObj(rowObj)
     }
     //
 
@@ -152,13 +153,13 @@ const AppKeyList = (props) => {
                             title: "Facility Name",
                             field: "facilityName",
                         },
-                        { title: "ID ", field: "id", filtering: false },
+                        { title: "Server Url", field: "serverUrl", filtering: false },
                         { title: "Action", field: "actions", filtering: false },
                     ]}
                     data={ keyList.map((row) => ({
                         //Id: manager.id,
                         facilityName: row.facilityName,
-                        id: row.id,
+                        serverUrl: row.serverUrl,
                         actions:(<div>
                             <Menu.Menu position='right'  >
                                 <Menu.Item >
@@ -198,7 +199,7 @@ const AppKeyList = (props) => {
             </>)
                 :
             (<>
-            <AddAppKey showAppKeysListTable={showAppKeysListTable} AppKeyHistory={AppKeyHistory}/>
+            <AddAppKey showAppKeysListTable={showAppKeysListTable} AppKeyHistory={AppKeyHistory} keyObj={keyObj}/>
             </>)
 
             }
