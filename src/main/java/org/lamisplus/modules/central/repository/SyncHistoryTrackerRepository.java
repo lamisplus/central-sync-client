@@ -19,7 +19,7 @@ public interface SyncHistoryTrackerRepository extends JpaRepository<SyncHistoryT
 
     Optional<SyncHistoryTracker> findByUuid(UUID syncHistoryTrackerUuid);
 
-    int countByUuid(UUID syncHistoryUuid);
+    int countBySyncHistoryUuid(UUID syncHistoryUuid);
 
-    int countByUuidAndStatus(UUID syncHistoryUuid, String status);
+    int countBySyncHistoryUuidAndStatus(UUID syncHistoryUuid, String status);
 }

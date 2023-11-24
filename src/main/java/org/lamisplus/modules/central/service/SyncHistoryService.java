@@ -1,4 +1,5 @@
 package org.lamisplus.modules.central.service;
+import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
@@ -14,7 +15,9 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SyncHistoryService {
+    public static final String SYNCED = "Synced";
     private final SyncHistoryRepository syncHistoryRepository;
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
 
@@ -110,17 +113,16 @@ public class SyncHistoryService {
         if (existingRecord.isPresent()) {
             SyncHistoryTracker historyTracker = existingRecord.get();
             historyTracker.setTimeCreated(LocalDateTime.now());
-            historyTracker.setStatus("Synced");
+            historyTracker.setStatus(SYNCED);
             syncHistoryTrackerRepository.save(historyTracker);
             updated = true;
         }
         return updated;
     }
 
-    private int getPercentageSynced(UUID syncHistoryUuid){
-        int allFiles = syncHistoryTrackerRepository.countByUuid(syncHistoryUuid);
-        int syncedFile = syncHistoryTrackerRepository.countByUuidAndStatus(syncHistoryUuid, "Synced");
-
-        return syncedFile/allFiles * 100;
+    private float getPercentageSynced(UUID syncHistoryUuid){
+        int allFiles = syncHistoryTrackerRepository.countBySyncHistoryUuid(syncHistoryUuid);
+        int syncedFile = syncHistoryTrackerRepository.countBySyncHistoryUuidAndStatus(syncHistoryUuid, SYNCED);
+        return (Float.valueOf(syncedFile)/Float.valueOf(allFiles)) * Float.valueOf(100);
     }
 }

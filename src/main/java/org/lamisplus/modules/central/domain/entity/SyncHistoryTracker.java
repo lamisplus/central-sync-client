@@ -28,14 +28,14 @@ public class SyncHistoryTracker {
     private Integer recordSize;
     @Column(name = "status")
     private String status;
-    @Column(name = "time_created")
+    @Column(name = "time_created", nullable = false)
     private LocalDateTime timeCreated;
-    @Column(name = "archived")
+    @Column(name = "archived", nullable = false)
     private Integer archived;
     @Column(name = "facility_id")
     private Long facilityId;
 
-    @Column(name = "sync_history_uuid")
+    @Column(name = "sync_history_uuid", nullable = false)
     private UUID syncHistoryUuid;
 
     @Basic
