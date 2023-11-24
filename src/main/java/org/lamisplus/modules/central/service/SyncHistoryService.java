@@ -88,6 +88,7 @@ public class SyncHistoryService {
         response.setTableName(entity.getTableName());
         response.setErrorLog(entity.getErrorLog());
         response.setUuid(entity.getUuid());
+        response.setGenKey(entity.getGenKey());
         response.setPercentageSynced(getPercentageSynced(entity.getUuid()));
 
         return response;
