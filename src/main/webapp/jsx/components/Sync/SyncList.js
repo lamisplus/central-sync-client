@@ -45,6 +45,7 @@ import Logs from "./Logs";
 import SendToServer from "./SendToServer";
 import Generatekey from "./Generatekey";
 import ProgressBar from "react-bootstrap/ProgressBar";
+import GeneratedFilesList from './GeneratedFilesList';
 
 
 const tableIcons = {
@@ -117,13 +118,15 @@ const SyncList = (props) => {
   const [syncList, setSyncList] = useState( [])
   const [facilities, setFacilities] = useState( [])
   const [modal, setModal] = useState(false);
+  const [generateFilesGrid, setGenerateFilesGrid] = useState(false);
   const [generateKeyModal, setGenerateKeyModal] = useState(false);
   const [genKey, setGenKey] = useState("");
   const [sendToServerModal, setSendToServerModal] = useState(false);
   const [logModal, setLogModal] = useState(false);
-  const [errorLogsToDisplay, setErrorLogsToDisplay] = useState([]);
+  const [messageLogsToDisplay, setMessageLogsToDisplay] = useState([]);
   const toggle = () => setModal(!modal);
   const toggleLogModal = () => setLogModal(!logModal);
+  const toggleGenerateFilesGrid = () => setGenerateFilesGrid(!generateFilesGrid);
   const toggleGenerateKeyModal = () => setGenerateKeyModal(!generateKeyModal);
   const toggleSendToServerModal = () => setSendToServerModal(!sendToServerModal);
   const [modal2, setModal2] = useState(false);
@@ -136,7 +139,8 @@ const SyncList = (props) => {
   const [showErrorTable, setShowErrorTable] = useState(false);
   const [showErrorObj, setShowErrorObj] = useState([]);
   const [showErrorFileObj, setShowErrorFileObj] = useState();
-    const [rowObj, setRowObj] = useState(null);
+  const [rowObj, setRowObj] = useState(null);
+  const [syncHistoryId, setSyncHistoryId] = useState();
 
 useEffect(() => {
     Facilities();
@@ -241,15 +245,24 @@ useEffect(() => {
         }    
        
     };
+
+    const fetchGeneratedFiles = (id) => {
+
+    }
+
     const generateJsonFile =()=> {        
         setModal(!modal)
     }
+    const displayGeneratedfiles = (row) => {
+        setSyncHistoryId(row.id);
+        setGenerateFilesGrid(true);
+    }
     const displayGenerateKey =(row)=> {
         setGenKey(row.genKey);
-        setGenerateKeyModal(!generateKeyModal)
+        setGenerateKeyModal(!generateKeyModal);
     }
     const displayLogs =(row)=> {
-        setErrorLogsToDisplay(row.errorLog)
+        setMessageLogsToDisplay(row.messageLog)
         setLogModal(!logModal)
     }
     const sendToServerAction =(rowObj)=> {
@@ -312,191 +325,198 @@ useEffect(() => {
 
  
   return (
-    <div>
-        {!showErrorTable && (<>
-            <Button
-            variant="contained"
-            style={{backgroundColor:"#014d88", }}
-            className=" float-right mr-1"
-            //startIcon={<FaUserPlus />}
-            onClick={generateJsonFile}
-            >
-            <span style={{ textTransform: "capitalize", color:"#fff" }}>Generate JSON Files </span>
-            </Button>       
-        <br/><br/>
-        <MaterialTable
-         icons={tableIcons}
-            title="Generated JSON Files List "
-            columns={[
-            // { title: " ID", field: "Id" },
-            {
-                title: "Facility Name",
-                field: "facilityName",
-            },
-            { title: "File Name ", field: "tableName", filtering: false },
-            { title: "Upload Size ", field: "uploadSize", filtering: false },
-            { title: "Upload Percentage ", field: "uploadPercentage", filtering: false },
-            { title: "Date Generated ", field: "date", filtering: false },
-            { title: "Status", field: "status", filtering: false },         
-            { title: "Action", field: "actions", filtering: false }, 
-            ]}
-            data={ syncList.map((row) => ({
-                //Id: manager.id,
-                facilityName: row.facilityName,
-                tableName: row.tableName,
-                uploadSize: row.uploadSize,
-                uploadPercentage: (<div>
-                    <ProgressBar
-                        now={row.percentageSynced}
-                        variant={varient(row.percentageSynced)}
-                        label={`${row.percentageSynced}%`}
-                        />
-                </div>),
-                date:  moment(row.dateLastSync).format("LLLL"),
-                status: row.errorLog===null ? row.processed===0 ? "Processing" : "Completed" : "Error",
-                //errorLog: row.errorLog,
-                actions:(<div>
-                            <Menu.Menu position='right'  >
-                            <Menu.Item >
-                                <Buuton2 style={{backgroundColor:'rgb(153,46,98)'}} primary>
-                                <Dropdown item text='Action'>
+    <>
+    { !generateFilesGrid ? (<div>
+            {!showErrorTable && (<>
+                <Button
+                variant="contained"
+                style={{backgroundColor:"#014d88", }}
+                className=" float-right mr-1"
+                //startIcon={<FaUserPlus />}
+                onClick={generateJsonFile}
+                >
+                <span style={{ textTransform: "capitalize", color:"#fff" }}>Generate JSON Files </span>
+                </Button>       
+            <br/><br/>
+            <MaterialTable
+            icons={tableIcons}
+                title="Generated JSON Files List "
+                columns={[
+                // { title: " ID", field: "Id" },
+                {
+                    title: "Facility Name",
+                    field: "facilityName",
+                },
+                { title: "File Name ", field: "tableName", filtering: false },
+                { title: "Upload Size ", field: "uploadSize", filtering: false },
+                { title: "Upload Percentage ", field: "uploadPercentage", filtering: false },
+                { title: "Date Generated ", field: "date", filtering: false },
+                { title: "Status", field: "status", filtering: false },         
+                { title: "Action", field: "actions", filtering: false }, 
+                ]}
+                data={ syncList.map((row) => ({
+                    //Id: manager.id,
+                    facilityName: row.facilityName,
+                    tableName: row.tableName,
+                    uploadSize: row.uploadSize,
+                    uploadPercentage: (<div>
+                        <ProgressBar
+                            now={row.percentageSynced}
+                            variant={varient(row.percentageSynced)}
+                            label={`${row.percentageSynced}%`}
+                            />
+                    </div>),
+                    date:  moment(row.dateLastSync).format("LLLL"),
+                    status: row.messageLog===null ? row.processed===0 ? "Processing" : "Completed" : "Error",
+                    //errorLog: row.errorLog,
+                    actions:(<div>
+                                <Menu.Menu position='right'  >
+                                <Menu.Item >
+                                    <Buuton2 style={{backgroundColor:'rgb(153,46,98)'}} primary>
+                                    <Dropdown item text='Action'>
 
-                                <Dropdown.Menu style={{ marginTop:"10px", }}>
+                                    <Dropdown.Menu style={{ marginTop:"10px", }}>
 
-                                        <Dropdown.Item  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
-                                        </Dropdown.Item>
-                                        <Dropdown.Item  onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
-                                        </Dropdown.Item>
-                                        <Dropdown.Item  onClick={() => displayGenerateKey(row)}><VisibilityIcon color="primary"/>View Generate Key
-                                        </Dropdown.Item>
-                                        <Dropdown.Item  onClick={() => displayLogs(row)}><VisibilityIcon color="primary"/>View Logs
-                                        </Dropdown.Item>
+                                            <Dropdown.Item  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
+                                            </Dropdown.Item>
+                                            <Dropdown.Item  onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
+                                            </Dropdown.Item>
+                                            <Dropdown.Item  onClick={() => displayGeneratedfiles(row)}><VisibilityIcon color="primary"/>View Generated Files
+                                            </Dropdown.Item>
+                                            <Dropdown.Item  onClick={() => displayGenerateKey(row)}><VisibilityIcon color="primary"/>View Generated Key
+                                            </Dropdown.Item>
+                                            <Dropdown.Item  onClick={() => displayLogs(row)}><VisibilityIcon color="primary"/>View Logs
+                                            </Dropdown.Item>
 
-                                </Dropdown.Menu>
-                            </Dropdown>
-                                </Buuton2>
-                            </Menu.Item>
-                            </Menu.Menu>
-                        </div>)
-                }))}
-        
-                options={{
-                        headerStyle: {
-                            backgroundColor: "#014d88",
-                            color: "#fff",
-                        },
-                        searchFieldStyle: {
-                            width : '200%',
-                            margingLeft: '250px',
-                        },
-                        filtering: false,
-                        exportButton: true,
-                        searchFieldAlignment: 'left',
-                        pageSizeOptions:[10,20,100],
-                        pageSize:10,
-                        debounceInterval: 400
-                }}
-        />
-        </>)}
+                                    </Dropdown.Menu>
+                                </Dropdown>
+                                    </Buuton2>
+                                </Menu.Item>
+                                </Menu.Menu>
+                            </div>)
+                    }))}
+            
+                    options={{
+                            headerStyle: {
+                                backgroundColor: "#014d88",
+                                color: "#fff",
+                            },
+                            searchFieldStyle: {
+                                width : '200%',
+                                margingLeft: '250px',
+                            },
+                            filtering: false,
+                            exportButton: true,
+                            searchFieldAlignment: 'left',
+                            pageSizeOptions:[10,20,100],
+                            pageSize:10,
+                            debounceInterval: 400
+                    }}
+            />
+            </>)}
 
-        <Modal isOpen={modal} toggle={toggle} className={props.className} size="lg"  backdrop="static">
-            <Form >
-            <ModalHeader toggle={toggle}>Generate JSON Files</ModalHeader>
-                <ModalBody>   
-                    <Card >
-                        <CardBody>
-                            <Row >                                  
-                            <Col md={12}>
-                            <FormGroup>
-                            <Label >Facility *</Label>
-                                <Input
-                                    type="select"
-                                    name="facilityId"
-                                    id="facilityId"
-                                    onChange={handleInputChange}
-                                    style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                    vaulue={uploadDetails.facilityId}
+            <Modal isOpen={modal} toggle={toggle} className={props.className} size="lg"  backdrop="static">
+                <Form >
+                <ModalHeader toggle={toggle}>Generate JSON Files</ModalHeader>
+                    <ModalBody>   
+                        <Card >
+                            <CardBody>
+                                <Row >                                  
+                                <Col md={12}>
+                                <FormGroup>
+                                <Label >Facility *</Label>
+                                    <Input
+                                        type="select"
+                                        name="facilityId"
+                                        id="facilityId"
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
+                                        vaulue={uploadDetails.facilityId}
+                                        >
+                                        <option > </option>
+                                        {facilities.map(({ label, value }) => (
+                                            <option key={value} value={value}>
+                                            {label}
+                                            </option>
+                                        ))}
+                                    </Input>
+                                    {errors.facilityId !=="" ? (
+                                        <span className={classes.error}>{errors.facilityId}</span>
+                                    ) : "" } 
+                                </FormGroup>
+                                </Col> 
+                                <div className="form-check custom-checkbox ml-3 ">
+                                    <input
+                                    type="checkbox"
+                                    className="form-check-input"
+                                    name="all"
+                                    id="all"                                        
+                                    onChange={handleCheckBox}
+                                    checked={uploadDetails.all}
+                                    //disabled={locationState.actionType==='update'? false : true}
+                                    />
+                                    <label
+                                    className="form-check-label"
+                                    htmlFor="all"
                                     >
-                                    <option > </option>
-                                    {facilities.map(({ label, value }) => (
-                                        <option key={value} value={value}>
-                                        {label}
-                                        </option>
-                                    ))}
-                                </Input>
-                                {errors.facilityId !=="" ? (
-                                    <span className={classes.error}>{errors.facilityId}</span>
-                                ) : "" } 
-                            </FormGroup>
-                            </Col> 
-                            <div className="form-check custom-checkbox ml-3 ">
-                                <input
-                                type="checkbox"
-                                className="form-check-input"
-                                name="all"
-                                id="all"                                        
-                                onChange={handleCheckBox}
-                                checked={uploadDetails.all}
-                                //disabled={locationState.actionType==='update'? false : true}
-                                />
-                                <label
-                                className="form-check-label"
-                                htmlFor="all"
-                                >
-                                 Recent Update ?
-                                </label>
-                            </div>
-                            </Row>
-                            <br/>
-                            <b>{uploadDetails.all===true ? "Only the updated records will be pushed" : "You are pushing record from initial"}</b>
-                            <br/>
-                            {saving ?
-                            <Progress percentage={uploadPercentage} /> 
-                            : ""}
-                            <br />
-                            
-                            <MatButton
-                                type='submit'
-                                variant='contained'
-                                color='primary'
-                                className={classes.button}
-                                style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
-                                startIcon={<SettingsBackupRestoreIcon />}
-                                onClick={handleSubmit}
+                                    Recent Update ?
+                                    </label>
+                                </div>
+                                </Row>
+                                <br/>
+                                <b>{uploadDetails.all===true ? "Only the updated records will be pushed" : "You are pushing record from initial"}</b>
+                                <br/>
+                                {saving ?
+                                <Progress percentage={uploadPercentage} /> 
+                                : ""}
+                                <br />
                                 
-                            >   
-                                {!saving ? (
-                                <span style={{ textTransform: "capitalize" }}>Generate</span>
-                                ) : (
-                                <span style={{ textTransform: "capitalize" }}>Generating Please Wait...</span>
-                                )
-                            } 
-                            </MatButton>                                          
-                            <MatButton
-                                variant='contained'
-                                color='default'
-                                onClick={toggle}
-                                className={classes.button}
-                                style={{backgroundColor:'#992E62'}}
-                                startIcon={<CancelIcon />}
-                            >
-                                <span style={{ textTransform: "capitalize ", color:"#fff" }}>cancel</span>
-                            </MatButton>
-                        </CardBody>
-                    </Card> 
+                                <MatButton
+                                    type='submit'
+                                    variant='contained'
+                                    color='primary'
+                                    className={classes.button}
+                                    style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
+                                    startIcon={<SettingsBackupRestoreIcon />}
+                                    onClick={handleSubmit}
+                                    
+                                >   
+                                    {!saving ? (
+                                    <span style={{ textTransform: "capitalize" }}>Generate</span>
+                                    ) : (
+                                    <span style={{ textTransform: "capitalize" }}>Generating Please Wait...</span>
+                                    )
+                                } 
+                                </MatButton>                                          
+                                <MatButton
+                                    variant='contained'
+                                    color='default'
+                                    onClick={toggle}
+                                    className={classes.button}
+                                    style={{backgroundColor:'#992E62'}}
+                                    startIcon={<CancelIcon />}
+                                >
+                                    <span style={{ textTransform: "capitalize ", color:"#fff" }}>cancel</span>
+                                </MatButton>
+                            </CardBody>
+                        </Card> 
+                    </ModalBody>
+                </Form>
+            </Modal>
+            <Modal isOpen={modal2} toggle={toggle2} backdrop={false} fade={true} style={{marginTop:"250px"}} size='lg'>            
+                <ModalBody>
+                    <h1>Uploading File To Server. Please wait...</h1>
                 </ModalBody>
-            </Form>
-        </Modal>
-        <Modal isOpen={modal2} toggle={toggle2} backdrop={false} fade={true} style={{marginTop:"250px"}} size='lg'>            
-            <ModalBody>
-                <h1>Uploading File To Server. Please wait...</h1>
-            </ModalBody>
-        </Modal>
+            </Modal>
 
-        <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal} rowObj={rowObj}/>
-        <Logs toggleModal={toggleLogModal} showModal={logModal} errorLogsToDisplay={errorLogsToDisplay}  />
-        <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal} genKey={genKey}  />
-    </div>
+            <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal} rowObj={rowObj}/>
+            <Logs toggleModal={toggleLogModal} showModal={logModal} messageLogsToDisplay={messageLogsToDisplay}  />
+            <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal} genKey={genKey}  />
+        </div>
+        ) : (
+            <GeneratedFilesList setGenerateFilesGrid={setGenerateFilesGrid} id={syncHistoryId} />
+        )}
+    </>
   );
 }
 

@@ -26,6 +26,7 @@ import Search from "@material-ui/icons/Search";
 import ArrowUpward from "@material-ui/icons/ArrowUpward";
 import Remove from "@material-ui/icons/Remove";
 import ViewColumn from "@material-ui/icons/ViewColumn";
+import moment from "moment";
 
 
 const tableIcons = {
@@ -86,7 +87,7 @@ const useStyles = makeStyles(theme => ({
 const Logs = (props) => {
     const classes = useStyles()
 
-    const errorLogsData = props.errorLogsToDisplay === null ? [] : props.errorLogsToDisplay;
+    const messageLogsData = props.messageLogsToDisplay === null ? [] : props.messageLogsToDisplay;
 
 
 
@@ -101,6 +102,19 @@ const Logs = (props) => {
 
     }
 
+    function convertArrayToFormattedDate(dateArray) {
+        const [year, month, day, hour, minute, second, millisecond] = dateArray;
+      
+        // Using Date to get timestamp
+        const dateObject = new Date(year, month - 1, day, hour, minute, second, millisecond);
+        const timestamp = dateObject.getTime();
+      
+        // Using moment to format the timestamp
+        const formattedDate = moment(timestamp).format('MMM D, YYYY h:mm a');
+      
+        return formattedDate;
+      }
+
 
 
     return (
@@ -112,18 +126,21 @@ const Logs = (props) => {
                     <ModalBody>
                         <MaterialTable
                             icons={tableIcons}
-                            title={"JSON Files Errors " }
+                            title={"JSON Files Logs " }
                             columns={[
+                                { title: "Module Check", field: "activity", filtering: false },
                                 { title: "Name", field: "name", filtering: false },
-                                { title: "Error", field: "error", filtering: false },
+                                { title: "Log Message", field: "logMessage", filtering: false },
                                 { title: "Others", field: "others", filtering: false },
+                                { title: "Date-Time Created", field: "dateTimeCreated", filtering: false },
                             ]}
-                            data={errorLogsData.map((row) => ({
+                            data={messageLogsData.map((row) => ({
                                 //Id: manager.id,
+                                activity: row.activity,
                                 name: row.name,
-                                error: row.message,
+                                logMessage: row.message,
                                 others: row.others,
-
+                                dateTimeCreated: convertArrayToFormattedDate(row.timeCreated),
                             }))}
 
                             options={{
