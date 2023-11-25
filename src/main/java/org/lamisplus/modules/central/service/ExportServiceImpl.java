@@ -49,6 +49,9 @@ public class ExportServiceImpl implements ExportService {
     public static final int UN_ARCHIVED = 0;
     public static final String START_DATE = "1985-01-01 01:01:01";
     public static final String GENERATED_SUCCESSFULLY = "Generated successfully";
+    public static final String GENERATING_DATA_JSON = "Generating data json";
+    public static final String MODULE_CHECK = "Module check";
+    public static final String GENERATING = "Generating";
     private final FileUtility fileUtility;
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository syncHistoryRepository;
@@ -231,12 +234,12 @@ public class ExportServiceImpl implements ExportService {
                 jsonGenerator.writeEndObject();
                 isProcessed = true;
             } catch (IOException e) {
-                addMessageLog("data", e.getMessage(), getPrintStackError(e), MessageType.ERROR);
+                addMessageLog("data", e.getMessage(), getPrintStackError(e), GENERATING_DATA_JSON, MessageType.ERROR);
                 isProcessed = false;
                 log.error("Error writing data to a JSON file: {}", e.getMessage());
             }
         } catch (Exception e) {
-            addMessageLog("extract", e.getMessage(), getPrintStackError(e), MessageType.ERROR);
+            addMessageLog("extract", e.getMessage(), getPrintStackError(e), GENERATING_DATA_JSON,  MessageType.ERROR);
             log.error("Error mapping data: {}", e.getMessage());
         }
 
@@ -253,7 +256,7 @@ public class ExportServiceImpl implements ExportService {
                 .map(moduleStatus -> {
                     addMessageLog(moduleStatus.getName(),
                         moduleStatus.getMinimumVersion(),
-                        moduleStatus.getAvailableVersion(),
+                        moduleStatus.getAvailableVersion(), MODULE_CHECK,
                         moduleStatus.getMessage());
                     return moduleStatus;
                 }).collect(Collectors.toList());
@@ -329,7 +332,7 @@ public class ExportServiceImpl implements ExportService {
                     FileUtils.writeByteArrayToFile(new File(tempFile), bytes);
                     tracker = new SyncHistoryTracker(null, null, fileName, fileSize, SYNC_TRACKER_STATUS,
                             LocalDateTime.now(), UN_ARCHIVED, facilityId, null, null);
-                    addMessageLog(tableName, SYNC_TRACKER_STATUS, fileName, MessageType.SUCCESS);
+                    addMessageLog(tableName, SYNC_TRACKER_STATUS, fileName, GENERATING + fileName, MessageType.SUCCESS);
                     //success log
                     trackers.add(tracker);
                 }
@@ -337,7 +340,7 @@ public class ExportServiceImpl implements ExportService {
             }while (level < size);
 
         } catch (Exception e) {
-            addMessageLog(tableName, e.getMessage(), getPrintStackError(e), MessageType.ERROR);
+            addMessageLog(tableName, e.getMessage(), getPrintStackError(e), GENERATING + tableName, MessageType.ERROR);
             e.printStackTrace();
             closeDBConnection(conn);
             return trackers;
@@ -428,8 +431,8 @@ public class ExportServiceImpl implements ExportService {
         return syncHistoryRepository.getDatimCode(facilityId);
     }
 
-    private void addMessageLog(String name, String msg, String others, MessageType category){
-        MESSAGE_LOG.add(new MessageLog(name, msg, others, category, LocalDateTime.now()));
+    private void addMessageLog(String name, String msg, String others, String activity, MessageType category){
+        MESSAGE_LOG.add(new MessageLog(name, msg, others, activity, category, LocalDateTime.now()));
     }
 
     /**

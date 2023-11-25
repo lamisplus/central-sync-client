@@ -11,6 +11,7 @@ public class MessageLog {
     private String name;
     private String message;
     private String others;
+    private String activity;
     private MessageType category;
     private LocalDateTime timeCreated;
 }

@@ -32,7 +32,7 @@ public class SyncHistoryService {
         syncHistory.setUploadSize(request.getUploadSize());
         syncHistory.setProcessed(3); //default
         syncHistory.setDateLastSync(LocalDateTime.now());
-        syncHistory.setErrorLog(request.getErrorLog());
+        syncHistory.setErrorLog(request.getMessageLog());
         syncHistory.setFilePath(request.getFilePath());
         syncHistory.setGenKey(request.getGenKey());
         syncHistoryRepository.save(syncHistory);
@@ -89,7 +89,7 @@ public class SyncHistoryService {
         response.setProcessedSize(entity.getProcessedSize());
         response.setDateLastSync(entity.getDateLastSync());
         response.setTableName(entity.getTableName());
-        response.setErrorLog(entity.getErrorLog());
+        response.setMessageLog(entity.getErrorLog());
         response.setUuid(entity.getUuid());
         response.setGenKey(entity.getGenKey());
         response.setPercentageSynced(getPercentageSynced(entity.getUuid()));

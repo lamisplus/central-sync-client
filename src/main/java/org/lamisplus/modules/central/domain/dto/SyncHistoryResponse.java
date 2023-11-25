@@ -17,7 +17,7 @@ public class SyncHistoryResponse {
     private Integer uploadSize;
     private Integer processedSize;
     private String facilityName;
-    private Object errorLog;
+    private Object messageLog;
     private UUID uuid;
     private float percentageSynced;
     private String genKey;
