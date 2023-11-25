@@ -52,6 +52,9 @@ const useStyles = makeStyles(theme => ({
         color: "#4BB543 ",
         fontSize: "11px",
     }, 
+    header: {
+        fontWeight: 600
+    }
 }))
 
 
@@ -126,9 +129,9 @@ const NewToken = (props) => {
   return (      
       <div >
          
-            <Modal isOpen={props.showModal} toggle={props.toggleModal} className={props.className} size="lg" backdrop={false} backdrop="static">
+            <Modal isOpen={props.showModal} toggle={props.toggleModal} className={props.className} size="lg" backdrop="static">
               <Form >
-                <ModalHeader toggle={props.toggleModal}>Personal Access Token </ModalHeader>
+                <ModalHeader className={classes.header} toggle={props.toggleModal}>UPLOAD CONFIG FILE</ModalHeader>
                 <ModalBody>
                     <Card >
                     <CardBody>
@@ -140,7 +143,8 @@ const NewToken = (props) => {
                                         type="file"
                                         name="file"
                                         id="file"
-                                        value={patDetails.file}
+                                        accept=".json"
+                                        // value={patDetails.file.name}
                                         onChange={(e)=>readFileOnUpload(e.target.files[0])}
                                         style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
                                         required

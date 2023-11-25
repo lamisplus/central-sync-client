@@ -106,7 +106,7 @@ const Logs = (props) => {
     return (
         <div >
 
-            <Modal isOpen={props.showModal} toggle={props.toggleModal} className={props.className} size="lg" backdrop={false} backdrop="static">
+            <Modal isOpen={props.showModal} toggle={props.toggleModal} className={props.className} size="lg" backdrop='static'>
                 <Form >
                     <ModalHeader toggle={props.toggleModal}>Logs </ModalHeader>
                     <ModalBody>

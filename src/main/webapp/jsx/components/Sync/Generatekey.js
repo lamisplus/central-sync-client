@@ -10,7 +10,8 @@ import { Spinner } from 'reactstrap';
 import axios from "axios";
 import { DropzoneArea } from 'material-ui-dropzone';
 import SettingsBackupRestoreIcon from '@material-ui/icons/SettingsBackupRestore';
-import { Input, Typography } from '@material-ui/core';
+import { Box, Button, Input, Typography } from '@material-ui/core';
+import CopyToClipboardButton from './CopyToClipBoard';
 
 
 
@@ -46,6 +47,9 @@ const useStyles = makeStyles(theme => ({
     },
     input: {
         display: 'none'
+    },
+    header: {
+        fontWeight: 600
     }
 }))
 
@@ -69,48 +73,42 @@ const GenerateKey = (props) => {
     return (
         <div >
 
-            <Modal isOpen={props.showModal} toggle={props.toggleModal} className={props.className} size="lg" backdrop={false} backdrop="static">
+            <Modal isOpen={true} toggle={props.toggleModal} className={props.className} size="lg" backdrop='static'>
                 <Form >
-                    <ModalHeader toggle={props.toggleModal}>GENERATE KEY</ModalHeader>
+                    <ModalHeader className={classes.header} toggle={props.toggleModal}>GENERATE KEY</ModalHeader>
                     <ModalBody>
 
                         <Card >
                             <CardBody>
                                 <Row >
                                     <Col md={12} >
-                                        <Typography marginBottom={2}>
-                                        {props.genKey}
-                                        </Typography>
-
                                         <Alert color="primary" >
-                                            <p style={{marginTop: '.7rem' }}>
-                                                Info : &nbsp;&nbsp;&nbsp;<span style={{ fontWeight: 'bolder'}}>{'Kindly copy the generated key for upload'}</span>
+                                            <p>
+                                                Info : &nbsp;&nbsp;&nbsp;<span style={{ fontWeight: 'bolder'}}>{'Kindly click on the button to copy the generated key for upload'}</span>
                                                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
                                             </p>
 
                                         </Alert>
+
+                                        <Typography marginTop={2}>
+                                            {props.genKey}
+                                        </Typography>
+                                        
+                                        <Box display={"flex"} marginTop={"10px"} justifyContent={"space-between"} width={"50%"} >
+                                            <CopyToClipboardButton styles={classes.button} textToCopy={props.genKey}/>
+
+                                            <Button variant='contained' color='default' onClick={props.toggleModal} >
+                                                <CancelIcon />
+                                                <Typography style={{marginLeft:"5px"}}>
+                                                Cancel
+                                                </Typography>
+                                            </Button>
+                                        </Box>
                                     </Col>
 
-                                    <Col md={6}>
-
-                                    </Col>
                                 </Row>
-                                <br/>
 
-                                <br/>
-
-
-
-                                <MatButton
-                                    variant='contained'
-                                    color='default'
-                                    onClick={props.togglestatus}
-                                    className={classes.button}
-                                    startIcon={<CancelIcon />}
-                                >
-                                    Cancel
-                                </MatButton>
                             </CardBody>
                         </Card>
                     </ModalBody>

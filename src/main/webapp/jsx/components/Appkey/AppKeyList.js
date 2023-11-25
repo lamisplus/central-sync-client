@@ -136,10 +136,11 @@ const AppKeyList = (props) => {
             {appKeysListTable ? (<>
                 <Button
                     variant="contained"
-                    style={{backgroundColor:"#014d88", }}
+                    style={{backgroundColor: keyList.length === 0 && "#014d88" }}
                     className=" float-right mr-1"
                     //startIcon={<FaUserPlus />}
                     onClick={createAppKey}
+                    disabled={keyList.length > 0}
                 >
                     <span style={{ textTransform: "capitalize", color:"#fff" }}>Add App Key </span>
                 </Button>
