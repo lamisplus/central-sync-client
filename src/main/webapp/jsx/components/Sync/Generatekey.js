@@ -73,7 +73,7 @@ const GenerateKey = (props) => {
     return (
         <div >
 
-            <Modal isOpen={true} toggle={props.toggleModal} className={props.className} size="lg" backdrop='static'>
+            <Modal isOpen={props.showModal} toggle={props.toggleModal} className={props.className} size="lg" backdrop='static'>
                 <Form >
                     <ModalHeader className={classes.header} toggle={props.toggleModal}>GENERATE KEY</ModalHeader>
                     <ModalBody>
