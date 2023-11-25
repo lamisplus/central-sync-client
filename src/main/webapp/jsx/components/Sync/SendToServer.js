@@ -52,6 +52,9 @@ const useStyles = makeStyles(theme => ({
         color: "#4BB543 ",
         fontSize: "11px",
     },
+    header: {
+        fontWeight: 600
+    }
 }))
 
 
@@ -147,9 +150,9 @@ const SendToServer = (props) => {
     return (
         <div >
 
-            <Modal isOpen={props.showModal} toggle={props.toggleModal} className={props.className} size="lg" backdrop={false} backdrop="static">
+            <Modal isOpen={props.showModal} toggle={props.toggleModal} className={props.className} size="lg" backdrop="static">
                 <Form >
-                    <ModalHeader toggle={props.toggleModal}>SEND TO SERVER </ModalHeader>
+                    <ModalHeader className={classes.header} toggle={props.toggleModal}>SEND TO SERVER </ModalHeader>
                     <ModalBody>
                         <Card >
                             <CardBody>
