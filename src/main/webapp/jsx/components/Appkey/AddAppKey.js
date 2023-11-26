@@ -29,6 +29,7 @@ import ViewColumn from "@material-ui/icons/ViewColumn";
 import Button from "@material-ui/core/Button";
 import {token, url as baseUrl} from "../../../api";
 import {toast} from "react-toastify";
+import { Box, Typography } from '@material-ui/core';
 
 
 const tableIcons = {
@@ -98,7 +99,8 @@ const Index = (props) => {
 
     useEffect(() => {
         Facilities();
-        AppKeyHistory();
+        // AppKeyHistory();
+        setKeyDetails(props.keyObj);
     }, [props]);
     async function AppKeyHistory() {
         axios
@@ -170,6 +172,7 @@ const Index = (props) => {
     //
     const showListiew =()=> {
         props.showAppKeysListTable(true)
+        props.setShowViewKey(false)
     }
 
     return (
@@ -188,7 +191,7 @@ const Index = (props) => {
                 <span style={{ textTransform: "capitalize" }}>{ "<< Back" } </span>
             </Button>
             <br/><br/>
-            {props.keyObj===null ?
+            {!props.showViewKey ?
                 (<>
                     <Row >
                         <Col md={12}>
@@ -198,9 +201,10 @@ const Index = (props) => {
                                     type="text"
                                     name="serverUrl"
                                     id="serverUrl"
+                                    defaultValue={keyDetails.serverUrl}
                                     onChange={handleInputChange}
                                     style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                    vaulue={keyDetails.serverUrl}
+                                    value={keyDetails.serverUrl}
                                 >
 
                                 </Input>
@@ -218,7 +222,7 @@ const Index = (props) => {
                                     id="facilityId"
                                     onChange={handleInputChange}
                                     style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                    vaulue={keyDetails.facilityId}
+                                    value={keyDetails.facilityId}
                                 >
                                     <option > </option>
                                     {facilities.map(({ label, value }) => (
@@ -239,6 +243,7 @@ const Index = (props) => {
                                     type="text"
                                     name="appKey"
                                     id="appKey"
+                                    defaultValue={keyDetails.appKey}
                                     value={keyDetails.appKey}
                                     onChange={handleInputChange}
                                     style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
@@ -267,11 +272,11 @@ const Index = (props) => {
                 </>)
                 :
                 (<>
-                    <Row >
-                        <Col md={12}>
-                            <p>APP KEY : {props.keyObj && props.keyObj!==null ? props.keyObj.appKey : ""}</p>
-                        </Col>
-                    </Row>
+                    <Box maxWidth={"90%"} >
+                        <Typography marginTop={2}>
+                            APP KEY : {props.keyObj && props.keyObj!==null ? props.keyObj.appKey : ""}
+                        </Typography>
+                    </Box>
                 </>)
             }
 

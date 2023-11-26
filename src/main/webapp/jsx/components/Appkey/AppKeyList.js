@@ -19,6 +19,7 @@ import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
+import {Row, Col} from 'reactstrap';
 
 import Button from "@material-ui/core/Button";
 import {  toast } from 'react-toastify';
@@ -106,6 +107,7 @@ const AppKeyList = (props) => {
     const [keyList, setKeyList] = useState( [])
     const [appKeysListTable, showAppKeysListTable] = useState( true)
     const [keyObj, setKeyObj] = useState( null)
+    const [showViewKey, setShowViewKey] = useState(false)
     useEffect(() => {
         AppKeyHistory();
     }, []);
@@ -123,11 +125,18 @@ const AppKeyList = (props) => {
             });
     }
     const createAppKey =()=> {
+        setShowViewKey(false)
         showAppKeysListTable(false)
     }
-    const UpdateKey =(rowObj)=> {
+    const updateKey = (rowObj) => {
+        setShowViewKey(false)
         showAppKeysListTable(false)
         setKeyObj(rowObj)
+    }
+    const viewAppKey =(rowObj)=> {
+        setShowViewKey(true)
+        setKeyObj(rowObj)
+        showAppKeysListTable(false)
     }
     //
 
@@ -169,7 +178,9 @@ const AppKeyList = (props) => {
 
                                             <Dropdown.Menu style={{ marginTop:"10px", }}>
 
-                                                <Dropdown.Item  onClick={() => UpdateKey(row)}><VisibilityIcon color="primary"/>View key
+                                                <Dropdown.Item  onClick={() => viewAppKey(row)}><VisibilityIcon color="primary"/>View key
+                                                </Dropdown.Item>
+                                                <Dropdown.Item  onClick={() => updateKey(row)}><Edit color="primary"/>Edit key
                                                 </Dropdown.Item>
 
                                             </Dropdown.Menu>
@@ -200,9 +211,8 @@ const AppKeyList = (props) => {
             </>)
                 :
             (<>
-            <AddAppKey showAppKeysListTable={showAppKeysListTable} AppKeyHistory={AppKeyHistory} keyObj={keyObj}/>
+            <AddAppKey setShowViewKey={setShowViewKey} showViewKey={showViewKey} showAppKeysListTable={showAppKeysListTable} AppKeyHistory={AppKeyHistory} keyObj={keyObj}/>
             </>)
-
             }
 
         </div>

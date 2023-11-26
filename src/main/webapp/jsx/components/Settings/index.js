@@ -4,7 +4,7 @@ import axios from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { token as token,  url as baseUrl } from "./../../../api";
-import SettingList from './SettingList' 
+import ConfigFileList from './ConfigFileList'
 
 
 
@@ -69,7 +69,7 @@ const TabExampleMenuPositionRight = (props) => {
 
   return (    
           
-          <SettingList />
+          <ConfigFileList />
         )
 
 }
