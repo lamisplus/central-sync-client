@@ -96,7 +96,6 @@ const NewToken = (props) => {
                     )
                         .then(response => {
                             setSaving(false);
-                            props.ServerUrl()
                             toast.success("Config File Uploaded Successful");
                             props.toggleModal()
 
@@ -155,6 +154,23 @@ const NewToken = (props) => {
 
                             </FormGroup>
                             </Col>
+                        {dataJSONFileContent !==null && (
+                            <>
+                                <Col md={12}>
+                                    <FormGroup>
+                                        <Label >Config File</Label>
+                                        <Input
+                                            type="textarea"
+                                            name="file"
+                                            cols="15"
+                                            rows="25"
+                                            value={dataJSONFileContent}
+                                        />
+
+                                    </FormGroup>
+                                </Col>
+                            </>
+                        )}
                     </Row>
                     {saving ? <Spinner /> : ""}
                     <br/>              
