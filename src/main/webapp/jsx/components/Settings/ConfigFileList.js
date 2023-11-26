@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import MaterialTable from 'material-table';
 import axios from "axios";
 import { token as token,  url as baseUrl } from "./../../../api";
-import NewPersonalAccessToken from './NewPersonalAccessToken';
+import UploadConfigFile from './UploadConfigFile';
 import { forwardRef } from 'react';
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowUpward from '@material-ui/icons/ArrowUpward';
@@ -51,7 +51,7 @@ ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 };
 
 
-const SettingList = (props) => {
+const ConfigFileList = (props) => {
 
   const [serverConfig, setServerConfig] = useState( [])
   const [modal, setModal] = useState(false);
@@ -203,12 +203,12 @@ const SettingList = (props) => {
                 />
             </>
         )}
-            <NewPersonalAccessToken toggleModal={toggleModal} showModal={showModal} ServerUrl={serverConfig} />
+            <UploadConfigFile toggleModal={toggleModal} showModal={showModal} ServerUrl={serverConfig} />
 
     </div>
   );
 }
 
-export default SettingList;
+export default ConfigFileList;
 
 
