@@ -6,9 +6,16 @@ import moment from "moment";
 import { CloudUpload } from "@material-ui/icons";
 import { token as token,  url as baseUrl } from "./../../../api";
 import axios from "axios";
+import SendToServer from "./SendToServer";
 
 const GeneratedFilesList = (props) => {
     const [generatedFiles, setGeneratedFiles] = useState([]);
+    const [sendToServerModalIsOpen, setSendToServerModalIsOpen] = useState(false);
+    const [rowObj, setRowObj] = useState({});
+
+    const toggleSendToServerModal = () => {
+        setSendToServerModalIsOpen(!sendToServerModalIsOpen);
+    }
 
     const goBack = () =>{
         props.setGenerateFilesGrid(false);
@@ -19,6 +26,8 @@ const GeneratedFilesList = (props) => {
     }, [props.id])
 
     const sendToServerAction = (row) => {
+        setRowObj({...row, syncHistoryTrackerUuid: row.uuid});
+        toggleSendToServerModal();
 
     }
      // Get list of generated files
@@ -36,6 +45,7 @@ const GeneratedFilesList = (props) => {
 
     return (
         <div>
+            <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModalIsOpen} rowObj={rowObj}/>
             <Button
                 variant="contained"
                 style={{ backgroundColor: "#014d88", }}

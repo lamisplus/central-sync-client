@@ -141,6 +141,7 @@ const SyncList = (props) => {
   const [showErrorFileObj, setShowErrorFileObj] = useState();
   const [rowObj, setRowObj] = useState(null);
   const [syncHistoryId, setSyncHistoryId] = useState();
+  const [syncHistoryTrackerUuid, setSyncHistoryTrackerUuid] = useState();
 
 useEffect(() => {
     Facilities();
@@ -253,8 +254,9 @@ useEffect(() => {
     const generateJsonFile =()=> {        
         setModal(!modal)
     }
-    const displayGeneratedfiles = (row) => {
-        setSyncHistoryId(row.id);
+    const displayGeneratedfiles = (rowObj) => {
+        setRowObj(rowObj)
+        setSyncHistoryId(rowObj.id);
         setGenerateFilesGrid(true);
     }
     const displayGenerateKey =(row)=> {
@@ -267,7 +269,7 @@ useEffect(() => {
     }
     const sendToServerAction =(rowObj)=> {
         setSendToServerModal(!sendToServerModal);
-        setRowObj(rowObj)
+        setRowObj({...rowObj, syncHistoryTrackerUuid: null})
         //src/main/webapp/jsx/components/Sync/SendToServer.js
     }
     const displaySendToServer =()=> {
@@ -348,7 +350,7 @@ useEffect(() => {
                     field: "facilityName",
                 },
                 { title: "File Name ", field: "tableName", filtering: false },
-                { title: "Upload Size ", field: "uploadSize", filtering: false },
+                { title: "Size ", field: "uploadSize", filtering: false },
                 { title: "Upload Percentage ", field: "uploadPercentage", filtering: false },
                 { title: "Date Generated ", field: "date", filtering: false },
                 { title: "Status", field: "status", filtering: false },         
@@ -367,7 +369,8 @@ useEffect(() => {
                             />
                     </div>),
                     date:  moment(row.dateLastSync).format("LLLL"),
-                    status: row.messageLog===null ? row.processed===0 ? "Processing" : "Completed" : "Error",
+                    // status: row.messageLog===null ? row.processed===0 ? "Processing" : "Completed" : "Error",
+                    status: "Completed",
                     //errorLog: row.errorLog,
                     actions:(<div>
                                 <Menu.Menu position='right'  >
@@ -509,7 +512,7 @@ useEffect(() => {
                 </ModalBody>
             </Modal>
 
-            <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal} rowObj={rowObj}/>
+            <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
             <Logs toggleModal={toggleLogModal} showModal={logModal} messageLogsToDisplay={messageLogsToDisplay}  />
             <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal} genKey={genKey}  />
         </div>
