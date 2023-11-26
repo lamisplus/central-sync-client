@@ -1,9 +1,11 @@
 import MaterialTable from "material-table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dropdown, Button, Menu,  } from 'semantic-ui-react'
 import { TableIcons } from "../Utils/TableUtils";
 import moment from "moment";
 import { CloudUpload } from "@material-ui/icons";
+import { token as token,  url as baseUrl } from "./../../../api";
+import axios from "axios";
 
 const GeneratedFilesList = (props) => {
     const [generatedFiles, setGeneratedFiles] = useState([]);
@@ -12,8 +14,24 @@ const GeneratedFilesList = (props) => {
         props.setGenerateFilesGrid(false);
     }
 
+    useEffect(() => {
+        GetGeneratedFiles();
+    }, [props.id])
+
     const sendToServerAction = (row) => {
-        
+
+    }
+     // Get list of generated files
+     async function GetGeneratedFiles() {
+        axios
+            .get(`${baseUrl}sync/history/${props.id}/tracker`,
+           { headers: {"Authorization" : `Bearer ${token}`} }
+            )
+            .then((response) => {
+                setGeneratedFiles(response.data);
+            })
+            .catch((error) => {
+            });
     }
 
     return (
@@ -33,8 +51,7 @@ const GeneratedFilesList = (props) => {
                 columns={[
                     // { title: "Facility Name", field: "facilityName"},
                     { title: "File Name ", field: "fileName", filtering: false },
-                    { title: "Upload Size ", field: "uploadSize", filtering: false },
-                    { title: "Upload Percentage ", field: "uploadPercentage", filtering: false },
+                    { title: "Record Size ", field: "recordSize", filtering: false },
                     { title: "Date Generated ", field: "date", filtering: false },
                     { title: "Status", field: "status", filtering: false },
                     { title: "Action", field: "actions", filtering: false },
@@ -42,7 +59,7 @@ const GeneratedFilesList = (props) => {
                 data={generatedFiles.map((row) => ({
                     // facilityName: row.facilityName,
                     fileName: row.fileName,
-                    uploadSize: row.uploadSize,
+                    recordSize: row.recordSize,
                     date: moment(row.timeCreated).format("LLLL"),
                     status: row.status,
                     //errorLog: row.errorLog,
