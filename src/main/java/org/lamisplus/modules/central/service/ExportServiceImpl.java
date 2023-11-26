@@ -96,7 +96,7 @@ public class ExportServiceImpl implements ExportService {
 
         SyncHistory history = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
         //if(!current)history=null;
-        if(!current && history != null){
+        if(!current){
             LocalDateTime lastSync = history.getDateLastSync();
             start = dateUtility.ConvertDateTimeToString(lastSync);
         }
