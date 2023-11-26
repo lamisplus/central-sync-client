@@ -235,7 +235,6 @@ public class ExportServiceImpl implements ExportService {
                 isProcessed = true;
             } catch (IOException e) {
                 addMessageLog("data", e.getMessage(), getPrintStackError(e), GENERATING_DATA_JSON, MessageType.ERROR);
-                isProcessed = false;
                 log.error("Error writing data to a JSON file: {}", e.getMessage());
             }
         } catch (Exception e) {
@@ -255,8 +254,8 @@ public class ExportServiceImpl implements ExportService {
                 .stream()
                 .map(moduleStatus -> {
                     addMessageLog(moduleStatus.getName(),
-                        moduleStatus.getMinimumVersion(),
-                        moduleStatus.getAvailableVersion(), MODULE_CHECK,
+                            "Required version is from " + moduleStatus.getMinimumVersion() + " - " + moduleStatus.getMaximumVersion(),
+                        "Installed version is " + moduleStatus.getAvailableVersion(), MODULE_CHECK,
                         moduleStatus.getMessage());
                     return moduleStatus;
                 }).collect(Collectors.toList());
