@@ -30,7 +30,7 @@ import "@reach/menu-button/styles.css";
 //import { MdModeEdit } from "react-icons/md";
 import 'react-widgets/dist/css/react-widgets.css';
 import { Modal, ModalHeader, ModalBody,Form,FormFeedback,
-    Row,Col, Card,CardBody, FormGroup, Label, Input} from 'reactstrap';
+    Row,Col, Card,CardBody, FormGroup, Label, Input, Badge} from 'reactstrap';
 import MatButton from '@material-ui/core/Button'
 import { makeStyles } from '@material-ui/core/styles'
 //import SaveIcon from '@material-ui/icons/Save'
@@ -46,6 +46,7 @@ import SendToServer from "./SendToServer";
 import Generatekey from "./Generatekey";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import GeneratedFilesList from './GeneratedFilesList';
+import { Box, Typography } from '@material-ui/core';
 
 
 const tableIcons = {
@@ -288,6 +289,15 @@ useEffect(() => {
             .catch((error) => {
             });
     }
+
+    const logStats = (messageLogs) => {
+        return [
+            messageLogs.filter((log) => log.category.toLowerCase() === 'success').length,
+            messageLogs.filter((log) => log.category.toLowerCase() === 'warning').length,
+            messageLogs.filter((log) => log.category.toLowerCase() === 'error').length,
+        ]
+    }
+
     // const  sendToServerAction = (fileName,facilityId) => {
     //     setModal2(true)
     //      //SENDING A POST REQUEST
@@ -350,8 +360,8 @@ useEffect(() => {
                     field: "facilityName",
                 },
                 { title: "File Name ", field: "tableName", filtering: false },
-                { title: "Size ", field: "uploadSize", filtering: false },
-                { title: "Upload Percentage ", field: "uploadPercentage", filtering: false },
+                { title: "Size (MB)", field: "uploadSize", filtering: false },
+                { title: "Upload (%) ", field: "uploadPercentage", filtering: false },
                 { title: "Date Generated ", field: "date", filtering: false },
                 { title: "Status", field: "status", filtering: false },         
                 { title: "Action", field: "actions", filtering: false }, 
@@ -360,7 +370,7 @@ useEffect(() => {
                     //Id: manager.id,
                     facilityName: row.facilityName,
                     tableName: row.tableName,
-                    uploadSize: row.uploadSize,
+                    uploadSize: (<>{(row.uploadSize / 1000000).toFixed(2) + ' MB'}</>),
                     uploadPercentage: (<div>
                         <ProgressBar
                             now={row.percentageSynced}
@@ -370,7 +380,14 @@ useEffect(() => {
                     </div>),
                     date:  moment(row.dateLastSync).format("LLLL"),
                     // status: row.messageLog===null ? row.processed===0 ? "Processing" : "Completed" : "Error",
-                    status: "Completed",
+                    status: (<Box style={{width:"100%", height:"auto"}}>
+                        <Typography>{"Completed"}</Typography>
+                        <div style={{display:"flex", flexDirection:"row", justifyContent:"flex-start", marginTop: "10px"}}>
+                            <Badge color="success">{logStats(row.messageLog)[0]}</Badge>
+                            <Badge style={{marginLeft:"5px"}} color="warning">{logStats(row.messageLog)[1]}</Badge>
+                            <Badge style={{marginLeft:"5px"}} color="danger">{logStats(row.messageLog)[2]}</Badge>
+                        </div>
+                    </Box>),
                     //errorLog: row.errorLog,
                     actions:(<div>
                                 <Menu.Menu position='right'  >
