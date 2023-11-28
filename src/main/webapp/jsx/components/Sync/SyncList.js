@@ -124,7 +124,6 @@ const SyncList = (props) => {
   const [genKey, setGenKey] = useState("");
   const [sendToServerModal, setSendToServerModal] = useState(false);
   const [logModal, setLogModal] = useState(false);
-  const [messageLogsToDisplay, setMessageLogsToDisplay] = useState([]);
   const toggle = () => setModal(!modal);
   const toggleLogModal = () => setLogModal(!logModal);
   const toggleGenerateFilesGrid = () => setGenerateFilesGrid(!generateFilesGrid);
@@ -264,14 +263,15 @@ useEffect(() => {
         setGenKey(row.genKey);
         setGenerateKeyModal(!generateKeyModal);
     }
-    const displayLogs =(row)=> {
-        setMessageLogsToDisplay(row.messageLog)
-        setLogModal(!logModal)
+    const displayLogs = (row) => {
+        setRowObj(row)
+        setSendToServerModal(false)
+        setGenerateFilesGrid(false)
+        setShowErrorTable(true)
     }
     const sendToServerAction =(rowObj)=> {
         setSendToServerModal(!sendToServerModal);
         setRowObj({...rowObj, syncHistoryTrackerUuid: null})
-        //src/main/webapp/jsx/components/Sync/SendToServer.js
     }
     const displaySendToServer =()=> {
         setSendToServerModal(!sendToServerModal)
@@ -326,20 +326,13 @@ useEffect(() => {
     //             }
     //     });
     // }
-    const displayErrorTable =(row)=> {        
-        setShowErrorTable(true)
-        setShowErrorFileObj(row)
-        setShowErrorObj(row.errorLog)
-    }
-    const backToGenerateJsonFile =()=> {        
-        setShowErrorTable(false)
-    }
+
 
  
   return (
     <>
     { !generateFilesGrid ? (<div>
-            {!showErrorTable && (<>
+            {!showErrorTable ? (<>
                 <Button
                 variant="contained"
                 style={{backgroundColor:"#014d88", }}
@@ -433,7 +426,11 @@ useEffect(() => {
                             debounceInterval: 400
                     }}
             />
-            </>)}
+            </>) : (
+            <>
+            <Logs setShowErrorTable={setShowErrorTable} rowObj={rowObj}  />
+            </>
+            )}
 
             <Modal isOpen={modal} toggle={toggle} className={props.className} size="lg"  backdrop="static">
                 <Form >
@@ -530,7 +527,6 @@ useEffect(() => {
             </Modal>
 
             <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
-            <Logs toggleModal={toggleLogModal} showModal={logModal} messageLogsToDisplay={messageLogsToDisplay}  />
             <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal} genKey={genKey}  />
         </div>
         ) : (
