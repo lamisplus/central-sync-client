@@ -182,10 +182,9 @@ public class ExportController {
 
             //TODO: get version for database
             headers.set(VERSION, "217");
-            String credentialDetail = exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString(), tracker.getFileName());
-            //log.info("encrypted credential is {}", credentialDetail);
-            headers.set(CREDENTIAL, credentialDetail);
-            log.info("done with encryption and passed to header");
+            //just the username
+            String encryptedUsername = exportService.encryptMessage(loginVM.getUsername(), appKey);
+            headers.set(CREDENTIAL, encryptedUsername);
 
             try {
                 String apiUrl = USE_API_URL + datimId + "/" + history.getUuid() + "/" + tracker.getUuid() + "/" + tracker.getFileName();

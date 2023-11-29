@@ -488,4 +488,23 @@ public class ExportServiceImpl implements ExportService {
         }
         return null;
     }
+
+
+    /**
+     * Encrypt any String message
+     * @param message
+     * @param appKey
+     * @return String
+     */
+    public String encryptMessage(String message, String appKey){
+        try {
+            byte[] credentialBytes = message.getBytes();
+            //encrypt rsa key
+            byte[] encryptedCredential = this.rsaUtils.encrypt(credentialBytes, appKey);
+            return Base64.getEncoder().encodeToString(encryptedCredential);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
