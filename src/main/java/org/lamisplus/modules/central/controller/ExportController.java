@@ -147,16 +147,18 @@ public class ExportController {
         List<SyncHistoryTracker> trackers = new ArrayList<>();
         String USE_API_URL = syncService.checkUrl(facilityAppKey).concat(API_URL);
 
-
         if(syncDetailDto.getSyncHistoryTrackerUuid() != null){
             SyncHistoryTracker tracker = syncHistoryTrackerRepository
                     .findByUuid(java.util.UUID.fromString(syncDetailDto.getSyncHistoryTrackerUuid()))
                     .orElseThrow(()-> new EntityNotFoundException(SyncHistoryTracker.class, "uuid", "uuid"));
+            syncDetailDto.setSyncHistoryUuid(tracker.getSyncHistoryUuid().toString());
             trackers.add(tracker);
+
         } else {
             trackers = syncHistoryTrackerRepository
                     .findAllBySyncHistoryUuidAndStatusAndArchived(java.util.UUID.fromString(syncDetailDto.getSyncHistoryUuid()), GENERATED, ARCHIVED);
         }
+
         SyncHistory history = historyRepository
                 .findByUuid(java.util.UUID.fromString(syncDetailDto.getSyncHistoryUuid()))
                 .orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", "file"));
