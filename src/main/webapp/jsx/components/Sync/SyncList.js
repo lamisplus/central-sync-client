@@ -30,7 +30,7 @@ import "@reach/menu-button/styles.css";
 //import { MdModeEdit } from "react-icons/md";
 import 'react-widgets/dist/css/react-widgets.css';
 import { Modal, ModalHeader, ModalBody,Form,FormFeedback,
-    Row,Col, Card,CardBody, FormGroup, Label, Input} from 'reactstrap';
+    Row,Col, Card,CardBody, FormGroup, Label, Input, Badge} from 'reactstrap';
 import MatButton from '@material-ui/core/Button'
 import { makeStyles } from '@material-ui/core/styles'
 //import SaveIcon from '@material-ui/icons/Save'
@@ -46,6 +46,7 @@ import SendToServer from "./SendToServer";
 import Generatekey from "./Generatekey";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import GeneratedFilesList from './GeneratedFilesList';
+import { Box, Typography } from '@material-ui/core';
 
 
 const tableIcons = {
@@ -123,7 +124,6 @@ const SyncList = (props) => {
   const [genKey, setGenKey] = useState("");
   const [sendToServerModal, setSendToServerModal] = useState(false);
   const [logModal, setLogModal] = useState(false);
-  const [messageLogsToDisplay, setMessageLogsToDisplay] = useState([]);
   const toggle = () => setModal(!modal);
   const toggleLogModal = () => setLogModal(!logModal);
   const toggleGenerateFilesGrid = () => setGenerateFilesGrid(!generateFilesGrid);
@@ -141,6 +141,7 @@ const SyncList = (props) => {
   const [showErrorFileObj, setShowErrorFileObj] = useState();
   const [rowObj, setRowObj] = useState(null);
   const [syncHistoryId, setSyncHistoryId] = useState();
+  const [syncHistoryTrackerUuid, setSyncHistoryTrackerUuid] = useState();
 
 useEffect(() => {
     Facilities();
@@ -253,22 +254,24 @@ useEffect(() => {
     const generateJsonFile =()=> {        
         setModal(!modal)
     }
-    const displayGeneratedfiles = (row) => {
-        setSyncHistoryId(row.id);
+    const displayGeneratedfiles = (rowObj) => {
+        setRowObj(rowObj)
+        setSyncHistoryId(rowObj.id);
         setGenerateFilesGrid(true);
     }
     const displayGenerateKey =(row)=> {
         setGenKey(row.genKey);
         setGenerateKeyModal(!generateKeyModal);
     }
-    const displayLogs =(row)=> {
-        setMessageLogsToDisplay(row.messageLog)
-        setLogModal(!logModal)
+    const displayLogs = (row) => {
+        setRowObj(row)
+        setSendToServerModal(false)
+        setGenerateFilesGrid(false)
+        setShowErrorTable(true)
     }
     const sendToServerAction =(rowObj)=> {
         setSendToServerModal(!sendToServerModal);
-        setRowObj(rowObj)
-        //src/main/webapp/jsx/components/Sync/SendToServer.js
+        setRowObj({...rowObj, syncHistoryTrackerUuid: null})
     }
     const displaySendToServer =()=> {
         setSendToServerModal(!sendToServerModal)
@@ -286,6 +289,15 @@ useEffect(() => {
             .catch((error) => {
             });
     }
+
+    const logStats = (messageLogs) => {
+        return [
+            messageLogs.filter((log) => log.category.toLowerCase() === 'success').length,
+            messageLogs.filter((log) => log.category.toLowerCase() === 'warning').length,
+            messageLogs.filter((log) => log.category.toLowerCase() === 'error').length,
+        ]
+    }
+
     // const  sendToServerAction = (fileName,facilityId) => {
     //     setModal2(true)
     //      //SENDING A POST REQUEST
@@ -314,20 +326,13 @@ useEffect(() => {
     //             }
     //     });
     // }
-    const displayErrorTable =(row)=> {        
-        setShowErrorTable(true)
-        setShowErrorFileObj(row)
-        setShowErrorObj(row.errorLog)
-    }
-    const backToGenerateJsonFile =()=> {        
-        setShowErrorTable(false)
-    }
+
 
  
   return (
     <>
     { !generateFilesGrid ? (<div>
-            {!showErrorTable && (<>
+            {!showErrorTable ? (<>
                 <Button
                 variant="contained"
                 style={{backgroundColor:"#014d88", }}
@@ -348,8 +353,8 @@ useEffect(() => {
                     field: "facilityName",
                 },
                 { title: "File Name ", field: "tableName", filtering: false },
-                { title: "Upload Size ", field: "uploadSize", filtering: false },
-                { title: "Upload Percentage ", field: "uploadPercentage", filtering: false },
+                { title: "Size (MB)", field: "uploadSize", filtering: false },
+                { title: "Upload (%) ", field: "uploadPercentage", filtering: false },
                 { title: "Date Generated ", field: "date", filtering: false },
                 { title: "Status", field: "status", filtering: false },         
                 { title: "Action", field: "actions", filtering: false }, 
@@ -358,7 +363,7 @@ useEffect(() => {
                     //Id: manager.id,
                     facilityName: row.facilityName,
                     tableName: row.tableName,
-                    uploadSize: row.uploadSize,
+                    uploadSize: (<>{(row.uploadSize / 1000000).toFixed(2) + ' MB'}</>),
                     uploadPercentage: (<div>
                         <ProgressBar
                             now={row.percentageSynced}
@@ -367,7 +372,15 @@ useEffect(() => {
                             />
                     </div>),
                     date:  moment(row.dateLastSync).format("LLLL"),
-                    status: row.messageLog===null ? row.processed===0 ? "Processing" : "Completed" : "Error",
+                    // status: row.messageLog===null ? row.processed===0 ? "Processing" : "Completed" : "Error",
+                    status: (<Box style={{width:"100%", height:"auto"}}>
+                        <Typography>{"Completed"}</Typography>
+                        <div style={{display:"flex", flexDirection:"row", justifyContent:"flex-start", marginTop: "10px"}}>
+                            <Badge color="success">{logStats(row.messageLog)[0]}</Badge>
+                            <Badge style={{marginLeft:"5px"}} color="warning">{logStats(row.messageLog)[1]}</Badge>
+                            <Badge style={{marginLeft:"5px"}} color="danger">{logStats(row.messageLog)[2]}</Badge>
+                        </div>
+                    </Box>),
                     //errorLog: row.errorLog,
                     actions:(<div>
                                 <Menu.Menu position='right'  >
@@ -413,7 +426,11 @@ useEffect(() => {
                             debounceInterval: 400
                     }}
             />
-            </>)}
+            </>) : (
+            <>
+            <Logs setShowErrorTable={setShowErrorTable} rowObj={rowObj}  />
+            </>
+            )}
 
             <Modal isOpen={modal} toggle={toggle} className={props.className} size="lg"  backdrop="static">
                 <Form >
@@ -509,8 +526,7 @@ useEffect(() => {
                 </ModalBody>
             </Modal>
 
-            <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal} rowObj={rowObj}/>
-            <Logs toggleModal={toggleLogModal} showModal={logModal} messageLogsToDisplay={messageLogsToDisplay}  />
+            <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
             <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal} genKey={genKey}  />
         </div>
         ) : (

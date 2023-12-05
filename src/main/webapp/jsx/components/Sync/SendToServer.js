@@ -75,7 +75,11 @@ const SendToServer = (props) => {
     useEffect(()=>{
         if(props.rowObj){
             setRowObj(props.rowObj);
-            setPatDetails({...patDetails, syncHistoryUuid:props.rowObj.uuid, syncHistoryTrackerUuid:null, facilityId: props.rowObj.organisationUnitId})
+            setPatDetails({...patDetails, 
+                syncHistoryUuid:props.rowObj.uuid, 
+                syncHistoryTrackerUuid: props.rowObj.syncHistoryTrackerUuid, 
+                facilityId: props.rowObj.organisationUnitId || props.rowObj.facilityId
+            })
         }
     },[props.rowObj])
 
