@@ -47,6 +47,7 @@ public class ExportController {
     public static final int ARCHIVED = 0;
     public static final String AUTHORIZATION = "Authorization";
     public static final String VERSION = "version";
+    public static final String GEN_KEY = "genKey";
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final FacilityAppKeyRepository facilityAppKeyRepository;
@@ -184,6 +185,7 @@ public class ExportController {
 
             //TODO: get version for database
             headers.set(VERSION, "217");
+            headers.set(GEN_KEY, history.getGenKey());
             //just the username
             String encryptedUsername = exportService.encryptMessage(loginVM.getUsername(), appKey);
             headers.set(CREDENTIAL, encryptedUsername);
