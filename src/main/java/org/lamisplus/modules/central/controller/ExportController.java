@@ -47,6 +47,7 @@ public class ExportController {
     public static final int ARCHIVED = 0;
     public static final String AUTHORIZATION = "Authorization";
     public static final String VERSION = "version";
+    public static final String GEN_KEY = "genKey";
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final FacilityAppKeyRepository facilityAppKeyRepository;
@@ -147,16 +148,18 @@ public class ExportController {
         List<SyncHistoryTracker> trackers = new ArrayList<>();
         String USE_API_URL = syncService.checkUrl(facilityAppKey).concat(API_URL);
 
-
         if(syncDetailDto.getSyncHistoryTrackerUuid() != null){
             SyncHistoryTracker tracker = syncHistoryTrackerRepository
                     .findByUuid(java.util.UUID.fromString(syncDetailDto.getSyncHistoryTrackerUuid()))
                     .orElseThrow(()-> new EntityNotFoundException(SyncHistoryTracker.class, "uuid", "uuid"));
+            syncDetailDto.setSyncHistoryUuid(tracker.getSyncHistoryUuid().toString());
             trackers.add(tracker);
+
         } else {
             trackers = syncHistoryTrackerRepository
                     .findAllBySyncHistoryUuidAndStatusAndArchived(java.util.UUID.fromString(syncDetailDto.getSyncHistoryUuid()), GENERATED, ARCHIVED);
         }
+
         SyncHistory history = historyRepository
                 .findByUuid(java.util.UUID.fromString(syncDetailDto.getSyncHistoryUuid()))
                 .orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", "file"));
@@ -182,10 +185,10 @@ public class ExportController {
 
             //TODO: get version for database
             headers.set(VERSION, "217");
-            String credentialDetail = exportService.encryptCredentials(loginVM, appKey, history.getUuid().toString(), history.getUuid().toString(), tracker.getFileName());
-            //log.info("encrypted credential is {}", credentialDetail);
-            headers.set(CREDENTIAL, credentialDetail);
-            log.info("done with encryption and passed to header");
+            headers.set(GEN_KEY, history.getGenKey());
+            //just the username
+            String encryptedUsername = exportService.encryptMessage(loginVM.getUsername(), appKey);
+            headers.set(CREDENTIAL, encryptedUsername);
 
             try {
                 String apiUrl = USE_API_URL + datimId + "/" + history.getUuid() + "/" + tracker.getUuid() + "/" + tracker.getFileName();

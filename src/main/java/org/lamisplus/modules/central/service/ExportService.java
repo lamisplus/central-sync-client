@@ -14,4 +14,6 @@ public interface ExportService {
     String getDatimId(Long facilityId);
 
     String encryptCredentials(LoginVM login, String appKey, String history, String tracker, String fileName);
+
+    String encryptMessage(String message, String appKey);
 }

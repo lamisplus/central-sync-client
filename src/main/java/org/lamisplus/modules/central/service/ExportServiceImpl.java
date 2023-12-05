@@ -48,10 +48,11 @@ public class ExportServiceImpl implements ExportService {
     public static final String SYNC_TRACKER_STATUS = "Generated";
     public static final int UN_ARCHIVED = 0;
     public static final String START_DATE = "1985-01-01 01:01:01";
-    public static final String GENERATED_SUCCESSFULLY = "Generated successfully";
+    public static final String GENERATED_SUCCESSFULLY = "Generated successfully...";
     public static final String GENERATING_DATA_JSON = "Generating data json";
     public static final String MODULE_CHECK = "Module check";
     public static final String GENERATING = "Generating";
+    public static final String DATA_JSON = "data.json";
     private final FileUtility fileUtility;
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository syncHistoryRepository;
@@ -63,6 +64,7 @@ public class ExportServiceImpl implements ExportService {
     private final FacilityAppKeyService facilityAppKeyService;
     private final RSAUtils rsaUtils;
     private final ConfigModuleService configModuleService;
+    List<String> fileNames = new ArrayList<>();;
 
 
     /**
@@ -95,7 +97,8 @@ public class ExportServiceImpl implements ExportService {
         String end = dateUtility.ConvertDateTimeToString(LocalDateTime.now());
 
         SyncHistory history = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
-        //if(!current)history=null;
+
+        //if current and there is sync history for the facility
         if(!current && history != null){
             LocalDateTime lastSync = history.getDateLastSync();
             start = dateUtility.ConvertDateTimeToString(lastSync);
@@ -113,8 +116,7 @@ public class ExportServiceImpl implements ExportService {
         }
 
         try {
-            log.info("Initializing data export...");
-            syncData(fileFolder, current);
+            if(!fileNames.isEmpty())fileNames.clear();
 
             List<SyncHistoryTracker> syncHistoryTrackers = new ArrayList<>();
 
@@ -158,6 +160,9 @@ public class ExportServiceImpl implements ExportService {
             log.debug("Something went wrong. Error: {}", e.getMessage());
             e.printStackTrace();
         }
+
+        log.info("Initializing data export...");
+        syncData(fileNames, fileFolder, current);
         return zipFileName;
     }
 
@@ -215,24 +220,26 @@ public class ExportServiceImpl implements ExportService {
        }
     }
 
-    public boolean syncData(String fileLocation, Boolean current) {
-        boolean isProcessed = false;
+    public boolean syncData(List<String> fileNames, String fileLocation, Boolean current) {
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator +  "data.json";
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + DATA_JSON + "_" + fileLocation;
             try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
                 jsonGenerator.setCodec(objectMapper);
                 jsonGenerator.useDefaultPrettyPrinter();
                 jsonGenerator.writeStartObject();
-                jsonGenerator.writeStringField("v", "217");
+                jsonGenerator.writeStringField("version", "217");
                 if(current) {
                     jsonGenerator.writeStringField("init", "false");
                 }else {
                     jsonGenerator.writeStringField("init", "true");
                 }
+                jsonGenerator.writeStringField("fileNames", String.valueOf(fileNames));
+
                 jsonGenerator.writeEndObject();
-                isProcessed = true;
+                addMessageLog(DATA_JSON, SYNC_TRACKER_STATUS, DATA_JSON, GENERATED_SUCCESSFULLY + DATA_JSON, MessageType.SUCCESS);
+                return true;
             } catch (IOException e) {
                 addMessageLog("data", e.getMessage(), getPrintStackError(e), GENERATING_DATA_JSON, MessageType.ERROR);
                 log.error("Error writing data to a JSON file: {}", e.getMessage());
@@ -334,6 +341,7 @@ public class ExportServiceImpl implements ExportService {
                     addMessageLog(tableName, SYNC_TRACKER_STATUS, fileName, GENERATING + fileName, MessageType.SUCCESS);
                     //success log
                     trackers.add(tracker);
+                    fileNames.add(fileName);
                 }
                 level = split > 1 ? ++level : FETCH_SIZE;
             }while (level < size);
@@ -480,6 +488,25 @@ public class ExportServiceImpl implements ExportService {
         FileDetail detail = new FileDetail(history, tracker, fileName);
         try {
             byte[] credentialBytes = credential.toString().getBytes();
+            //encrypt rsa key
+            byte[] encryptedCredential = this.rsaUtils.encrypt(credentialBytes, appKey);
+            return Base64.getEncoder().encodeToString(encryptedCredential);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    /**
+     * Encrypt any String message
+     * @param message
+     * @param appKey
+     * @return String
+     */
+    public String encryptMessage(String message, String appKey){
+        try {
+            byte[] credentialBytes = message.getBytes();
             //encrypt rsa key
             byte[] encryptedCredential = this.rsaUtils.encrypt(credentialBytes, appKey);
             return Base64.getEncoder().encodeToString(encryptedCredential);

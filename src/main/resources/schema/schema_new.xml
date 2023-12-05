@@ -84,6 +84,7 @@
                 id uuid NOT NULL,
                 facility_id integer,
                 app_key character varying(2000),
+                server_url character varying(500),
                 CONSTRAINT sync_facility_app_key_pkey PRIMARY KEY (id)
                 );
         </sql>
