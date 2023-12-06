@@ -12,7 +12,7 @@ const DownloadButton = ({ styles, textToDownload, downloadedStateText="Downloade
         const element = document.createElement("a");
         const file = new Blob([textToDownload], {type: 'text/plain'});
         element.href = URL.createObjectURL(file);
-        element.download = "facilityKey.txt";
+        element.download = "facilityKey.key";
         document.body.appendChild(element); // Required for this to work in FireFox
         element.click();
         setIsCopied(true);

@@ -3,7 +3,10 @@ import MaterialTable from 'material-table';
 import axios from "axios";
 import { token as token,  url as baseUrl } from "./../../../api";
 import { forwardRef } from 'react';
-
+import {
+    Modal, ModalHeader, ModalBody, Form, Card, CardBody, FormGroup, Label, Input, Alert
+} from 'reactstrap';
+import CancelIcon from '@material-ui/icons/Cancel';
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowUpward from '@material-ui/icons/ArrowUpward';
 import Check from '@material-ui/icons/Check';
@@ -35,6 +38,9 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import 'semantic-ui-css/semantic.min.css';
 import { Dropdown,Button as Buuton2, Menu,  } from 'semantic-ui-react'
 import AddAppKey from "./AddAppKey";
+import { Box, Typography } from '@material-ui/core';
+import DownloadButton from '../Sync/DownloadButton';
+import { set } from 'date-fns';
 
 
 const tableIcons = {
@@ -108,6 +114,12 @@ const AppKeyList = (props) => {
     const [appKeysListTable, showAppKeysListTable] = useState( true)
     const [keyObj, setKeyObj] = useState( null)
     const [showViewKey, setShowViewKey] = useState(false)
+    const [appKeyModalIsOpen, setAppKeyModalIsOpen] = useState(false);
+
+
+    const toggleAppKeyModalIsOpen = () => {
+        setAppKeyModalIsOpen(!appKeyModalIsOpen);
+    }
     useEffect(() => {
         AppKeyHistory();
     }, []);
@@ -134,9 +146,10 @@ const AppKeyList = (props) => {
         setKeyObj(rowObj)
     }
     const viewAppKey =(rowObj)=> {
-        setShowViewKey(true)
+        // setShowViewKey(true)
         setKeyObj(rowObj)
-        showAppKeysListTable(false)
+        setAppKeyModalIsOpen(true);
+        // showAppKeysListTable(false)
     }
     //
 
@@ -178,10 +191,10 @@ const AppKeyList = (props) => {
 
                                             <Dropdown.Menu style={{ marginTop:"10px", }}>
 
-                                                <Dropdown.Item  onClick={() => viewAppKey(row)}><VisibilityIcon color="primary"/>View key
-                                                </Dropdown.Item>
-                                                <Dropdown.Item  onClick={() => updateKey(row)}><Edit color="primary"/>Edit key
-                                                </Dropdown.Item>
+                                                {row.appKey && <Dropdown.Item  onClick={() => viewAppKey(row)}><VisibilityIcon color="primary"/>View key
+                                                </Dropdown.Item>}
+                                                {row.appKey && <Dropdown.Item  onClick={() => updateKey(row)}><Edit color="primary"/>Edit key
+                                                </Dropdown.Item>}
 
                                             </Dropdown.Menu>
                                         </Dropdown>
@@ -214,6 +227,49 @@ const AppKeyList = (props) => {
             <AddAppKey setShowViewKey={setShowViewKey} showViewKey={showViewKey} showAppKeysListTable={showAppKeysListTable} AppKeyHistory={AppKeyHistory} keyObj={keyObj}/>
             </>)
             }
+
+        <Modal isOpen={appKeyModalIsOpen} style={{ textTransform: "none" }} toggle={toggleAppKeyModalIsOpen} size="lg" backdrop='static'>
+                <Form >
+                    <ModalHeader className={classes.header} toggle={toggleAppKeyModalIsOpen}>App Key</ModalHeader>
+                    <ModalBody>
+
+                        <Card >
+                            <CardBody>
+                                <Row >
+                                    <Col md={12} >
+                                        <Alert color="primary" >
+                                            <p>
+                                                Info : &nbsp;&nbsp;&nbsp;<span style={{ fontWeight: 'bolder' }}>{'Kindly click on the button to download the app key'}</span>
+                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+                                            </p>
+
+                                        </Alert>
+
+                                        <Typography marginTop={2}>
+                                            {keyObj && keyObj.appKey}
+                                        </Typography>
+
+                                        <Box display={"flex"} marginTop={"10px"} justifyContent={"space-between"} width={"100%"} >
+                                            <DownloadButton styles={classes.button} textToDownload={keyObj && keyObj.appKey} />
+
+                                            <Button variant='contained' color='default' onClick={toggleAppKeyModalIsOpen} >
+                                                <CancelIcon />
+                                                <Typography style={{ marginLeft: "5px" }}>
+                                                    Cancel
+                                                </Typography>
+                                            </Button>
+                                        </Box>
+                                    </Col>
+
+                                </Row>
+
+                            </CardBody>
+                        </Card>
+                    </ModalBody>
+
+                </Form>
+            </Modal>
 
         </div>
     );

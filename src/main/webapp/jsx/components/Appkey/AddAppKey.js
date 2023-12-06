@@ -6,7 +6,6 @@ import {
 import MatButton from '@material-ui/core/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import SaveIcon from '@material-ui/icons/Save'
-import CancelIcon from '@material-ui/icons/Cancel'
 import { Alert } from 'reactstrap';
 import { Spinner } from 'reactstrap';
 import axios from "axios";
@@ -30,7 +29,6 @@ import Button from "@material-ui/core/Button";
 import {token, url as baseUrl} from "../../../api";
 import {toast} from "react-toastify";
 import { Box, Typography } from '@material-ui/core';
-import { TextArea } from 'semantic-ui-react';
 
 
 const tableIcons = {
@@ -89,7 +87,7 @@ const useStyles = makeStyles(theme => ({
 
 
 const Index = (props) => {
-
+    
     const classes = useStyles()
     const defaultValues = { appKey: "", facilityId:"", id:"", serverUrl:""}
     const [appKeyObj, setAppKeyObj] = useState(null);
@@ -97,12 +95,19 @@ const Index = (props) => {
     const [facilities, setFacilities] = useState( [])
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
-
+    const [key, setKey] = useState(null);
+    const [fileContent, setFileContent] = useState('');
+    
     useEffect(() => {
         Facilities();
         // AppKeyHistory();
         setKeyDetails(props.keyObj);
     }, [props]);
+    // useEffect(() => {
+    //     if (props.keyObj) {
+    //         setKey(props.keyObj.appKey);
+    //     }
+    // }, [props.keyObj]);
     async function AppKeyHistory() {
         axios
             .get(`${baseUrl}sync/app-key`,
@@ -176,10 +181,32 @@ const Index = (props) => {
         props.setShowViewKey(false)
     }
 
+
+  const handleFileRead = (e) => {
+    const file = e.target.files[0];
+
+    if (file && file.name.endsWith('.key')) {
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        // Read the content of the file
+        const content = event.target.result;
+        console.log(content);
+        setFileContent(content);
+        setKeyDetails ({...keyDetails,  appKey: content});
+      };
+
+
+      reader.readAsText(file);
+    } else {
+      alert('Please select a valid .key file.');
+    }
+  };
+
     return (
         <div >
 
-            <h1>APP Key</h1>
+            <h1>App Key</h1>
             <br/>
             <Button
                 variant="contained"
@@ -240,16 +267,19 @@ const Index = (props) => {
                         <Col md={12}>
                             <FormGroup>
                                 <Label >Key</Label>
-                                <Input
+                                <Input type="file" accept=".key" onChange={handleFileRead} />
+                                {(fileContent || keyDetails?.appKey) && <Input
                                     type="textarea"
                                     name="appKey"
                                     id="appKey"
                                     defaultValue={keyDetails?.appKey}
-                                    value={keyDetails?.appKey}
-                                    onChange={handleInputChange}
+                                    // value={keyDetails?.appKey}
+                                    value={fileContent}
+                                    // onChange={handleInputChange}
                                     style={{border: "1px solid #014D88",borderRadius:"0.2rem",minHeight:"80px"}}
                                     required
-                                />
+                                    
+                                />}
                                 {errors.appKey !=="" ? (
                                     <span className={classes.error}>{errors.appKey}</span>
                                 ) : "" }
@@ -273,11 +303,12 @@ const Index = (props) => {
                 </>)
                 :
                 (<>
-                    <Box maxWidth={"90%"} >
+                    {/* <Box maxWidth={"90%"} >
                         <Typography marginTop={2}>
                             APP KEY : {props.keyObj && props.keyObj!==null ? props.keyObj.appKey : ""}
                         </Typography>
-                    </Box>
+                    </Box> */}
+                
                 </>)
             }
 

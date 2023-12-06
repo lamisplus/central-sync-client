@@ -97,7 +97,6 @@ const ConfigFileList = (props) => {
             variant="contained"
             color="primary"
             className=" float-right mr-1"
-            //startIcon={<FaUserPlus />}
             style={{backgroundColor:"#014d88"}}
             onClick={showConfigView ? backButton : uploadConfigFile}
           >
@@ -128,7 +127,7 @@ const ConfigFileList = (props) => {
                       version: row.version,
                       releaseDate: row.releaseDate,
                       uploadDate: row.uploadDate,
-                      status:row.active===true ? "Active" : "previous",
+                      status:row.active===true ? "Active" : "Previous",
                       actions:(<div>
                         <Menu.Menu position='right'  >
                         <Menu.Item >

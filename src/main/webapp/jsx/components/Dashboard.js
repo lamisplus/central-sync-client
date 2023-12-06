@@ -119,11 +119,11 @@ function HomePage(props) {
           textColor="primary"
           aria-label="scrollable force tabs example"
         >
-           <Tab className={classes.title} label="Generate & Upload JSON Files" icon={<CloudSyncIcon />} {...a11yProps(0)} />
+           <Tab style={{textTransform:"none"}} label="Generate & Upload JSON Files" icon={<CloudSyncIcon />} {...a11yProps(0)} />
          
           {/*<Tab className={classes.title} label="WebSocket  " icon={<SettingsIcon />} {...a11yProps(1)}/> */}
-          <Tab className={classes.title} label="APP Key Management" icon={<SettingsIcon />} {...a11yProps(2)}/>
-          <Tab className={classes.title} label="Configuration  " icon={<SettingsIcon />} {...a11yProps(1)}/> 
+          <Tab className={classes.title} style={{textTransform:"none"}} label="App Key Management" icon={<SettingsIcon />} {...a11yProps(2)}/>
+          <Tab className={classes.title} style={{textTransform:"none"}} label="Configuration  " icon={<SettingsIcon />} {...a11yProps(1)}/> 
       </Tabs>
       </AppBar>
 
