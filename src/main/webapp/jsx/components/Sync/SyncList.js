@@ -364,12 +364,14 @@ useEffect(() => {
                     facilityName: row.facilityName,
                     tableName: row.tableName,
                     uploadSize: (<>{(row.uploadSize / 1000000).toFixed(2) + ' MB'}</>),
-                    uploadPercentage: (<div>
+                    uploadPercentage: (<div style={{ width: "100%", height: "100%", display:"flex", flexDirection: "column", alignItems:"center", justifyContent: "flex-start"}}>
                         <ProgressBar
                             now={row.percentageSynced}
                             variant={varient(row.percentageSynced)}
-                            label={`${row.percentageSynced}%`}
-                            />
+                            style={{width:"100%"}}
+                            // label={`${row.percentageSynced}%`}
+                        />
+                        <Typography>{`${row.percentageSynced.toFixed(0)}%`}</Typography>
                     </div>),
                     date:  moment(row.dateLastSync).format("LLLL"),
                     // status: row.messageLog===null ? row.processed===0 ? "Processing" : "Completed" : "Error",

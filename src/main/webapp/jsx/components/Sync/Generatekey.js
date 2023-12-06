@@ -12,6 +12,7 @@ import { DropzoneArea } from 'material-ui-dropzone';
 import SettingsBackupRestoreIcon from '@material-ui/icons/SettingsBackupRestore';
 import { Box, Button, Input, Typography } from '@material-ui/core';
 import CopyToClipboardButton from './CopyToClipBoard';
+import DownloadButton from './DownloadButton';
 
 
 
@@ -95,8 +96,9 @@ const GenerateKey = (props) => {
                                             {props.genKey}
                                         </Typography>
                                         
-                                        <Box display={"flex"} marginTop={"10px"} justifyContent={"space-between"} width={"50%"} >
+                                        <Box display={"flex"} marginTop={"10px"} justifyContent={"space-between"} width={"100%"} >
                                             <CopyToClipboardButton styles={classes.button} textToCopy={props.genKey}/>
+                                            <DownloadButton styles={classes.button} textToDownload={props.genKey} />
 
                                             <Button variant='contained' color='default' onClick={props.toggleModal} >
                                                 <CancelIcon />
