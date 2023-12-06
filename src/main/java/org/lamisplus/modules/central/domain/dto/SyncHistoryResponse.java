@@ -21,4 +21,5 @@ public class SyncHistoryResponse {
     private UUID uuid;
     private float percentageSynced;
     private String genKey;
+    private boolean hasError;
 }

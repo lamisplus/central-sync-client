@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SyncHistoryService {
     public static final String SYNCED = "Synced";
+    public static final String ERROR = "ERROR";
+    public static final boolean HAS_ERROR = true;
     private final SyncHistoryRepository syncHistoryRepository;
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
 
@@ -93,7 +95,7 @@ public class SyncHistoryService {
         response.setUuid(entity.getUuid());
         response.setGenKey(entity.getGenKey());
         response.setPercentageSynced(getPercentageSynced(entity.getUuid()));
-
+        if(entity.getErrorLog().toString().contains(ERROR))response.setHasError(HAS_ERROR);
         return response;
     }
 
