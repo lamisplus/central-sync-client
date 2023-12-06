@@ -51,7 +51,7 @@ public class ExportServiceImpl implements ExportService {
     public static final String GENERATED_SUCCESSFULLY = "Generated successfully...";
     public static final String GENERATING_DATA_JSON = "Generating data json";
     public static final String MODULE_CHECK = "Module check";
-    public static final String GENERATING = "Generating";
+    public static final String GENERATING = "File Generation";
     public static final String DATA_JSON = "data.json";
     private final FileUtility fileUtility;
     private final SyncHistoryService syncHistoryService;
@@ -99,9 +99,9 @@ public class ExportServiceImpl implements ExportService {
         SyncHistory history = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
 
         //if current and there is sync history for the facility
-        if(!current && history != null){
-            LocalDateTime lastSync = history.getDateLastSync();
-            start = dateUtility.ConvertDateTimeToString(lastSync);
+        if(current && history != null){
+                LocalDateTime lastSync = history.getDateLastSync();
+                start = dateUtility.ConvertDateTimeToString(lastSync);
         }
 
         String zipFileName = "None";
@@ -290,69 +290,71 @@ public class ExportServiceImpl implements ExportService {
         JSONArray jsonArray = new JSONArray();
         Connection conn = null;
         Long rowSize = countTableRow(tableName, facilityId);
-        Double size = Double.valueOf(rowSize);
-        log.info("Size... " + rowSize);
-        Double split = Double.valueOf(size/FETCH_SIZE);
-        size = split > 1 ? split : FETCH_SIZE;
-        List list = null;
-        SyncHistoryTracker tracker = null;
+        if(rowSize >= 1) {
+            Double size = Double.valueOf(rowSize);
+            log.info("Size... " + rowSize);
+            Double split = Double.valueOf(size / FETCH_SIZE);
+            size = split > 1 ? split : FETCH_SIZE;
+            List list = null;
+            SyncHistoryTracker tracker = null;
 
-        if(facilityId == null){
-            query = "SELECT * FROM %s";
-            query = String.format(query, tableName);
-        } else
-            //where no update or audit column
-        if(startDate == null){
-            query = "SELECT * FROM %s WHERE facility_id=%d";
-            query = String.format(query, tableName, facilityId);
-        } else {
-            query = "SELECT * FROM %s WHERE facility_id=%d AND %s >= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE) AND %s <= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE)";
-            query = String.format(query, tableName, facilityId, startName, startDate, endName, endDate);
-        }
-
-        try {
-            conn = dataSource.getConnection();
-            //Statement stmt = conn.createStatement();
-            Statement stmt = conn.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY,
-                    java.sql.ResultSet.CONCUR_READ_ONLY);
-            stmt.setFetchSize(FETCH_SIZE);
-            //recursive fetch to carter for pagination
-            do {
-                ResultSet rs = stmt.executeQuery(query);
-                jsonArray = ResultSetToJsonMapper.mapResultSet(rs, excludeColumn);
-                list = jsonArray.toList();
-
-                if(rowSize >= 1) {
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    configureObjectMapper(objectMapper);
-                    String fileName = tableName +"_"+ fileLocation + ".json";
-                    String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + fileName;
-                    Integer fileSize = list.size();
-                    log.info("Total " + tableName + " Generated... " + fileSize);
-                    //Get the byte
-                    byte[] bytes = objectMapper.writeValueAsBytes(list);
-                    //Get a secret from the uuid generated
-                    SecretKey secretKey = AESUtil.getPrivateAESKeyFromDB(uuid);
-                    //Encrypt the byte
-                    bytes = AESUtil.encrypt(bytes, secretKey);
-                    FileUtils.writeByteArrayToFile(new File(tempFile), bytes);
-                    tracker = new SyncHistoryTracker(null, null, fileName, fileSize, SYNC_TRACKER_STATUS,
-                            LocalDateTime.now(), UN_ARCHIVED, facilityId, null, null);
-                    addMessageLog(tableName, SYNC_TRACKER_STATUS, fileName, GENERATING + fileName, MessageType.SUCCESS);
-                    //success log
-                    trackers.add(tracker);
-                    fileNames.add(fileName);
+            if (facilityId == null) {
+                query = "SELECT * FROM %s";
+                query = String.format(query, tableName);
+            } else
+                //where no update or audit column
+                if (startDate == null) {
+                    query = "SELECT * FROM %s WHERE facility_id=%d";
+                    query = String.format(query, tableName, facilityId);
+                } else {
+                    query = "SELECT * FROM %s WHERE facility_id=%d AND %s >= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE) AND %s <= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE)";
+                    query = String.format(query, tableName, facilityId, startName, startDate, endName, endDate);
                 }
-                level = split > 1 ? ++level : FETCH_SIZE;
-            }while (level < size);
 
-        } catch (Exception e) {
-            addMessageLog(tableName, e.getMessage(), getPrintStackError(e), GENERATING + tableName, MessageType.ERROR);
-            e.printStackTrace();
-            closeDBConnection(conn);
-            return trackers;
-        }finally {
-            closeDBConnection(conn);
+            try {
+                conn = dataSource.getConnection();
+                //Statement stmt = conn.createStatement();
+                Statement stmt = conn.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY,
+                        java.sql.ResultSet.CONCUR_READ_ONLY);
+                stmt.setFetchSize(FETCH_SIZE);
+                //recursive fetch to carter for pagination
+                do {
+                    ResultSet rs = stmt.executeQuery(query);
+                    jsonArray = ResultSetToJsonMapper.mapResultSet(rs, excludeColumn);
+                    list = jsonArray.toList();
+
+                    if (rowSize >= 1) {
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        configureObjectMapper(objectMapper);
+                        String fileName = tableName + "_" + fileLocation + ".json";
+                        String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + fileName;
+                        Integer fileSize = list.size();
+                        log.info("Total " + tableName + " Generated... " + fileSize);
+                        //Get the byte
+                        byte[] bytes = objectMapper.writeValueAsBytes(list);
+                        //Get a secret from the uuid generated
+                        SecretKey secretKey = AESUtil.getPrivateAESKeyFromDB(uuid);
+                        //Encrypt the byte
+                        bytes = AESUtil.encrypt(bytes, secretKey);
+                        FileUtils.writeByteArrayToFile(new File(tempFile), bytes);
+                        tracker = new SyncHistoryTracker(null, null, fileName, fileSize, SYNC_TRACKER_STATUS,
+                                LocalDateTime.now(), UN_ARCHIVED, facilityId, null, null);
+                        addMessageLog(tableName, SYNC_TRACKER_STATUS, fileName, GENERATING, MessageType.SUCCESS);
+                        //success log
+                        trackers.add(tracker);
+                        fileNames.add(fileName);
+                    }
+                    level = split > 1 ? ++level : FETCH_SIZE;
+                } while (level < size);
+
+            } catch (Exception e) {
+                addMessageLog(tableName, e.getMessage(), getPrintStackError(e), GENERATING, MessageType.ERROR);
+                e.printStackTrace();
+                closeDBConnection(conn);
+                return trackers;
+            } finally {
+                closeDBConnection(conn);
+            }
         }
         return trackers;
     }
