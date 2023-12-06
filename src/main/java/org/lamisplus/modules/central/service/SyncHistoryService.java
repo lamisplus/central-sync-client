@@ -76,7 +76,6 @@ public class SyncHistoryService {
         for (SyncHistory syncHistory : syncHistoryList) {
             syncHistoryResponseList.add(entityToDto(syncHistory));
         }
-
         return syncHistoryResponseList;
     }
 

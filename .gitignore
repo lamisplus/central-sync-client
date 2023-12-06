@@ -35,7 +35,8 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 /build/*
-src/main/resources/views/static/patient/*
 classes/
 ### VS Code ###
 .vscode/
+/src/main/resources/views/static/central/*
+/src/main/resources/views/static/central/
