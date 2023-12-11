@@ -9,7 +9,6 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.SerializationUtils;
 import org.json.JSONArray;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
 import org.lamisplus.modules.central.domain.entity.ConfigTable;
@@ -24,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import javax.sql.DataSource;
+import javax.validation.constraints.NotNull;
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -53,6 +53,9 @@ public class ExportServiceImpl implements ExportService {
     public static final String MODULE_CHECK = "Module check";
     public static final String GENERATING = "File Generation";
     public static final String DATA_JSON = "data.json";
+    public static final String INIT = "init";
+    public static final String UNDER_SCORE = "_";
+    public static final String NOT_AVAILABLE = "N/A";
     private final FileUtility fileUtility;
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository syncHistoryRepository;
@@ -64,7 +67,7 @@ public class ExportServiceImpl implements ExportService {
     private final FacilityAppKeyService facilityAppKeyService;
     private final RSAUtils rsaUtils;
     private final ConfigModuleService configModuleService;
-    List<String> fileNames = new ArrayList<>();;
+    HashMap<String, String> fileNames = new HashMap<>();
 
 
     /**
@@ -76,15 +79,17 @@ public class ExportServiceImpl implements ExportService {
     @Override
     public String generateFilesForSyncing(Long facilityId, Boolean current) {
         boolean anyTable = false;
+        SyncHistoryResponse syncResponse = null;
         String appKey = facilityAppKeyService.FindByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
 
+
+        List<SyncHistoryTracker> saveTrackers = null;
         if(!MESSAGE_LOG.isEmpty()) MESSAGE_LOG.clear();
         //do a module check on log files to message log
         moduleCheckAndMsgLog();
 
         //Generate uuid for the key
         String uuid = java.util.UUID.randomUUID().toString();
-        //log.info("uuid is {}", uuid);
         Path path = Paths.get(TEMP_BATCH_DIR);
         if(!Files.exists(path)) {
             try {
@@ -117,11 +122,8 @@ public class ExportServiceImpl implements ExportService {
 
         try {
             if(!fileNames.isEmpty())fileNames.clear();
-
             List<SyncHistoryTracker> syncHistoryTrackers = new ArrayList<>();
-
             List<ConfigTable> configTables = configTableService.getTablesForSyncing();
-
             //Generate AES key...
             uuid = AESUtil.generateAESKey(uuid);
 
@@ -135,6 +137,7 @@ public class ExportServiceImpl implements ExportService {
                     syncHistoryTrackers.addAll(trackers);
                 }
             }
+
             if (anyTable) {
                 String datimCode = getDatimId(facilityId);
                 zipFileName = datimCode+"_" + fileFolder + ".zip";
@@ -146,10 +149,12 @@ public class ExportServiceImpl implements ExportService {
                 int fileSize = (int) fileUtility.getFileSize(fullPath);
                 //encrypted key
                 String key = manageKey(uuid, appKey);
+
                 SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (MESSAGE_LOG.isEmpty()) ? null : MESSAGE_LOG, folder, key);
-                SyncHistoryResponse syncResponse = syncHistoryService.saveSyncHistory(request);
+                syncResponse = syncHistoryService.saveSyncHistory(request);
+
                 if (syncResponse != null && !syncHistoryTrackers.isEmpty()) {
-                    syncHistoryTrackerRepository.saveAll(getSyncHistoryTrackers(syncHistoryTrackers, syncResponse));
+                    saveTrackers = syncHistoryTrackerRepository.saveAll(getSyncHistoryTrackers(syncHistoryTrackers, syncResponse));
                 }
                 log.info("Data export completed");
             } else {
@@ -160,10 +165,46 @@ public class ExportServiceImpl implements ExportService {
             log.debug("Something went wrong. Error: {}", e.getMessage());
             e.printStackTrace();
         }
-
         log.info("Initializing data export...");
-        syncData(fileNames, fileFolder, current);
+        FileDetail fileDetail = setFileDetails(current, syncResponse, saveTrackers);
+        syncData(fileFolder, fileDetail);
         return zipFileName;
+    }
+
+    private FileDetail setFileDetails(Boolean current, @NotNull  SyncHistoryResponse syncResponse, List<SyncHistoryTracker> saveTrackers) {
+        FileDetail fileDetail = new FileDetail();
+        //Set file details
+        if(syncResponse != null && !saveTrackers.isEmpty()) {
+            fileDetail.setKey(syncResponse.getGenKey());
+            fileDetail.setHistory(syncResponse.getUuid());
+            fileDetail.setInit(current);
+            Optional<String> version = syncHistoryRepository.getClientSyncModuleVersion();
+
+            if (version.isPresent())
+                fileDetail.setVersion(version.get());
+            else
+                fileDetail.setVersion(NOT_AVAILABLE);
+
+            fileDetail.setFileTracker(saveTrackers.stream()
+                    .map(syncHistoryTracker -> new FileTrackerDTO(syncHistoryTracker
+                            .getFileName(), syncHistoryTracker.getUuid()))
+                    .collect(Collectors.toList())
+            );
+        }
+        return fileDetail;
+    }
+
+    private List extracted(List<SyncHistoryTracker> trackers) {
+        HashMap<String, String> names = new HashMap<>();
+        if(trackers != null && !trackers.isEmpty()){
+            return trackers.stream()
+                    .map(syncHistoryTracker -> {
+                        names.put(syncHistoryTracker.getFileName(), syncHistoryTracker.getUuid().toString());
+                        return names;
+                    })
+                    .collect(Collectors.toList());
+        }
+        return null;
     }
 
     /**
@@ -194,7 +235,6 @@ public class ExportServiceImpl implements ExportService {
         log.info("manage key {}", uuid);
         try {
             byte[] keyBytes = DatatypeConverter.parseBase64Binary(uuid);
-            //byte[] bytes = rsaUtils.encrypt(keyBytes, appKey);
 
             //encrypt aes key
             byte[] encryptedKey = this.rsaUtils.encrypt(uuid.getBytes(StandardCharsets.UTF_8), appKey);
@@ -207,7 +247,7 @@ public class ExportServiceImpl implements ExportService {
         return null;
     }
 
-    private void cleanDirectory(Set<String> fileList) {
+    /*private void cleanDirectory(Set<String> fileList) {
        try {
            for (String fileName : fileList) {
                if (!fileName.contains(".zip")) {
@@ -218,9 +258,9 @@ public class ExportServiceImpl implements ExportService {
        } catch (Exception e) {
            log.info(e.getMessage());
        }
-    }
+    }*/
 
-    public boolean syncData(List<String> fileNames, String fileLocation, Boolean current) {
+    public boolean syncData(String fileLocation, FileDetail fileDetail) {
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
@@ -229,14 +269,12 @@ public class ExportServiceImpl implements ExportService {
                 jsonGenerator.setCodec(objectMapper);
                 jsonGenerator.useDefaultPrettyPrinter();
                 jsonGenerator.writeStartObject();
-                jsonGenerator.writeStringField("version", "217");
-                if(current) {
-                    jsonGenerator.writeStringField("init", "false");
-                }else {
-                    jsonGenerator.writeStringField("init", "true");
-                }
-                jsonGenerator.writeStringField("fileNames", String.valueOf(fileNames));
-
+                jsonGenerator.writeStringField("version", fileDetail.getVersion());
+                jsonGenerator.writeStringField(INIT, String.valueOf(fileDetail.getInit()));
+                jsonGenerator.writeStringField("history", String.valueOf(fileDetail.getHistory()));
+                jsonGenerator.writeStringField("key", fileDetail.getKey());
+                jsonGenerator.writeStringField("fileTracker", fileDetail.getFileTracker().toString());
+                configureObjectMapper(objectMapper);
                 jsonGenerator.writeEndObject();
                 addMessageLog(DATA_JSON, SYNC_TRACKER_STATUS, DATA_JSON, GENERATED_SUCCESSFULLY + DATA_JSON, MessageType.SUCCESS);
                 return true;
@@ -248,7 +286,6 @@ public class ExportServiceImpl implements ExportService {
             addMessageLog("extract", e.getMessage(), getPrintStackError(e), GENERATING_DATA_JSON,  MessageType.ERROR);
             log.error("Error mapping data: {}", e.getMessage());
         }
-
         return false;
     }
 
@@ -289,74 +326,66 @@ public class ExportServiceImpl implements ExportService {
         String query = null;
         JSONArray jsonArray = new JSONArray();
         Connection conn = null;
-        Long rowSize = countTableRow(tableName, facilityId);
-        if(rowSize >= 1) {
-            Double size = Double.valueOf(rowSize);
-            log.info("Size... " + rowSize);
-            Double split = Double.valueOf(size / FETCH_SIZE);
-            size = split > 1 ? split : FETCH_SIZE;
-            List list = null;
-            SyncHistoryTracker tracker = null;
+        //List list = null;
+        SyncHistoryTracker tracker = null;
 
-            if (facilityId == null) {
-                query = "SELECT * FROM %s";
-                query = String.format(query, tableName);
-            } else
-                //where no update or audit column
-                if (startDate == null) {
-                    query = "SELECT * FROM %s WHERE facility_id=%d";
-                    query = String.format(query, tableName, facilityId);
-                } else {
-                    query = "SELECT * FROM %s WHERE facility_id=%d AND %s >= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE) AND %s <= CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE)";
-                    query = String.format(query, tableName, facilityId, startName, startDate, endName, endDate);
-                }
-
-            try {
-                conn = dataSource.getConnection();
-                //Statement stmt = conn.createStatement();
-                Statement stmt = conn.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY,
-                        java.sql.ResultSet.CONCUR_READ_ONLY);
-                stmt.setFetchSize(FETCH_SIZE);
-                //recursive fetch to carter for pagination
-                do {
-                    ResultSet rs = stmt.executeQuery(query);
-                    jsonArray = ResultSetToJsonMapper.mapResultSet(rs, excludeColumn);
-                    list = jsonArray.toList();
-
-                    if (rowSize >= 1) {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        configureObjectMapper(objectMapper);
-                        String fileName = tableName + "_" + fileLocation + ".json";
-                        String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + fileName;
-                        Integer fileSize = list.size();
-                        log.info("Total " + tableName + " Generated... " + fileSize);
-                        //Get the byte
-                        byte[] bytes = objectMapper.writeValueAsBytes(list);
-                        //Get a secret from the uuid generated
-                        SecretKey secretKey = AESUtil.getPrivateAESKeyFromDB(uuid);
-                        //Encrypt the byte
-                        bytes = AESUtil.encrypt(bytes, secretKey);
-                        FileUtils.writeByteArrayToFile(new File(tempFile), bytes);
-                        tracker = new SyncHistoryTracker(null, null, fileName, fileSize, SYNC_TRACKER_STATUS,
-                                LocalDateTime.now(), UN_ARCHIVED, facilityId, null, null);
-                        addMessageLog(tableName, SYNC_TRACKER_STATUS, fileName, GENERATING, MessageType.SUCCESS);
-                        //success log
-                        trackers.add(tracker);
-                        fileNames.add(fileName);
-                    }
-                    level = split > 1 ? ++level : FETCH_SIZE;
-                } while (level < size);
-
-            } catch (Exception e) {
-                addMessageLog(tableName, e.getMessage(), getPrintStackError(e), GENERATING, MessageType.ERROR);
-                e.printStackTrace();
-                closeDBConnection(conn);
-                return trackers;
-            } finally {
-                closeDBConnection(conn);
+        if (facilityId == null) {
+            query = "SELECT * FROM %s";
+            query = String.format(query, tableName);
+        } else
+            //where no update or audit column
+            if (startDate == null) {
+                query = "SELECT * FROM %s WHERE facility_id=%d";
+                query = String.format(query, tableName, facilityId);
+            } else {
+                query = "SELECT * FROM %s WHERE facility_id=%d AND %s BETWEEN CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE) AND CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE)";
+                query = String.format(query, tableName, facilityId, startName, startDate, endDate);
             }
+            log.info("query is {}", query);
+
+        try {
+            conn = dataSource.getConnection();
+            //Statement stmt = conn.createStatement();
+            Statement stmt = conn.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY,
+                    java.sql.ResultSet.CONCUR_READ_ONLY);
+            stmt.setFetchSize(FETCH_SIZE);
+            //recursive fetch to carter for pagination
+            ResultSet rs = stmt.executeQuery(query);
+            jsonArray = ResultSetToJsonMapper.mapResultSet(rs, excludeColumn);
+            List queryList = jsonArray.toList();
+            log.info("Total " + tableName + " queried for db... " + queryList.size());
+
+
+            for (List list : ResultSetToJsonMapper.getPages(queryList, FETCH_SIZE)) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                configureObjectMapper(objectMapper);
+                String fileName = tableName + UNDER_SCORE + level + UNDER_SCORE + fileLocation + ".json";
+                String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + fileName;
+                Integer fileSize = list.size();
+                log.info("Total " + tableName + " Generated... " + list.size());
+                //Get the byte
+                byte[] bytes = objectMapper.writeValueAsBytes(list);
+                //Get a secret from the uuid generated
+                SecretKey secretKey = AESUtil.getPrivateAESKeyFromDB(uuid);
+                //Encrypt the byte
+                bytes = AESUtil.encrypt(bytes, secretKey);
+                FileUtils.writeByteArrayToFile(new File(tempFile), bytes);
+                tracker = new SyncHistoryTracker(null, null, fileName, fileSize, SYNC_TRACKER_STATUS,
+                        LocalDateTime.now(), UN_ARCHIVED, facilityId, null, null);
+                addMessageLog(tableName, SYNC_TRACKER_STATUS, fileName, GENERATING, MessageType.SUCCESS);
+                //success log
+                trackers.add(tracker);
+                ++level;
+            }
+        } catch (Exception e) {
+            addMessageLog(tableName, e.getMessage(), getPrintStackError(e), GENERATING, MessageType.ERROR);
+            e.printStackTrace();
+            closeDBConnection(conn);
+            return trackers;
+        } finally {
+            closeDBConnection(conn);
         }
-        return trackers;
+    return trackers;
     }
 
     /**
@@ -487,7 +516,6 @@ public class ExportServiceImpl implements ExportService {
      */
     public String encryptCredentials(LoginVM login, String appKey, String history, String tracker, String fileName){
         CredentialDto credential = new CredentialDto(login.getUsername(), login.getPassword());
-        FileDetail detail = new FileDetail(history, tracker, fileName);
         try {
             byte[] credentialBytes = credential.toString().getBytes();
             //encrypt rsa key

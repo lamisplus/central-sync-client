@@ -9,11 +9,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
+import java.util.*;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -76,5 +75,16 @@ public class ResultSetToJsonMapper {
             jArray.put(jsonObject);
         }while(resultSet.next());
         return jArray;
+    }
+
+    public static List<List> getPages(List list, Integer pageSize) {
+        if (list == null || list.isEmpty() || list.size() < 1) return Collections.emptyList();
+        if (pageSize == null || pageSize <= 0 || pageSize > list.size())
+            pageSize = list.size();
+        int numPages = (int) Math.ceil((double)list.size() / (double)pageSize);
+        List<List> pages = new ArrayList<>(numPages);
+        for (int pageNum = 0; pageNum < numPages;)
+            pages.add(list.subList(pageNum * pageSize, Math.min(++pageNum * pageSize, list.size())));
+        return pages;
     }
 }

@@ -31,4 +31,7 @@ public interface SyncHistoryRepository  extends JpaRepository<SyncHistory, Long>
     Optional<String> getKey(Long id);
 
     Optional<SyncHistory> findByUuid(UUID syncHistoryUuid);
+
+    @Query(value = "SELECT version from base_module WHERE name = 'ClientSyncModule'", nativeQuery = true)
+    Optional<String> getClientSyncModuleVersion();
 }
