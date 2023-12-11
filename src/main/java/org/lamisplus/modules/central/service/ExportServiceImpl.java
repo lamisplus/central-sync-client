@@ -481,7 +481,7 @@ public class ExportServiceImpl implements ExportService {
     }
 
     private void addMessageLog(String name, String msg, String others, String activity, MessageType category){
-        MESSAGE_LOG.add(new MessageLog(name, msg, others, activity, category, LocalDateTime.now()));
+        MESSAGE_LOG.add(new MessageLog(name, msg, others, activity, category, LocalDateTime.now().toString()));
     }
 
     /**
