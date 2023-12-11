@@ -211,6 +211,7 @@ const Logs = (props) => {
                     { title: "Module Check", field: "activity", filtering: false },
                     { title: "Name", field: "name", filtering: false },
                     { title: "Log Message", field: "logMessage", filtering: false },
+                    { title: "Category", field: "category", filtering: false },
                     { title: "Others", field: "others", filtering: false },
                     { title: "Date-Time Created", field: "dateTimeCreated", filtering: false },
                 ]}
@@ -219,6 +220,7 @@ const Logs = (props) => {
                     activity: row.activity,
                     name: row.name,
                     logMessage: row.message,
+                    category: row.category,
                     others: row.others,
                     dateTimeCreated: convertArrayToFormattedDate(row.timeCreated),
                 }))}

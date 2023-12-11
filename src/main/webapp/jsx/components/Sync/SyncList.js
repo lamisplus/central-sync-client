@@ -392,9 +392,9 @@ useEffect(() => {
 
                                     <Dropdown.Menu style={{ marginTop:"10px", }}>
 
-                                            <Dropdown.Item  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
+                                            <Dropdown.Item disabled={row.hasError !== null && row.hasError}  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
                                             </Dropdown.Item>
-                                            <Dropdown.Item  onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
+                                            <Dropdown.Item disabled={row.hasError !== null && row.hasError}  onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
                                             </Dropdown.Item>
                                             <Dropdown.Item  onClick={() => displayGeneratedfiles(row)}><VisibilityIcon color="primary"/>View Generated Files
                                             </Dropdown.Item>
