@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
 import org.lamisplus.modules.central.domain.entity.ConfigTable;
 import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
@@ -52,7 +53,7 @@ public class ExportServiceImpl implements ExportService {
     public static final String GENERATING_DATA_JSON = "Generating data json";
     public static final String MODULE_CHECK = "Module check";
     public static final String GENERATING = "File Generation";
-    public static final String DATA_JSON = "data.json";
+    public static final String DATA_JSON = "data";
     public static final String INIT = "init";
     public static final String UNDER_SCORE = "_";
     public static final String NOT_AVAILABLE = "N/A";
@@ -264,7 +265,8 @@ public class ExportServiceImpl implements ExportService {
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
-            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + DATA_JSON + "_" + fileLocation;
+            JSONArray jArray = new JSONArray();
+            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + DATA_JSON + "_" + fileLocation + ".json";
             try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
                 jsonGenerator.setCodec(objectMapper);
                 jsonGenerator.useDefaultPrettyPrinter();
@@ -273,8 +275,17 @@ public class ExportServiceImpl implements ExportService {
                 jsonGenerator.writeStringField(INIT, String.valueOf(fileDetail.getInit()));
                 jsonGenerator.writeStringField("history", String.valueOf(fileDetail.getHistory()));
                 jsonGenerator.writeStringField("key", fileDetail.getKey());
-                jsonGenerator.writeStringField("fileTracker", fileDetail.getFileTracker().toString());
-                configureObjectMapper(objectMapper);
+                //jsonGenerator.writeStringField("fileTracker", fileDetail.getFileTracker().toString());
+                for (FileTrackerDTO fileTrackerDTO : fileDetail.getFileTracker()) {
+                    JSONObject trackerJsonObject = new JSONObject();
+                    trackerJsonObject.put("fileName", fileTrackerDTO.getFileName());
+                    trackerJsonObject.put("uuid", fileTrackerDTO.getUuid());
+                    jArray.put(trackerJsonObject);
+                }
+                jsonGenerator.writeStringField("fileTracker", jArray.toString());
+
+
+                //configureObjectMapper(objectMapper);
                 jsonGenerator.writeEndObject();
                 addMessageLog(DATA_JSON, SYNC_TRACKER_STATUS, DATA_JSON, GENERATED_SUCCESSFULLY + DATA_JSON, MessageType.SUCCESS);
                 return true;
