@@ -2,7 +2,9 @@ package org.lamisplus.modules.central.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.central.domain.dto.ConfigTableDto;
 import org.lamisplus.modules.central.domain.entity.ConfigTable;
+import org.lamisplus.modules.central.domain.mapper.SyncMapper;
 import org.lamisplus.modules.central.repository.ConfigTableRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import java.util.UUID;
 @Slf4j
 public class ConfigTableService {
     public final ConfigTableRepository repository;
+    private final SyncMapper mapper;
 
     public ConfigTable Save(ConfigTable configTable){
         configTable.setId(java.util.UUID.randomUUID());
@@ -38,5 +41,10 @@ public class ConfigTableService {
 
     public List<ConfigTable> getTablesForSyncing(){
         return repository.getTablesForSyncing();
+    }
+
+    public List<ConfigTableDto> getConfigTableByModuleId(UUID moduleId) {
+        return mapper.toConfigTableDtoList(repository
+                .findAllByConfigModuleId(moduleId));
     }
 }

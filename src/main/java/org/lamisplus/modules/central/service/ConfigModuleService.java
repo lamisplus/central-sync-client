@@ -2,10 +2,12 @@ package org.lamisplus.modules.central.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.central.domain.dto.ConfigModuleDto;
 import org.lamisplus.modules.central.domain.dto.MessageType;
 import org.lamisplus.modules.central.domain.dto.ModuleProjection;
 import org.lamisplus.modules.central.domain.dto.ModuleStatus;
 import org.lamisplus.modules.central.domain.entity.ConfigModule;
+import org.lamisplus.modules.central.domain.mapper.SyncMapper;
 import org.lamisplus.modules.central.repository.ConfigModuleRepository;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,7 @@ import java.util.UUID;
 public class ConfigModuleService {
     private static final String NOT_FOUND = "N/A";
     private final ConfigModuleRepository repository;
+    private final SyncMapper mapper;
 
     public ConfigModule Save(ConfigModule configModule){
         configModule.setId(java.util.UUID.randomUUID());
@@ -58,9 +61,21 @@ public class ConfigModuleService {
             for (ModuleProjection appModule : appModules) {
                 //where there is a match
                 if(syncModule.getModuleName().equals(appModule.getName())) {
+                    //2.0.0.0
+                    String appV;
+                    /*if(syncModule.getMaxVersion().length() > 7)
+                        syncModule.setMaxVersion(syncModule.getMaxVersion().substring(0, syncModule.getMaxVersion().length() - 1));
+                    if(syncModule.getMinVersion().length() > 7)
+                        syncModule.setMinVersion(syncModule.getMinVersion().substring(0, syncModule.getMinVersion().length() - 1));*/
+                    if(appModule.getVersion().length() > 7) {
+                        appV = appModule.getVersion().substring(0, appModule.getVersion().length() - 1);
+                    } else {
+                        appV= appModule.getVersion();
+                    }
+
                     int max = Integer.valueOf(syncModule.getMaxVersion().replace(".", ""));
                     int min = Integer.valueOf(syncModule.getMinVersion().replace(".", ""));
-                    int appVersion = Integer.valueOf(appModule.getVersion().replace(".", ""));
+                    int appVersion = Integer.valueOf(appV.replace(".", ""));
                     if (appVersion >= min && appVersion <= max) {
                         moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
                                 MessageType.SUCCESS, appModule.getVersion(),
@@ -83,5 +98,10 @@ public class ConfigModuleService {
             }
         }
         return moduleStatuses;
+    }
+
+    public List<ConfigModuleDto> getConfigModuleByModuleId(UUID configId) {
+        return mapper.toConfigModuleDtoList(repository
+                .findAllByConfigId(configId));
     }
 }
