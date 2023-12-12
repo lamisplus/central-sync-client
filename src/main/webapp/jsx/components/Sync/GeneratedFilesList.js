@@ -56,7 +56,7 @@ const GeneratedFilesList = (props) => {
 
     return (
         <div>
-            <SendToServer JsonSyncHistory={props.JsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModalIsOpen} rowObj={rowObj}/>
+            <SendToServer jsonSyncHistory={props.jsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModalIsOpen} rowObj={rowObj}/>
             <Button
                 variant="contained"
                 style={{ backgroundColor: "#014d88", }}

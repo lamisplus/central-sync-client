@@ -139,7 +139,7 @@ const SendToServer = (props) => {
                     setSaving(false);
                     // props.ServerUrl()
                     toast.success("Sync Successful");
-                    props.JsonSyncHistory();
+                    props.jsonSyncHistory();
                     props.toggleModal()
 
                 })

@@ -510,11 +510,11 @@ useEffect(() => {
                 </ModalBody>
             </Modal>
 
-            <SendToServer JsonSyncHistory={JsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
+            <SendToServer jsonSyncHistory={JsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
             <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal} genKey={genKey}  />
         </div>
         ) : (
-            <GeneratedFilesList JsonSyncHistory={JsonSyncHistory} setGenerateFilesGrid={setGenerateFilesGrid} id={syncHistoryId} />
+            <GeneratedFilesList jsonSyncHistory={JsonSyncHistory} setGenerateFilesGrid={setGenerateFilesGrid} id={syncHistoryId} />
         )}
     </>
   );

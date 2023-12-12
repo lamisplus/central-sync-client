@@ -97,7 +97,7 @@ const NewToken = (props) => {
                         .then(response => {
                             setSaving(false);
                             toast.success("Config File Uploaded Successful");
-                            props.ServerConfigFile();
+                            props.serverConfigFile();
                             props.toggleModal()
 
                         })
