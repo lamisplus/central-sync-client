@@ -138,7 +138,8 @@ const SendToServer = (props) => {
                 .then(response => {
                     setSaving(false);
                     // props.ServerUrl()
-                    toast.success("Token Generated Successful");
+                    toast.success("Sync Successful");
+                    props.JsonSyncHistory();
                     props.toggleModal()
 
                 })

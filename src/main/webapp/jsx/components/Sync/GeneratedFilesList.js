@@ -43,9 +43,20 @@ const GeneratedFilesList = (props) => {
             });
     }
 
+    const canExportFiles = () => {
+        // map through the generated files and check if any of them is not synced
+        let canExport = true;
+        generatedFiles.forEach((file) => {
+            if(file.status.toLowerCase() !== 'synced'){
+                canExport = false;
+            }
+        });
+        return canExport;
+    }
+
     return (
         <div>
-            <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModalIsOpen} rowObj={rowObj}/>
+            <SendToServer JsonSyncHistory={props.JsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModalIsOpen} rowObj={rowObj}/>
             <Button
                 variant="contained"
                 style={{ backgroundColor: "#014d88", }}
@@ -100,7 +111,7 @@ const GeneratedFilesList = (props) => {
                         margingLeft: '250px',
                     },
                     filtering: false,
-                    exportButton: true,
+                    exportButton: canExportFiles(),
                     searchFieldAlignment: 'left',
                     pageSizeOptions: [10, 20, 100],
                     pageSize: 10,

@@ -29,6 +29,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import 'semantic-ui-css/semantic.min.css';
 import { Dropdown,Button as Buuton2, Menu,  } from 'semantic-ui-react'
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import moment from 'moment';
 
 const tableIcons = {
 Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -89,6 +90,11 @@ const ConfigFileList = (props) => {
     const backButton =()=> {
         setShowConfigView(false)
     }
+
+    const hello = () => {
+        const arr = ["a", "b", "c"];
+        return arr.sort((a,b) => a.compareToIgnoreCase(b))
+    }
     
  
   return (
@@ -126,7 +132,7 @@ const ConfigFileList = (props) => {
                       name: row.name,
                       version: row.version,
                       releaseDate: row.releaseDate,
-                      uploadDate: row.uploadDate,
+                      uploadDate: moment(row.uploadDate).format("LLLL"),
                       status:row.active===true ? "Active" : "Previous",
                       actions:(<div>
                         <Menu.Menu position='right'  >
@@ -202,7 +208,7 @@ const ConfigFileList = (props) => {
                 />
             </>
         )}
-            <UploadConfigFile toggleModal={toggleModal} showModal={showModal} ServerUrl={serverConfig} />
+            <UploadConfigFile ServerConfigFile={ServerConfigFile} toggleModal={toggleModal} showModal={showModal} ServerUrl={serverConfig} />
 
     </div>
   );

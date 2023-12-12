@@ -298,34 +298,16 @@ useEffect(() => {
         ]
     }
 
-    // const  sendToServerAction = (fileName,facilityId) => {
-    //     setModal2(true)
-    //      //SENDING A POST REQUEST
-    //      axios.post(`${baseUrl}export/send-data?fileName=${fileName}&facilityId=${facilityId}`,fileName,
-    //                  { headers: {"Authorization" : `Bearer ${token}`} }
-    //                )
-    //         .then(response => {
-    //             console.log("the server call is completed")
-    //         window.setTimeout(() => {
-    //             toast.success(" Uploading To server Successful!");
-    //             setModal2(false)
-    //             JsonSyncHistory()
-    //         }, 1000);
-    //         })
-    //         .catch(error => {
-    //             //console.log("the server call error")
-    //             //toast.error(" Something went wrong!");
-    //             if(error.response && error.response.data){
-    //                 let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-    //                 toast.error(errorMessage);
-    //                 setModal2(false)
-    //             }
-    //             else{
-    //                 setModal2(false)
-    //                 toast.error("Something went wrong. Please try again...");
-    //             }
-    //     });
-    // }
+    const canExportFiles = () => {
+        // map through the generated files and check if any of them hasError
+        let canExport = true;
+        syncList.forEach((file) => {
+            if(file.hasError){
+                canExport = false;
+            }
+        });
+        
+    }
 
 
  
@@ -421,7 +403,7 @@ useEffect(() => {
                                 margingLeft: '250px',
                             },
                             filtering: false,
-                            exportButton: true,
+                            exportButton: canExportFiles(),
                             searchFieldAlignment: 'left',
                             pageSizeOptions:[10,20,100],
                             pageSize:10,
@@ -483,7 +465,7 @@ useEffect(() => {
                                 </div>
                                 </Row>
                                 <br/>
-                                <b>{uploadDetails.all===true ? "Only the updated records will be pushed" : "You are pushing record from initial"}</b>
+                                <b>{uploadDetails.all===true ? "Only the updated records will be pushed" : "You are generating records from initial"}</b>
                                 <br/>
                                 {saving ?
                                 <Progress percentage={uploadPercentage} /> 
@@ -528,11 +510,11 @@ useEffect(() => {
                 </ModalBody>
             </Modal>
 
-            <SendToServer toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
+            <SendToServer JsonSyncHistory={JsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
             <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal} genKey={genKey}  />
         </div>
         ) : (
-            <GeneratedFilesList setGenerateFilesGrid={setGenerateFilesGrid} id={syncHistoryId} />
+            <GeneratedFilesList JsonSyncHistory={JsonSyncHistory} setGenerateFilesGrid={setGenerateFilesGrid} id={syncHistoryId} />
         )}
     </>
   );

@@ -118,78 +118,34 @@ const Logs = (props) => {
 
     }
 
-    function convertArrayToFormattedDate(dateArray) {
-        const [year, month, day, hour, minute, second, millisecond] = dateArray;
+    // function convertArrayToFormattedDate(dateArray) {
+    //     const [year, month, day, hour, minute, second, millisecond] = dateArray;
 
-        // Using Date to get timestamp
-        const dateObject = new Date(year, month - 1, day, hour, minute, second, millisecond);
-        const timestamp = dateObject.getTime();
+    //     // Using Date to get timestamp
+    //     const dateObject = new Date(year, month - 1, day, hour, minute, second, millisecond);
+    //     const timestamp = dateObject.getTime();
 
-        // Using moment to format the timestamp
-        const formattedDate = moment(timestamp).format('MMM D, YYYY h:mm a');
+    //     // Using moment to format the timestamp
+    //     const formattedDate = moment(timestamp).format('MMM D, YYYY h:mm a');
 
-        return formattedDate;
+    //     return formattedDate;
+    // }
+
+    const getRowCategoryColor = (category) => {
+        if (category && category === "ERROR") {
+            return "red";
+        } else if (category && category === "WARNING") {
+            return "orange";
+        } else if (category && category === "SUCCESS") {
+            return "green";
+        } else {
+            return "#000000";
+        }
     }
 
 
 
     return (
-        // <div >
-
-        //     <Modal isOpen={props.showModal} toggle={props.toggleModal} className={props.className} size="xl" backdrop='static'>
-        //         <Form >
-        //             <ModalHeader toggle={props.toggleModal}>Logs </ModalHeader>
-        //             <ModalBody>
-        //             <Button
-        //                 variant="contained"
-        //                 style={{ backgroundColor: "#014d88", }}
-        //                 className=" float-right mr-1"
-        //                 onClick={props.toggleModal}
-        //             >
-        //                 <span style={{ textTransform: "capitalize", color: "#fff" }}>{"<< Back"}</span>
-        //             </Button>
-        //             <br /><br />
-        //                 <MaterialTable
-        //                     icons={tableIcons}
-        //                     title={"JSON Files Logs " }
-        //                     columns={[
-        //                         { title: "Module Check", field: "activity", filtering: false },
-        //                         { title: "Name", field: "name", filtering: false },
-        //                         { title: "Log Message", field: "logMessage", filtering: false },
-        //                         { title: "Others", field: "others", filtering: false },
-        //                         { title: "Date-Time Created", field: "dateTimeCreated", filtering: false },
-        //                     ]}
-        //                     data={messageLogsData.map((row) => ({
-        //                         //Id: manager.id,
-        //                         activity: row.activity,
-        //                         name: row.name,
-        //                         logMessage: row.message,
-        //                         others: row.others,
-        //                         dateTimeCreated: convertArrayToFormattedDate(row.timeCreated),
-        //                     }))}
-
-        //                     options={{
-        //                         headerStyle: {
-        //                             backgroundColor: "#014d88",
-        //                             color: "#fff",
-        //                         },
-        //                         searchFieldStyle: {
-        //                             width : '200%',
-        //                             margingLeft: '250px',
-        //                         },
-        //                         filtering: false,
-        //                         exportButton: true,
-        //                         searchFieldAlignment: 'left',
-        //                         pageSizeOptions:[10,20,100],
-        //                         pageSize:10,
-        //                         debounceInterval: 400
-        //                     }}
-        //                 />
-        //             </ModalBody>
-
-        //         </Form>
-        //     </Modal>
-        // </div>
         <div >
 
             <div style={{display:"flex", flexDirection:"row", justifyContent:"space-between", marginTop: "10px"}}>
@@ -220,9 +176,16 @@ const Logs = (props) => {
                     activity: row.activity,
                     name: row.name,
                     logMessage: row.message,
-                    category: row.category,
+                    category: (
+                        <div>
+                            <Typography style={{fontWeight: 600, color:getRowCategoryColor(row.category)}}>
+                                {row.category}
+                            </Typography>
+                        </div>
+                        ),
                     others: row.others,
-                    dateTimeCreated: convertArrayToFormattedDate(row.timeCreated),
+                    // dateTimeCreated: convertArrayToFormattedDate(row.timeCreated),
+                    dateTimeCreated: row.timeCreated,
                 }))}
 
                 options={{
