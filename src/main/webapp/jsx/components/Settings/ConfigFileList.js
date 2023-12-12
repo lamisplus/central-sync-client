@@ -91,11 +91,6 @@ const ConfigFileList = (props) => {
         setShowConfigView(false)
     }
 
-    const hello = () => {
-        const arr = ["a", "b", "c"];
-        return arr.sort((a, b) => a.compareToIgnoreCase(b))
-    }
-
 
     return (
         <div>
@@ -133,7 +128,7 @@ const ConfigFileList = (props) => {
                         //Id: manager.id,
                         name: row.name,
                         version: row.version,
-                        releaseDate: row.releaseDate,
+                        releaseDate: moment(row.releaseDate).format("LLLL"),
                         uploadDate: moment(row.uploadDate).format("LLLL"),
                         status: row.active === true ? "Active" : "Previous",
                         actions: (<div>
