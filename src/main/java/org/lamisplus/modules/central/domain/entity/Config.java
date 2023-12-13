@@ -33,4 +33,9 @@ public class Config {
 
     @Column(name = "active", nullable = false)
     private Boolean active;
+
+    @PrePersist
+    public void setUploadDate(){
+        if(uploadDate == null) uploadDate = LocalDateTime.now();
+    }
 }

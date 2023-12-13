@@ -53,7 +53,7 @@ public class ExportServiceImpl implements ExportService {
     public static final String GENERATING_DATA_JSON = "Generating data json";
     public static final String MODULE_CHECK = "Module check";
     public static final String GENERATING = "File Generation";
-    public static final String DATA_JSON = "data";
+    public static final String DATA_JSON = "meta_data";
     public static final String INIT = "init";
     public static final String UNDER_SCORE = "_";
     public static final String NOT_AVAILABLE = "N/A";
@@ -145,30 +145,40 @@ public class ExportServiceImpl implements ExportService {
 
                 String fullPath = createdFile + File.separator + zipFileName;
                 File dir = new File(createdFile + File.separator);
-                fileUtility.zipDirectory(dir, fullPath, fileFolder);
-                //update sync history
-                int fileSize = (int) fileUtility.getFileSize(fullPath);
+
                 //encrypted key
                 String key = manageKey(uuid, appKey);
 
-                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, fileSize, (MESSAGE_LOG.isEmpty()) ? null : MESSAGE_LOG, folder, key);
+                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, 0, (MESSAGE_LOG.isEmpty()) ? null : MESSAGE_LOG, folder, key);
                 syncResponse = syncHistoryService.saveSyncHistory(request);
 
                 if (syncResponse != null && !syncHistoryTrackers.isEmpty()) {
                     saveTrackers = syncHistoryTrackerRepository.saveAll(getSyncHistoryTrackers(syncHistoryTrackers, syncResponse));
                 }
+                //set file details
+                FileDetail fileDetail = setFileDetails(current, syncResponse, saveTrackers);
+                //create meta data
+                syncData(fileFolder, fileDetail);
+
+                //zip json files
+                fileUtility.zipDirectory(dir, fullPath, fileFolder);
+                //get file size
+                int fileSize = (int) fileUtility.getFileSize(fullPath);
+                SyncHistory syncHistory = syncHistoryRepository.findByGenKey(key).orElse(null);
+                //update history with file size
+                if(syncHistory != null){
+                    syncHistory.setUploadSize(fileSize);
+                    syncHistoryRepository.save(syncHistory);
+                }
                 log.info("Data export completed");
             } else {
                 zipFileName = "NO_RECORD";
             }
-
         } catch (Exception e) {
             log.debug("Something went wrong. Error: {}", e.getMessage());
             e.printStackTrace();
         }
-        log.info("Initializing data export...");
-        FileDetail fileDetail = setFileDetails(current, syncResponse, saveTrackers);
-        syncData(fileFolder, fileDetail);
+        log.info("Initializing successful generated file...");
         return zipFileName;
     }
 
