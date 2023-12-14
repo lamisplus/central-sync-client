@@ -58,16 +58,18 @@ public class ConfigModuleService {
 
         for (ConfigModule syncModule : syncModules) {
             found = false;
+            if(syncModule.getModuleName().contains("Base")){
+                moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
+                        MessageType.SUCCESS, syncModule.getMinVersion(),
+                        syncModule.getMinVersion(), syncModule.getMaxVersion()));
+                continue;
+            }
             for (ModuleProjection appModule : appModules) {
                 //where there is a match
                 if(syncModule.getModuleName().equals(appModule.getName())) {
                     //2.0.0.0
                     String appV;
-                    /*if(syncModule.getMaxVersion().length() > 7)
-                        syncModule.setMaxVersion(syncModule.getMaxVersion().substring(0, syncModule.getMaxVersion().length() - 1));
-                    if(syncModule.getMinVersion().length() > 7)
-                        syncModule.setMinVersion(syncModule.getMinVersion().substring(0, syncModule.getMinVersion().length() - 1));*/
-                    if(appModule.getVersion().length() > 7) {
+                   if(appModule.getVersion().length() > 7) {
                         appV = appModule.getVersion().substring(0, appModule.getVersion().length() - 1);
                     } else {
                         appV= appModule.getVersion();
