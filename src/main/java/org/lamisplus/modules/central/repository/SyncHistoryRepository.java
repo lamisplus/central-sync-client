@@ -34,4 +34,6 @@ public interface SyncHistoryRepository  extends JpaRepository<SyncHistory, Long>
 
     @Query(value = "SELECT version from base_module WHERE name = 'ClientSyncModule'", nativeQuery = true)
     Optional<String> getClientSyncModuleVersion();
+
+    Optional<SyncHistory> findByGenKey(String genKey);
 }
