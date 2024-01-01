@@ -76,7 +76,7 @@ const GenerateKey = (props) => {
 
             <Modal isOpen={props.showModal} toggle={props.toggleModal} className={props.className} size="lg" backdrop='static'>
                 <Form >
-                    <ModalHeader className={classes.header} toggle={props.toggleModal}>GENERATE KEY</ModalHeader>
+                    <ModalHeader className={classes.header} toggle={props.toggleModal}>GENERATED KEY</ModalHeader>
                     <ModalBody>
 
                         <Card >
@@ -97,7 +97,7 @@ const GenerateKey = (props) => {
                                         </Typography>
                                         
                                         <Box display={"flex"} marginTop={"10px"} justifyContent={"space-between"} width={"100%"} >
-                                            <CopyToClipboardButton styles={classes.button} textToCopy={props.genKey}/>
+                                            {/* <CopyToClipboardButton styles={classes.button} textToCopy={props.genKey}/> */}
                                             <DownloadButton styles={classes.button} textToDownload={props.genKey} />
 
                                             <Button variant='contained' color='default' onClick={props.toggleModal} >

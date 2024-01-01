@@ -47,6 +47,7 @@ import Generatekey from "./Generatekey";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import GeneratedFilesList from './GeneratedFilesList';
 import { Box, Typography } from '@material-ui/core';
+import { Varient } from '../Utils/UtilFunctions';
 
 
 const tableIcons = {
@@ -148,20 +149,20 @@ useEffect(() => {
     JsonSyncHistory();
     }, []);
 
-    const varient = (value) => {
-        // console.log(value);
-        if (value <= 20) {
-          return "danger";
-        } else if (value > 20 && value <= 69) {
-          return "warning";
-        } else if (value >= 70 && value <= 99) {
-          return "info";
-        } else if (value === 100) {
-          return "success";
-        } else {
-          return "success";
-        }
-      };
+    // const varient = (value) => {
+    //     // console.log(value);
+    //     if (value <= 20) {
+    //       return "danger";
+    //     } else if (value > 20 && value <= 69) {
+    //       return "warning";
+    //     } else if (value >= 70 && value <= 99) {
+    //       return "info";
+    //     } else if (value === 100) {
+    //       return "success";
+    //     } else {
+    //       return "success";
+    //     }
+    //   };
 
     /*****  Validation */
     const validate = () => {
@@ -349,7 +350,7 @@ useEffect(() => {
                     uploadPercentage: (<div style={{ width: "100%", height: "100%", display:"flex", flexDirection: "column", alignItems:"center", justifyContent: "flex-start"}}>
                         <ProgressBar
                             now={row.percentageSynced}
-                            variant={varient(row.percentageSynced)}
+                            variant={Varient(row.percentageSynced)}
                             style={{width:"100%"}}
                             // label={`${row.percentageSynced}%`}
                         />
@@ -374,10 +375,12 @@ useEffect(() => {
 
                                     <Dropdown.Menu style={{ marginTop:"10px", }}>
 
-                                            <Dropdown.Item disabled={row.hasError !== null && row.hasError}  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
+                                            <Dropdown.Item disabled={(row.hasError !== null && row.hasError) || Math.ceil(row.percentageSynced) === 100}  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
                                             </Dropdown.Item>
-                                            <Dropdown.Item disabled={row.hasError !== null && row.hasError}  onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
+                                            <Dropdown.Item disabled={(row.hasError !== null && row.hasError) || Math.ceil(row.percentageSynced) === 100}  onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
                                             </Dropdown.Item>
+                                            {/* <Dropdown.Item onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
+                                            </Dropdown.Item> */}
                                             <Dropdown.Item  onClick={() => displayGeneratedfiles(row)}><VisibilityIcon color="primary"/>View Generated Files
                                             </Dropdown.Item>
                                             <Dropdown.Item  onClick={() => displayGenerateKey(row)}><VisibilityIcon color="primary"/>View Generated Key
@@ -510,7 +513,7 @@ useEffect(() => {
                 </ModalBody>
             </Modal>
 
-            <SendToServer jsonSyncHistory={JsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
+            <SendToServer refreshPrevious={JsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
             <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal} genKey={genKey}  />
         </div>
         ) : (
