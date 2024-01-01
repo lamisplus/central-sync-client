@@ -147,4 +147,34 @@
                 );
         </sql>
     </changeSet>
+
+    <changeSet failOnError="false" author="Emeka" id="202317120437">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(upload_date) FROM sync_config
+                WHERE upload_date > '2023-12-12 00:00:00' LIMIT 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE IF EXISTS sync_config
+            DROP COLUMN upload_date;
+            ALTER TABLE IF EXISTS sync_config
+                ADD COLUMN upload_date timestamp without time zone;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Emeka" id="202318120437">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM pg_attribute
+                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'base_application_user')
+                  AND attname = 'ip_code';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE IF EXISTS base_application_user
+                ADD COLUMN ip_code bigint;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

@@ -20,6 +20,7 @@ import java.util.UUID;
 @Slf4j
 public class ConfigModuleService {
     private static final String NOT_FOUND = "N/A";
+    public static final String BASE_MODULE = "BaseModule";
     private final ConfigModuleRepository repository;
     private final SyncMapper mapper;
 
@@ -58,7 +59,7 @@ public class ConfigModuleService {
 
         for (ConfigModule syncModule : syncModules) {
             found = false;
-            if(syncModule.getModuleName().contains("Base")){
+            if(syncModule.getModuleName().contains(BASE_MODULE)){
                 moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
                         MessageType.SUCCESS, syncModule.getMinVersion(),
                         syncModule.getMinVersion(), syncModule.getMaxVersion()));
