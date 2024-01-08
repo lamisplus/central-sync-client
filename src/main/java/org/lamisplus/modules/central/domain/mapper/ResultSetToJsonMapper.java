@@ -30,19 +30,19 @@ public class ResultSetToJsonMapper {
         JSONObject jsonObject = null;
         ResultSetMetaData rsmd = resultSet.getMetaData();
         int columnCount = rsmd.getColumnCount();
-        do
+
+        while(resultSet.next())
         {
             jsonObject = new JSONObject();
-            if(resultSet.next()) {
-            for (int index = 1; index <= columnCount; index++)
-            {
-                String column = rsmd.getColumnName(index);
-                //exclude column
-                if(excludedColumn != null && excludedColumn.contains(column)){
-                    continue;
-                }
+            //if(resultSet.next()) {
+                for (int index = 1; index <= columnCount; index++) {
+                    String column = rsmd.getColumnName(index);
+                    //exclude column
+                    if (excludedColumn != null && excludedColumn.contains(column)) {
+                        continue;
+                    }
 
-                Object value = resultSet.getObject(column);
+                    Object value = resultSet.getObject(column);
                     if (value == null) {
                         jsonObject.put(column, "");
                     } else if (value instanceof Integer) {
@@ -71,9 +71,10 @@ public class ResultSetToJsonMapper {
                         throw new IllegalArgumentException("Unmappable object type: " + value.getClass());
                     }
                 }
-            }
+            //}
             jArray.put(jsonObject);
-        }while(resultSet.next());
+        }//while(resultSet.next());
+
         return jArray;
     }
 
