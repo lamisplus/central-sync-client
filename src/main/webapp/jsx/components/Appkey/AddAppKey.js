@@ -82,6 +82,9 @@ const useStyles = makeStyles(theme => ({
     },
     input: {
         display: 'none'
+    },
+    error: {
+        color: 'red'
     }
 }))
 
@@ -144,6 +147,15 @@ const Index = (props) => {
         temp.appKey = keyDetails.appKey
             ? ""
             : "Key is required";
+        
+        temp.serverUrl = keyDetails.serverUrl
+            ? keyDetails.serverUrl.endsWith('/')
+                ? "Server URL must not end with a slash"
+                : ""
+            : "Server URL is required";
+        temp.facilityId = keyDetails.facilityId
+            ? ""
+            : "Facility is required";
 
         setErrors({
             ...temp,
@@ -157,7 +169,10 @@ const Index = (props) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        console.log("its here");
+        console.log(keyDetails);
         if (validate()) {
+            console.log("now here");
             setSaving(true);
             axios.post(`${baseUrl}sync/app-key`,keyDetails,
                 { headers: {"Authorization" : `Bearer ${token}`}},
@@ -274,7 +289,7 @@ const Index = (props) => {
                                     id="appKey"
                                     defaultValue={keyDetails?.appKey}
                                     // value={keyDetails?.appKey}
-                                    value={fileContent}
+                                    value={fileContent || keyDetails?.appKey}
                                     // onChange={handleInputChange}
                                     style={{border: "1px solid #014D88",borderRadius:"0.2rem",minHeight:"80px"}}
                                     required
