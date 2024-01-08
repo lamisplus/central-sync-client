@@ -13,16 +13,11 @@ import momentLocalizer from "react-widgets-moment";
 import {getQueryParams} from "./../components/Utils/PageUtils";
 
 import SyncList from './Sync/SyncList';
-import Setting from './Settings/index'
-// import Backup from './backup/backupList'
-// import Restore from './restore/restoreList'
-// import RestoreIcon from '@material-ui/icons/Restore';
-//import SettingsBackupRestoreIcon from '@material-ui/icons/SettingsBackupRestore';
-//import BackupIcon from '@material-ui/icons/Backup';
+import Setting from './Settings/index';
+import AppKey from './Appkey/AppKeyList'
+
 import SettingsIcon from '@mui/icons-material/Settings';
 import CloudSyncIcon from '@mui/icons-material/CloudSync';
-import Websocket from './Sync/Websocket'; 
-import NewList from './Sync/NewList'; 
 //Dtate Picker package
 Moment.locale("en");
 momentLocalizer();
@@ -109,7 +104,7 @@ function HomePage(props) {
     <>
      <div className="row page-titles mx-0" style={{marginTop:"0px", marginBottom:"-10px"}}>
 			<ol className="breadcrumb">
-				<li className="breadcrumb-item active"><h4>Central Sync</h4></li>
+				<li className="breadcrumb-item active"><h4>Client Sync</h4></li>
 			</ol>
 		  </div>
       <br/>
@@ -124,21 +119,24 @@ function HomePage(props) {
           textColor="primary"
           aria-label="scrollable force tabs example"
         >
-           <Tab className={classes.title} label="Generate & Upload JSON Files" icon={<CloudSyncIcon />} {...a11yProps(0)} />
+           <Tab style={{textTransform:"none"}} label="Generate & Upload JSON Files" icon={<CloudSyncIcon />} {...a11yProps(0)} />
          
-          {/* <Tab className={classes.title} label="WebSocket  " icon={<SettingsIcon />} {...a11yProps(1)}/> 
-          <Tab className={classes.title} label="Generate & Upload  " icon={<SettingsIcon />} {...a11yProps(2)}/>  */}
-          <Tab className={classes.title} label="Configuration  " icon={<SettingsIcon />} {...a11yProps(1)}/> 
+          {/*<Tab className={classes.title} label="WebSocket  " icon={<SettingsIcon />} {...a11yProps(1)}/> */}
+          <Tab className={classes.title} style={{textTransform:"none"}} label="App Key Management" icon={<SettingsIcon />} {...a11yProps(2)}/>
+          <Tab className={classes.title} style={{textTransform:"none"}} label="Configuration  " icon={<SettingsIcon />} {...a11yProps(1)}/> 
       </Tabs>
       </AppBar>
 
      
-        <TabPanel value={value} index={0}>
-          <SyncList />
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          <Setting />
-        </TabPanel>
+      <TabPanel value={value} index={0}>
+      <SyncList />
+      </TabPanel>
+      <TabPanel value={value} index={1}>
+        <AppKey />
+      </TabPanel>
+      <TabPanel value={value} index={2}>
+        <Setting />
+      </TabPanel>
        
      </div> 
     </>

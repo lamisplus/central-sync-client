@@ -7,9 +7,11 @@ import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.central.domain.dto.RemoteUrlDTO;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
+import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.central.service.SyncService;
 import org.lamisplus.modules.central.utility.ConstantUtility;
+import org.lamisplus.modules.central.utility.RSAUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +20,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
+import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.HashMap;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -32,6 +36,8 @@ public class SyncController {
     private final static String BASE_URL1 = "/api/v1/sync";
     private final RemoteAccessTokenRepository accessTokenRepository;
 
+    private final RSAUtils rsaUtils;
+
     @DeleteMapping(value = BASE_URL1 + "/sync-history/{id}")
     public void deleteSyncHistory(@PathVariable Long id){
         syncService.deleteSyncHistory(id);
@@ -40,6 +46,11 @@ public class SyncController {
     @DeleteMapping(value = BASE_URL1 + "/remote-access-token/{id}")
     public void deleteRemoteAccessToken(@PathVariable Long id){
         syncService.deleteRemoteAccessToken(id);
+    }
+
+    @GetMapping(value = BASE_URL1 + "/history/{id}/tracker")
+    public List<SyncHistoryTracker> getSyncHistoryTracker(@PathVariable Long id){
+        return syncService.getSyncHistoryTracker(id);
     }
 
     @SneakyThrows
@@ -77,5 +88,27 @@ public class SyncController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<RemoteUrlDTO>> getRemoteUrls() {
         return ResponseEntity.ok(syncService.getRemoteUrls());
+    }
+
+    @RequestMapping(value = BASE_URL1 + "/key",
+            method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public HashMap<String, String> getKey() {
+        return rsaUtils.keyGenerateAndReturnKey();
+    }
+
+    @GetMapping(BASE_URL1 + "/aes/decrypt")
+    public void getDecrypt(@RequestParam String key, @RequestParam String location, @RequestParam String tableName) {
+        syncService.decrypt(key, location, tableName);
+    }
+
+    @GetMapping(BASE_URL1 + "/rsa/decrypt")
+    public String getDecrypt(@RequestParam String prKey, @RequestParam String encryptedMsg) {
+        byte[] encryptedBytes = DatatypeConverter.parseBase64Binary(encryptedMsg);
+        try {
+            return rsaUtils.decryptWithPrivateKey(encryptedBytes, prKey);
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

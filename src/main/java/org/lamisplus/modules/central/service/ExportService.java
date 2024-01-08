@@ -1,27 +1,19 @@
 package org.lamisplus.modules.central.service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import org.lamisplus.modules.base.controller.vm.LoginVM;
+import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
+
+import java.util.HashMap;
+import java.util.List;
 
 public interface ExportService {
-    //String bulkExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate);
+    String generateFilesForSyncing(Long facilityId, Boolean current);
 
-    String bulkExport(Long facilityId, Boolean current);
-    boolean extractExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period, String fileLocation);
-    boolean htsExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period, String fileLocation);
-    boolean prepExport(Long facilityId, LocalDate reportStartDate, LocalDate reportEndDate, String period, String fileLocation);
+    List<SyncHistoryTracker> exportAnyTable(String tableName, Long facilityId, String startName, String startDate, String endName, String endDate, String fileLocation, String uuid, String excludeColumn);
+
     String getDatimId(Long facilityId);
-    boolean clinicExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate, String fileLocation);
-    boolean patientExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate, String fileLocation);
-    boolean laboratoryOrderExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate, String fileLocation);
-    boolean laboratorySampleExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate, String fileLocation);
-    boolean laboratoryTestExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate, String fileLocation);
-    boolean laboratoryResultExport(Long facilityId, LocalDateTime reportStartDate, LocalDateTime reportEndDate, String fileLocation);
-    boolean pharmacyExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation);
-    boolean biometricExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation);
-    boolean enrollmentExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation);
-    boolean observationExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation);
-    boolean statusTrackerExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation);
-    boolean eacExport(Long facilityId, LocalDateTime startDate, LocalDateTime endDate, String fileLocation);
 
+    String encryptCredentials(LoginVM login, String appKey, String history, String tracker, String fileName);
+
+    String encryptMessage(String message, String appKey);
 }

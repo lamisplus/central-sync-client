@@ -7,19 +7,24 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
+import org.lamisplus.modules.central.domain.dto.SyncDetailDto;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
-import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
+import org.lamisplus.modules.central.domain.entity.FacilityAppKey;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
+import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
+import org.lamisplus.modules.central.repository.FacilityAppKeyRepository;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
+import org.lamisplus.modules.central.repository.SyncHistoryTrackerRepository;
+import org.lamisplus.modules.central.service.FacilityAppKeyService;
 import org.lamisplus.modules.central.service.SyncHistoryService;
-import org.lamisplus.modules.central.utility.HttpConnectionManager;
+import org.lamisplus.modules.central.service.SyncService;
 import org.springframework.http.*;
 import org.lamisplus.modules.central.service.ExportService;
-import org.lamisplus.modules.central.utility.ConstantUtility;
 import org.lamisplus.modules.central.utility.FileUtility;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,8 +34,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 
@@ -39,13 +43,21 @@ import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 @Slf4j
 @RequestMapping("/api/v1/export")
 public class ExportController {
+    public static final String GENERATED = "Generated";
+    public static final int ARCHIVED = 0;
+    public static final String AUTHORIZATION = "Authorization";
+    public static final String VERSION = "version";
+    public static final String GEN_KEY = "genKey";
     private final FileUtility fileUtility;
     private final ExportService exportService;
-    private final RemoteAccessTokenRepository accessTokenRepository;
+    private final FacilityAppKeyRepository facilityAppKeyRepository;
     private String API_URL = "/api/v1/sync/receive-data/";
     private String LOGIN_API = "/api/v1/authenticate";
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository historyRepository;
+    private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
+    private final FacilityAppKeyService facilityAppKeyService;
+    private final SyncService syncService;
 
     @GetMapping("/all")
     public ResponseEntity<String> generate(@RequestParam Long facilityId,
@@ -54,7 +66,7 @@ public class ExportController {
         if (facilityId == null)   {
             throw new IllegalAccessException("Invalid request parameters");
         }
-        String zipFileName = exportService.bulkExport(facilityId, current);
+        String zipFileName = exportService.generateFilesForSyncing(facilityId, current);
         if (!zipFileName.equals("None") && !zipFileName.equals("NO_RECORD")) {
             return new ResponseEntity<>("Record generated successfully.", HttpStatus.OK);
         } else if (zipFileName.equals("NO_RECORD")) {
@@ -83,42 +95,10 @@ public class ExportController {
         response.flushBuffer();
     }
 
-    public String authorizeBeforeSending(LoginVM loginVM) throws RuntimeException {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-        log.info("loginVM is {}", loginVM);
-        try {
-            RemoteAccessToken remoteAccessToken = accessTokenRepository
-                    .findOneAccess()
-                    .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
-
-            String USE_LOGIN_API = checkUrl(remoteAccessToken).concat(LOGIN_API);
-            String connect = new HttpConnectionManager().post(loginVM, null, USE_LOGIN_API);
-
-            //For serializing the date on the sync queue
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule());
-            objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-            JWTToken jwtToken = objectMapper.readValue(connect, JWTToken.class);
-
-            if (jwtToken.getIdToken() != null) {
-                String token = "Bearer " + jwtToken.getIdToken().replace("'", "");
-                //log.info("token is {}", token);
-                return token;
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
-        }
-        return null;
-    }
 
 
-    @PostMapping("/send-data")
+    /*@PostMapping("/send-data")
     public ResponseEntity<String> sendDataToAPI(@RequestParam("fileName") String fileName, @RequestParam("facilityId") Long facilityId) {
-
         LoginVM loginVM = new LoginVM();
         RemoteAccessToken remoteAccessToken = accessTokenRepository
                 .findOneAccess()
@@ -130,7 +110,7 @@ public class ExportController {
 
         SyncHistory history = historyRepository.getFile(fileName).orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", String.valueOf(fileName)));
 
-        byte[] byteRequest = fileUtility.convertZipToByteArray(history.getFilePath() + File.separator + fileName);
+        byte[] byteRequest = fileUtility.convertFileToByteArray(history.getFilePath() + File.separator + fileName);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 
@@ -154,6 +134,79 @@ public class ExportController {
         }
 
         return ResponseEntity.ok("Data sent successfully. Response: " + responseEntity.getBody());
+    }
+*/
+    @PostMapping("/file/data")
+    public ResponseEntity<String> sendFileDataToAPI(@RequestBody SyncDetailDto syncDetailDto) {
+        if(syncDetailDto.getUsername() == null || syncDetailDto.getPassword() == null){
+            throw new EntityNotFoundException(LoginVM.class, "Username or Password", "not found");
+        }
+        FacilityAppKey facilityAppKey = facilityAppKeyRepository
+                .findByFacilityId(syncDetailDto.getFacilityId().intValue())
+                .orElseThrow(()-> new EntityNotFoundException(FacilityAppKey.class, "App Key", "not available"));
+
+        List<SyncHistoryTracker> trackers = new ArrayList<>();
+        String USE_API_URL = syncService.checkUrl(facilityAppKey).concat(API_URL);
+
+        if(syncDetailDto.getSyncHistoryTrackerUuid() != null){
+            SyncHistoryTracker tracker = syncHistoryTrackerRepository
+                    .findByUuid(java.util.UUID.fromString(syncDetailDto.getSyncHistoryTrackerUuid()))
+                    .orElseThrow(()-> new EntityNotFoundException(SyncHistoryTracker.class, "uuid", "uuid"));
+            syncDetailDto.setSyncHistoryUuid(tracker.getSyncHistoryUuid().toString());
+            trackers.add(tracker);
+
+        } else {
+            trackers = syncHistoryTrackerRepository
+                    .findAllBySyncHistoryUuidAndStatusAndArchived(java.util.UUID.fromString(syncDetailDto.getSyncHistoryUuid()), GENERATED, ARCHIVED);
+        }
+
+        SyncHistory history = historyRepository
+                .findByUuid(java.util.UUID.fromString(syncDetailDto.getSyncHistoryUuid()))
+                .orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", "file"));
+        LoginVM loginVM = new LoginVM();
+        loginVM.setUsername(syncDetailDto.getUsername());
+        loginVM.setPassword(syncDetailDto.getPassword());
+
+        return getStringResponseEntity(syncDetailDto.getFacilityId(), loginVM, trackers, USE_API_URL, history);
+    }
+
+    private ResponseEntity<String> getStringResponseEntity(Long facilityId, LoginVM loginVM, List<SyncHistoryTracker> trackers, String USE_API_URL, SyncHistory history) {
+        ResponseEntity<String> responseEntity = null;
+        String datimId = historyRepository.getDatimCode(facilityId);
+        String appKey = facilityAppKeyService.FindByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
+
+        for (SyncHistoryTracker tracker : trackers) {
+            byte[] byteRequest = fileUtility.convertFileToByteArray(history.getFilePath() + File.separator + tracker.getFileName());
+
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.set(AUTHORIZATION, syncService.authorizeBeforeSending(loginVM, facilityId));
+
+            //TODO: get version for database
+            headers.set(VERSION, "217");
+            headers.set(GEN_KEY, history.getGenKey());
+            //just the username
+            String encryptedUsername = exportService.encryptMessage(loginVM.getUsername(), appKey);
+            headers.set(CREDENTIAL, encryptedUsername);
+
+            try {
+                String apiUrl = USE_API_URL + datimId + "/" + history.getUuid() + "/" + tracker.getUuid() + "/" + tracker.getFileName();
+                log.info("apiUrl {}", apiUrl);
+                HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
+
+                responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
+                if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                    syncHistoryService.updateSyncHistoryTracker(tracker.getId());
+                }else {
+                    break;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending data: " + e.getMessage());
+            }
+        }
+        return responseEntity;
     }
 
     @GetMapping("/sync-histories")
@@ -187,14 +240,5 @@ public class ExportController {
     public static class JWTToken {
         @JsonProperty("id_token")
         private String idToken;
-
     }
-
-    private String checkUrl(RemoteAccessToken remoteAccessToken){
-        if(remoteAccessToken.getUrl() == null || StringUtils.isAllBlank(remoteAccessToken.getUrl())){
-            throw new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available");
-        }
-        return remoteAccessToken.getUrl();
-    }
-
 }

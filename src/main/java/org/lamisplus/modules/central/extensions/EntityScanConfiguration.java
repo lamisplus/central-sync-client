@@ -7,7 +7,6 @@ import com.foreach.across.modules.hibernate.provider.HibernatePackageRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.central.domain.SyncDomain;
 
-
 /**
  * The AcrossHibernateJpaModule sets up a shared EntityManager that multiple modules can use (with Hibernate).
  * Using the shared EntityManager in this case simplifies transaction management on the same database,

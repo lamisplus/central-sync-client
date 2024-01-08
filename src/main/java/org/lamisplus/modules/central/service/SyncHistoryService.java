@@ -1,22 +1,27 @@
 package org.lamisplus.modules.central.service;
+import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryRequest;
 import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
+import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
+import org.lamisplus.modules.central.repository.SyncHistoryTrackerRepository;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Comparator;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SyncHistoryService {
+    public static final String SYNCED = "Synced";
+    public static final String ERROR = "ERROR";
+    public static final boolean HAS_ERROR = true;
     private final SyncHistoryRepository syncHistoryRepository;
+    private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
 
     private String getFacilityNameById(Long facilityId) {
         Optional<String> optional = syncHistoryRepository.getFacilityNameById(facilityId);
@@ -29,8 +34,9 @@ public class SyncHistoryService {
         syncHistory.setUploadSize(request.getUploadSize());
         syncHistory.setProcessed(3); //default
         syncHistory.setDateLastSync(LocalDateTime.now());
-        syncHistory.setErrorLog(request.getErrorLog());
+        syncHistory.setErrorLog(request.getMessageLog());
         syncHistory.setFilePath(request.getFilePath());
+        syncHistory.setGenKey(request.getGenKey());
         syncHistoryRepository.save(syncHistory);
 
         return entityToDto(syncHistory);
@@ -70,7 +76,6 @@ public class SyncHistoryService {
         for (SyncHistory syncHistory : syncHistoryList) {
             syncHistoryResponseList.add(entityToDto(syncHistory));
         }
-
         return syncHistoryResponseList;
     }
 
@@ -85,8 +90,11 @@ public class SyncHistoryService {
         response.setProcessedSize(entity.getProcessedSize());
         response.setDateLastSync(entity.getDateLastSync());
         response.setTableName(entity.getTableName());
-        response.setErrorLog(entity.getErrorLog());
-
+        response.setMessageLog(entity.getErrorLog());
+        response.setUuid(entity.getUuid());
+        response.setGenKey(entity.getGenKey());
+        response.setPercentageSynced(getPercentageSynced(entity.getUuid()));
+        if(entity.getErrorLog().toString().contains(ERROR))response.setHasError(HAS_ERROR);
         return response;
     }
 
@@ -98,5 +106,24 @@ public class SyncHistoryService {
             history.setProcessed(status);
             syncHistoryRepository.save(history);
         }
+    }
+
+    public Boolean updateSyncHistoryTracker(Long syncHistoryTrackerId) {
+        Boolean updated = false;
+        Optional<SyncHistoryTracker> existingRecord = syncHistoryTrackerRepository.findById(syncHistoryTrackerId);
+        if (existingRecord.isPresent()) {
+            SyncHistoryTracker historyTracker = existingRecord.get();
+            historyTracker.setTimeCreated(LocalDateTime.now());
+            historyTracker.setStatus(SYNCED);
+            syncHistoryTrackerRepository.save(historyTracker);
+            updated = true;
+        }
+        return updated;
+    }
+
+    private float getPercentageSynced(UUID syncHistoryUuid){
+        int allFiles = syncHistoryTrackerRepository.countBySyncHistoryUuid(syncHistoryUuid);
+        int syncedFile = syncHistoryTrackerRepository.countBySyncHistoryUuidAndStatus(syncHistoryUuid, SYNCED);
+        return (Float.valueOf(syncedFile)/Float.valueOf(allFiles)) * Float.valueOf(100);
     }
 }

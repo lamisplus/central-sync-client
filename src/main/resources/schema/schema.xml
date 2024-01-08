@@ -1,18 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
-    <!--<changeSet failOnError="false" author="Chukwuemeka Ilozue" id="1648201114214-01-sync-drkarim">
-        <preConditions onFail="MARK_RAN">
-            <sqlCheck expectedResult="0">
-                SELECT COUNT(*) FROM base_role WHERE name='User';
-            </sqlCheck>
-        </preConditions>
-        <sqlFile dbms="postgresql"
-                 path="sql/role.sql"
-                 relativeToChangelogFile="true"
-                 splitStatements="false"
-                 stripComments="true"/>
-    </changeSet>-->
-
     <changeSet failOnError="false" author="Emeka Ilozue" id="1649865054498-2-sync-drkarim">
         <preConditions onFail="MARK_RAN">
             <not>
@@ -212,36 +199,6 @@
             ADD COLUMN status BIGINT;
         </sql>
     </changeSet>
-
-    <!--<changeSet failOnError="false" author="Emeka Ilozue" id="1649865054498-16-sync-emeka">
-        <preConditions onFail="MARK_RAN">
-            <sqlCheck expectedResult="0">
-                SELECT COUNT(*)
-                FROM pg_attribute
-                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'sync_queue')
-                  AND attname = 'uuid';
-            </sqlCheck>
-        </preConditions>
-        <sql>
-            ALTER TABLE sync_queue
-            ALTER COLUMN uuid TYPE character varying(100);
-        </sql>
-    </changeSet>-->
-
-    <!--<changeSet failOnError="false" author="Emeka Ilozue" id="1649865054498-17-sync-emeka">
-        <preConditions onFail="MARK_RAN">
-            <sqlCheck expectedResult="0">
-                SELECT COUNT(*)
-                FROM pg_attribute
-                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'sync_queue')
-                  AND attname = 'created_by';
-            </sqlCheck>
-        </preConditions>
-        <sql>
-            ALTER TABLE sync_queue
-            ALTER COLUMN created_by TYPE character varying(100);
-        </sql>
-    </changeSet>-->
 
     <changeSet failOnError="false" author="Emeka Ilozue" id="1649865054498-20-sync-emeka">
         <preConditions onFail="MARK_RAN">

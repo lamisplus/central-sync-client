@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface SyncHistoryRepository  extends JpaRepository<SyncHistory, Long> {
@@ -22,4 +23,17 @@ public interface SyncHistoryRepository  extends JpaRepository<SyncHistory, Long>
 
     @Query(value = "SELECT * FROM sync_history WHERE table_name ILIKE ?1", nativeQuery = true)
     Optional<SyncHistory> getFile(String name);
+
+    @Query(value = "SELECT code FROM base_organisation_unit_identifier WHERE organisation_unit_id = ?1 AND name='DATIM_ID' LIMIT 1", nativeQuery = true)
+    String getDatimCode(Long orgUnit);
+
+    @Query(value = "SELECT gen_key from sync_history WHERE id = ?1", nativeQuery = true)
+    Optional<String> getKey(Long id);
+
+    Optional<SyncHistory> findByUuid(UUID syncHistoryUuid);
+
+    @Query(value = "SELECT version from base_module WHERE name = 'ClientSyncModule'", nativeQuery = true)
+    Optional<String> getClientSyncModuleVersion();
+
+    Optional<SyncHistory> findByGenKey(String genKey);
 }

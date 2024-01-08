@@ -301,4 +301,7 @@ public class ConstantUtility {
     public static final String IS_COMMENCEMENT = "iscommencement";
     public static final String CD4 = "cd4";
     public static final String CD4_PERCENTAGE = "cd4Percentage";
+
+    public static final String CREDENTIAL = "credential";
+    public static final String DETAIL = "detail";
 }

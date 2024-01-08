@@ -1,16 +1,17 @@
 basePackage: org.lamisplus.modules.central
-name: CentralSyncModule
+name: ClientSyncModule
 dependencies: {}
 store: true
 menus:
   - icon: fa fa-bar-chart
     disabled: false
-    name: Central Sync
-    state: Central Sync
+    name: Client Sync
+    state: Client Sync
     url: /across/resources/static/central/index.html
 umdLocation: /across/resources/static/central/index.html
+gitHubLink: https://api.github.com/repos/lamisplus/central-sync-client/releases/latest
 webModules:
-  - breadcrumb: Central Sync
-    name: CentralSyncModule
+  - breadcrumb: Client Sync
+    name: ClientSyncModule
     path: sync
     position: 99
