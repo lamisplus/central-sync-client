@@ -57,6 +57,7 @@ public class ExportServiceImpl implements ExportService {
     public static final String INIT = "init";
     public static final String UNDER_SCORE = "_";
     public static final String NOT_AVAILABLE = "N/A";
+    public static Long FILE_FACILITY_ID = null;
     private final FileUtility fileUtility;
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository syncHistoryRepository;
@@ -79,6 +80,7 @@ public class ExportServiceImpl implements ExportService {
      */
     @Override
     public String generateFilesForSyncing(Long facilityId, Boolean current) {
+        FILE_FACILITY_ID = facilityId;
         boolean anyTable = false;
         SyncHistoryResponse syncResponse = null;
         String appKey = facilityAppKeyService.FindByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
@@ -378,25 +380,27 @@ public class ExportServiceImpl implements ExportService {
 
 
             for (List list : ResultSetToJsonMapper.getPages(queryList, FETCH_SIZE)) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                configureObjectMapper(objectMapper);
-                String fileName = tableName + UNDER_SCORE + level + UNDER_SCORE + fileLocation + ".json";
-                String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + fileName;
-                Integer fileSize = list.size();
-                log.info("Total " + tableName + " Generated... " + list.size());
-                //Get the byte
-                byte[] bytes = objectMapper.writeValueAsBytes(list);
-                //Get a secret from the uuid generated
-                SecretKey secretKey = AESUtil.getPrivateAESKeyFromDB(uuid);
-                //Encrypt the byte
-                bytes = AESUtil.encrypt(bytes, secretKey);
-                FileUtils.writeByteArrayToFile(new File(tempFile), bytes);
-                tracker = new SyncHistoryTracker(null, null, fileName, fileSize, SYNC_TRACKER_STATUS,
-                        LocalDateTime.now(), UN_ARCHIVED, facilityId, null, null);
-                addMessageLog(tableName, SYNC_TRACKER_STATUS, fileName, GENERATING, MessageType.SUCCESS);
-                //success log
-                trackers.add(tracker);
-                ++level;
+                if(list.size() > 0) {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    configureObjectMapper(objectMapper);
+                    String fileName = tableName + UNDER_SCORE + level + UNDER_SCORE + fileLocation + ".json";
+                    String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + fileName;
+                    Integer fileSize = list.size();
+                    log.info("Total " + tableName + " Generated... " + list.size());
+                    //Get the byte
+                    byte[] bytes = objectMapper.writeValueAsBytes(list);
+                    //Get a secret from the uuid generated
+                    SecretKey secretKey = AESUtil.getPrivateAESKeyFromDB(uuid);
+                    //Encrypt the byte
+                    bytes = AESUtil.encrypt(bytes, secretKey);
+                    FileUtils.writeByteArrayToFile(new File(tempFile), bytes);
+                    tracker = new SyncHistoryTracker(null, null, fileName, fileSize, SYNC_TRACKER_STATUS,
+                            LocalDateTime.now(), UN_ARCHIVED, (FILE_FACILITY_ID != null ? FILE_FACILITY_ID : facilityId), null, null);
+                    addMessageLog(tableName, SYNC_TRACKER_STATUS, fileName, GENERATING, MessageType.SUCCESS);
+                    //success log
+                    trackers.add(tracker);
+                    ++level;
+                }
             }
         } catch (Exception e) {
             addMessageLog(tableName, e.getMessage(), getPrintStackError(e), GENERATING, MessageType.ERROR);
