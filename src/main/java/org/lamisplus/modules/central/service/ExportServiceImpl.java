@@ -45,7 +45,7 @@ import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 @Service
 @RequiredArgsConstructor
 public class ExportServiceImpl implements ExportService {
-    public static final int FETCH_SIZE = 10000;
+    public static final int FETCH_SIZE = 5000;
     public static final String SYNC_TRACKER_STATUS = "Generated";
     public static final int UN_ARCHIVED = 0;
     public static final String START_DATE = "1985-01-01 01:01:01";
