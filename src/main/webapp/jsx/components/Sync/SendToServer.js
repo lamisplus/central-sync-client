@@ -214,7 +214,9 @@ const SendToServer = (props) => {
                     }
                     setCurrentlyUploading(element.fileName);
                     await axios.post(`${baseUrl}export/file/data`, dataToBeSent,
-                        { headers: { "Authorization": `Bearer ${token}` } },
+                        { headers: { "Authorization": `Bearer ${token}` },
+                            timeout: 300000
+                     },       
 
                     )
                         .then(response => {
