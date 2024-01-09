@@ -9,7 +9,7 @@ menus:
     state: Client Sync
     url: /across/resources/static/central/index.html
 umdLocation: /across/resources/static/central/index.html
-gitHubLink: https://api.github.com/repos/lamisplus/central-sync-client/releases/latest
+#gitHubLink: https://api.github.com/repos/lamisplus/central-sync-client/releases/latest
 webModules:
   - breadcrumb: Client Sync
     name: ClientSyncModule
