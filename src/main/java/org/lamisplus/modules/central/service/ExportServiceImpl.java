@@ -45,7 +45,7 @@ import static org.lamisplus.modules.central.utility.ConstantUtility.*;
 @Service
 @RequiredArgsConstructor
 public class ExportServiceImpl implements ExportService {
-    public static final int FETCH_SIZE = 5000;
+    public static final int FETCH_SIZE = 3000;
     public static final String SYNC_TRACKER_STATUS = "Generated";
     public static final int UN_ARCHIVED = 0;
     public static final String START_DATE = "1985-01-01 01:01:01";
@@ -158,7 +158,7 @@ public class ExportServiceImpl implements ExportService {
                     saveTrackers = syncHistoryTrackerRepository.saveAll(getSyncHistoryTrackers(syncHistoryTrackers, syncResponse));
                 }
                 //set file details
-                FileDetail fileDetail = setFileDetails(current, syncResponse, saveTrackers);
+                FileDetail fileDetail = setFileDetails(appKey, datimCode, current, syncResponse, saveTrackers);
                 //create meta data
                 syncData(fileFolder, fileDetail);
 
@@ -184,13 +184,24 @@ public class ExportServiceImpl implements ExportService {
         return zipFileName;
     }
 
-    private FileDetail setFileDetails(Boolean current, @NotNull  SyncHistoryResponse syncResponse, List<SyncHistoryTracker> saveTrackers) {
+    /**
+     * set file details
+     * @param appKey
+     * @param datimId
+     * @Param current
+     * @Param syncResponse
+     * @Param saveTrackers
+     * @return FileDetail
+     */
+    private FileDetail setFileDetails(String appKey, String datimId, Boolean current, @NotNull  SyncHistoryResponse syncResponse, List<SyncHistoryTracker> saveTrackers) {
         FileDetail fileDetail = new FileDetail();
         //Set file details
         if(syncResponse != null && !saveTrackers.isEmpty()) {
             fileDetail.setKey(syncResponse.getGenKey());
             fileDetail.setHistory(syncResponse.getUuid());
             fileDetail.setInit(current);
+            fileDetail.setDatimId(datimId);
+            fileDetail.setAppKey(appKey);
             Optional<String> version = syncHistoryRepository.getClientSyncModuleVersion();
 
             if (version.isPresent())
@@ -260,19 +271,12 @@ public class ExportServiceImpl implements ExportService {
         return null;
     }
 
-    /*private void cleanDirectory(Set<String> fileList) {
-       try {
-           for (String fileName : fileList) {
-               if (!fileName.contains(".zip")) {
-                   String strFile = TEMP_BATCH_DIR + fileName;
-                   Files.deleteIfExists(Paths.get(strFile));
-               }
-           }
-       } catch (Exception e) {
-           log.info(e.getMessage());
-       }
-    }*/
-
+    /**
+     * sync data
+     * @param fileLocation
+     * @param fileDetail
+     * @return boolean
+     */
     public boolean syncData(String fileLocation, FileDetail fileDetail) {
         try {
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
@@ -287,6 +291,8 @@ public class ExportServiceImpl implements ExportService {
                 jsonGenerator.writeStringField(INIT, String.valueOf(fileDetail.getInit()));
                 jsonGenerator.writeStringField("history", String.valueOf(fileDetail.getHistory()));
                 jsonGenerator.writeStringField("key", fileDetail.getKey());
+                jsonGenerator.writeStringField("datimId", fileDetail.getDatimId());
+                jsonGenerator.writeStringField("appKey", fileDetail.getAppKey());
                 //jsonGenerator.writeStringField("fileTracker", fileDetail.getFileTracker().toString());
                 for (FileTrackerDTO fileTrackerDTO : fileDetail.getFileTracker()) {
                     JSONObject trackerJsonObject = new JSONObject();
@@ -428,7 +434,7 @@ public class ExportServiceImpl implements ExportService {
         }
     }
 
-    private Long countTableRow(String tableName, Long facilityId){
+    /*private Long countTableRow(String tableName, Long facilityId){
         log.info("counting table row started... {}", tableName);
         Connection conn = null;
         String query;
@@ -461,7 +467,7 @@ public class ExportServiceImpl implements ExportService {
         }
         return count;
 
-    }
+    }*/
 
     /**
      * Configures ObjectMapper
@@ -494,6 +500,15 @@ public class ExportServiceImpl implements ExportService {
         return syncHistoryRepository.getDatimCode(facilityId);
     }
 
+    /**
+     * add message log
+     * @param name
+     * @param msg
+     * @param others
+     * @param activity
+     * @param category
+     * @return void
+     */
     private void addMessageLog(String name, String msg, String others, String activity, MessageType category){
         MESSAGE_LOG.add(new MessageLog(name, msg, others, activity, category, LocalDateTime.now().toString()));
     }

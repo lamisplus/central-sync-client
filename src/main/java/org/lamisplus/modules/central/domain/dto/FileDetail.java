@@ -17,4 +17,6 @@ public class FileDetail implements Serializable {
     private UUID history;
     private String key;
     private List<FileTrackerDTO> fileTracker;
+    private String datimId;
+    private String appKey;
 }

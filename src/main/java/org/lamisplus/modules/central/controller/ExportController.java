@@ -96,46 +96,6 @@ public class ExportController {
     }
 
 
-
-    /*@PostMapping("/send-data")
-    public ResponseEntity<String> sendDataToAPI(@RequestParam("fileName") String fileName, @RequestParam("facilityId") Long facilityId) {
-        LoginVM loginVM = new LoginVM();
-        RemoteAccessToken remoteAccessToken = accessTokenRepository
-                .findOneAccess()
-                .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
-
-        String USE_API_URL = checkUrl(remoteAccessToken).concat(API_URL);
-        loginVM.setUsername(remoteAccessToken.getUsername());
-        loginVM.setPassword(remoteAccessToken.getPassword());
-
-        SyncHistory history = historyRepository.getFile(fileName).orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", String.valueOf(fileName)));
-
-        byte[] byteRequest = fileUtility.convertFileToByteArray(history.getFilePath() + File.separator + fileName);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-
-        //loginVM.setPassword("kitkit");
-        //loginVM.setUsername("uskarim");
-        headers.set("Authorization", authorizeBeforeSending(loginVM));
-        headers.set("version", "217");
-
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity;
-        try {
-            String apiUrl = USE_API_URL + facilityId;
-            HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
-
-            responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
-            if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                syncHistoryService.updateSyncHistory(fileName, 1);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending data: " + e.getMessage());
-        }
-
-        return ResponseEntity.ok("Data sent successfully. Response: " + responseEntity.getBody());
-    }
-*/
     @PostMapping("/file/data")
     public ResponseEntity<String> sendFileDataToAPI(@RequestBody SyncDetailDto syncDetailDto) {
         if(syncDetailDto.getUsername() == null || syncDetailDto.getPassword() == null){
