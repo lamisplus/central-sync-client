@@ -48,6 +48,7 @@ public class ExportController {
     public static final String AUTHORIZATION = "Authorization";
     public static final String VERSION = "version";
     public static final String GEN_KEY = "genKey";
+    public static final String APP_KEY = "APPKEY";
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final FacilityAppKeyRepository facilityAppKeyRepository;
@@ -58,6 +59,7 @@ public class ExportController {
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
     private final FacilityAppKeyService facilityAppKeyService;
     private final SyncService syncService;
+    private final SyncHistoryRepository syncHistoryRepository;
 
     @GetMapping("/all")
     public ResponseEntity<String> generate(@RequestParam Long facilityId,
@@ -143,9 +145,10 @@ public class ExportController {
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.set(AUTHORIZATION, syncService.authorizeBeforeSending(loginVM, facilityId));
 
-            //TODO: get version for database
-            headers.set(VERSION, "217");
+            String version = syncHistoryRepository.getClientSyncModuleVersion().orElse("N/A");
+            headers.set(VERSION, version);
             headers.set(GEN_KEY, history.getGenKey());
+            headers.set(APP_KEY, appKey);
             //just the username
             String encryptedUsername = exportService.encryptMessage(loginVM.getUsername(), appKey);
             headers.set(CREDENTIAL, encryptedUsername);
