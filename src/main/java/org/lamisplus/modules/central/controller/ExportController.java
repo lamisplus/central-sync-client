@@ -48,7 +48,7 @@ public class ExportController {
     public static final String AUTHORIZATION = "Authorization";
     public static final String VERSION = "version";
     public static final String GEN_KEY = "genKey";
-    public static final String APP_KEY = "APPKEY";
+    public static final String APP_KEY = "appKey";
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final FacilityAppKeyRepository facilityAppKeyRepository;
