@@ -209,6 +209,25 @@ public class SyncServiceImpl implements SyncService {
             responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, Set.class);
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 log.info("files are {}", responseEntity.getBody());
+
+                if(!responseEntity.getBody().isEmpty()){
+                    Set<String> fileNames = (Set<String>) responseEntity.getBody().stream()
+                            .map(String::valueOf)
+                            .collect(Collectors.toSet());
+                    log.info("files set are {}", fileNames);
+                    log.info("files size is {}", fileNames.size());
+                    log.info("files size is {}", fileNames.size());
+                    //get all synced
+                    List<SyncHistoryTracker> trackers = syncHistoryTrackerRepository
+                            .findAllBySyncHistoryIdAndFileNameIn(history.getId(), fileNames)
+                                    .stream()
+                                            .map(tracker ->{ tracker.setStatus("Synced");
+                                            return tracker;})
+                                                    .collect(Collectors.toList());
+                    log.info("tracker size is {}", trackers.size());
+                    //save status
+                    syncHistoryTrackerRepository.saveAll(trackers);
+                }
                 return ResponseEntity.ok(requestEntity.getBody());
             }else {
                 return ResponseEntity.status(responseEntity.getStatusCode()).body(requestEntity.getBody());
