@@ -185,6 +185,7 @@ public class SyncServiceImpl implements SyncService {
 
     public ResponseEntity<Set<String>> getFileStatus(LoginVM loginVM, Long syncId){
         ResponseEntity<Set> responseEntity = null;
+        Set<String> fileNames = new HashSet<>();
         Set<String> error = new HashSet<>();
         SyncHistory history = syncHistoryRepository
                 .findById(syncId)
@@ -211,7 +212,7 @@ public class SyncServiceImpl implements SyncService {
                 log.info("files are {}", responseEntity.getBody());
 
                 if(!responseEntity.getBody().isEmpty()){
-                    Set<String> fileNames = (Set<String>) responseEntity.getBody().stream()
+                    fileNames = (Set<String>) responseEntity.getBody().stream()
                             .map(String::valueOf)
                             .collect(Collectors.toSet());
                     log.info("files set are {}", fileNames);
@@ -227,8 +228,10 @@ public class SyncServiceImpl implements SyncService {
                     log.info("tracker size is {}", trackers.size());
                     //save status
                     syncHistoryTrackerRepository.saveAll(trackers);
+
                 }
-                return ResponseEntity.ok(requestEntity.getBody());
+                return ResponseEntity.ok(fileNames);
+
             }else {
                 return ResponseEntity.status(responseEntity.getStatusCode()).body(requestEntity.getBody());
             }
