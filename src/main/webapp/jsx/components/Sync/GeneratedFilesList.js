@@ -43,6 +43,11 @@ const GeneratedFilesList = (props) => {
             });
     }
 
+    const refreshPrevious = () => {
+        GetGeneratedFiles();
+        props.jsonSyncHistory();
+    }
+
     const canExportFiles = () => {
         // map through the generated files and check if any of them is not synced
         let canExport = true;
@@ -56,7 +61,7 @@ const GeneratedFilesList = (props) => {
 
     return (
         <div>
-            <SendToServer refreshPrevious={props.jsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModalIsOpen} rowObj={rowObj}/>
+            <SendToServer isSingleFile={true} refreshPrevious={refreshPrevious} toggleModal={toggleSendToServerModal} showModal={sendToServerModalIsOpen} rowObj={rowObj}/>
             <Button
                 variant="contained"
                 style={{ backgroundColor: "#014d88", }}

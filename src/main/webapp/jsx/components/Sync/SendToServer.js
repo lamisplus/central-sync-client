@@ -76,7 +76,7 @@ const SendToServer = (props) => {
     const [serverUrl, setServerUrl] = useState([])
     const [generatedFiles, setGeneratedFiles] = useState([])
     const [currentlyUploading, setCurrentlyUploading] = useState('')
-    const alreadyUploaded2 = useRef([]);
+    const alreadyUploaded = useRef([]);
     const [errors, setErrors] = useState({});
 
     const toggleModal = () => {
@@ -151,14 +151,14 @@ const SendToServer = (props) => {
                 .then((response) => {
                     const data = response.data;
                     setGeneratedFiles(data);
-                    alreadyUploaded2.current = data.filter((item) => item.status.toLowerCase() === 'synced')
+                    alreadyUploaded.current = data.filter((item) => item.status.toLowerCase() === 'synced')
                     .map((each) => each.fileName);
                 })
                 .catch((error) => {
                 });
         } else { 
             setGeneratedFiles([props.rowObj]);
-            alreadyUploaded2.current = [];
+            alreadyUploaded.current = [];
         }
     }
 
@@ -172,7 +172,7 @@ const SendToServer = (props) => {
             );
         }
 
-        if (alreadyUploaded2.current.includes(fileName)) {
+        if (alreadyUploaded.current.includes(fileName)) {
             return (
                 <Box display={'flex'} justifyContent={'flex-start'}>
                     <CheckCircleOutlineIcon style={{ marginRight: "10px", color: "green" }} />
@@ -207,14 +207,14 @@ const SendToServer = (props) => {
             await axios.post(`${baseUrl}sync/sync-history/${getSyncHistoryId()}`, patDetails,
             { headers: { "Authorization": `Bearer ${token}` } })
             .then(response => {
-                alreadyUploaded2.current = [...alreadyUploaded2.current, ...response.data];
+                alreadyUploaded.current = [...alreadyUploaded.current, ...response.data];
             })
 
             try {
                 setSaving(true);
                 for (let index = 0; index < generatedFiles.length; index++) {
                     const element = generatedFiles[index];
-                    if (alreadyUploaded2.current.includes(element.fileName)) {
+                    if (alreadyUploaded.current.includes(element.fileName)) {
                         console.log('Already uploaded: ', element.fileName);
                         continue;
                     }
@@ -234,7 +234,7 @@ const SendToServer = (props) => {
                     )
                         .then(response => {
                             setCurrentlyUploading('');
-                            alreadyUploaded2.current = [...alreadyUploaded2.current, element.fileName];
+                            alreadyUploaded.current = [...alreadyUploaded.current, element.fileName];
                         })
                         .catch(error => {
                             setCurrentlyUploading('');
@@ -259,7 +259,12 @@ const SendToServer = (props) => {
     }
 
     const getUploadPercentage = () => {
-        return (alreadyUploaded2.current.length / generatedFiles.length) * 100
+        if (props.isSingleFile === true){
+            return (alreadyUploaded.current.length > 0 
+                && alreadyUploaded.current.includes(generatedFiles[0].fileName)) 
+                ? 100 : 0;
+        }
+        return (alreadyUploaded.current.length / generatedFiles.length) * 100
     }
 
 
@@ -317,7 +322,7 @@ const SendToServer = (props) => {
                                 <Button
                                     type='submit'
                                     variant='contained'
-                                    disabled={(alreadyUploaded2.current.length === generatedFiles.length) || saving}
+                                    disabled={(alreadyUploaded.current.length === generatedFiles.length) || saving}
                                     style={{ backgroundColor: '#014d88', fontWeight: "bolder" }}
                                     onClick={handleSubmit}
                                 >

@@ -517,7 +517,7 @@ useEffect(() => {
                 </ModalBody>
             </Modal>
 
-            <SendToServer refreshPrevious={JsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
+            <SendToServer isSingleFile={false} refreshPrevious={JsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
             <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal} genKey={genKey}  />
         </div>
         ) : (
