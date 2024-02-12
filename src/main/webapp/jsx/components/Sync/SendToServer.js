@@ -17,6 +17,7 @@ import PendingOutlinedIcon from '@mui/icons-material/PendingOutlined';
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { Varient } from '../Utils/UtilFunctions';
 import { el } from 'date-fns/locale';
+import { set } from 'date-fns';
 
 
 const useStyles = makeStyles(theme => ({
@@ -77,9 +78,14 @@ const SendToServer = (props) => {
     const [generatedFiles, setGeneratedFiles] = useState([])
     const [currentlyUploading, setCurrentlyUploading] = useState('')
     const alreadyUploaded = useRef([]);
+    const [alreadySynced, setAlreadySynced] = useState(false);
     const [errors, setErrors] = useState({});
 
     const toggleModal = () => {
+        setCurrentlyUploading('');
+        setPatDetails({});
+        setGeneratedFiles([]);
+        alreadyUploaded.current = [];
         props.refreshPrevious();
         props.toggleModal();
     }
@@ -99,7 +105,7 @@ const SendToServer = (props) => {
 
     useEffect(() => {
         if (props.rowObj) {
-            ServerUrl();
+            // ServerUrl();
             GetGeneratedFiles();
         }
     }, [props.rowObj]);
@@ -151,8 +157,8 @@ const SendToServer = (props) => {
                 .then((response) => {
                     const data = response.data;
                     setGeneratedFiles(data);
-                    alreadyUploaded.current = data.filter((item) => item.status.toLowerCase() === 'synced')
-                    .map((each) => each.fileName);
+                    alreadyUploaded.current = data.filter((item) => item.status.toLowerCase() === 'synced').map(item => item.fileName);
+                    setAlreadySynced(!alreadySynced)
                 })
                 .catch((error) => {
                 });
@@ -171,7 +177,6 @@ const SendToServer = (props) => {
                 </Box>
             );
         }
-
         if (alreadyUploaded.current.includes(fileName)) {
             return (
                 <Box display={'flex'} justifyContent={'flex-start'}>
@@ -207,7 +212,7 @@ const SendToServer = (props) => {
             await axios.post(`${baseUrl}sync/sync-history/${getSyncHistoryId()}`, patDetails,
             { headers: { "Authorization": `Bearer ${token}` } })
             .then(response => {
-                alreadyUploaded.current = [...alreadyUploaded.current, ...response.data];
+                alreadyUploaded.current = response.data;
             })
 
             try {
@@ -215,7 +220,6 @@ const SendToServer = (props) => {
                 for (let index = 0; index < generatedFiles.length; index++) {
                     const element = generatedFiles[index];
                     if (alreadyUploaded.current.includes(element.fileName)) {
-                        console.log('Already uploaded: ', element.fileName);
                         continue;
                     }
                     const dataToBeSent = {
