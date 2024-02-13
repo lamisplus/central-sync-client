@@ -48,6 +48,7 @@ public class ExportController {
     public static final String AUTHORIZATION = "Authorization";
     public static final String VERSION = "version";
     public static final String GEN_KEY = "genKey";
+    public static final String APP_KEY = "appKey";
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final FacilityAppKeyRepository facilityAppKeyRepository;
@@ -58,6 +59,7 @@ public class ExportController {
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
     private final FacilityAppKeyService facilityAppKeyService;
     private final SyncService syncService;
+    private final SyncHistoryRepository syncHistoryRepository;
 
     @GetMapping("/all")
     public ResponseEntity<String> generate(@RequestParam Long facilityId,
@@ -96,46 +98,6 @@ public class ExportController {
     }
 
 
-
-    /*@PostMapping("/send-data")
-    public ResponseEntity<String> sendDataToAPI(@RequestParam("fileName") String fileName, @RequestParam("facilityId") Long facilityId) {
-        LoginVM loginVM = new LoginVM();
-        RemoteAccessToken remoteAccessToken = accessTokenRepository
-                .findOneAccess()
-                .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "Access", "not available"));
-
-        String USE_API_URL = checkUrl(remoteAccessToken).concat(API_URL);
-        loginVM.setUsername(remoteAccessToken.getUsername());
-        loginVM.setPassword(remoteAccessToken.getPassword());
-
-        SyncHistory history = historyRepository.getFile(fileName).orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "file", String.valueOf(fileName)));
-
-        byte[] byteRequest = fileUtility.convertFileToByteArray(history.getFilePath() + File.separator + fileName);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-
-        //loginVM.setPassword("kitkit");
-        //loginVM.setUsername("uskarim");
-        headers.set("Authorization", authorizeBeforeSending(loginVM));
-        headers.set("version", "217");
-
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity;
-        try {
-            String apiUrl = USE_API_URL + facilityId;
-            HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
-
-            responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
-            if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                syncHistoryService.updateSyncHistory(fileName, 1);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending data: " + e.getMessage());
-        }
-
-        return ResponseEntity.ok("Data sent successfully. Response: " + responseEntity.getBody());
-    }
-*/
     @PostMapping("/file/data")
     public ResponseEntity<String> sendFileDataToAPI(@RequestBody SyncDetailDto syncDetailDto) {
         if(syncDetailDto.getUsername() == null || syncDetailDto.getPassword() == null){
@@ -183,9 +145,10 @@ public class ExportController {
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.set(AUTHORIZATION, syncService.authorizeBeforeSending(loginVM, facilityId));
 
-            //TODO: get version for database
-            headers.set(VERSION, "217");
+            String version = syncHistoryRepository.getClientSyncModuleVersion().orElse("N/A");
+            headers.set(VERSION, version);
             headers.set(GEN_KEY, history.getGenKey());
+            headers.set(APP_KEY, appKey);
             //just the username
             String encryptedUsername = exportService.encryptMessage(loginVM.getUsername(), appKey);
             headers.set(CREDENTIAL, encryptedUsername);

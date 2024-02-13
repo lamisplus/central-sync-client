@@ -16,21 +16,19 @@ import org.lamisplus.modules.central.repository.*;
 import org.lamisplus.modules.central.utility.AESUtil;
 import org.lamisplus.modules.central.utility.HttpConnectionManager;
 import org.lamisplus.modules.central.utility.RSAUtils;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.SecretKey;
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.lamisplus.modules.central.utility.ConstantUtility.CREDENTIAL;
 import static org.lamisplus.modules.central.utility.ConstantUtility.TEMP_BATCH_DIR;
 
 @Slf4j
@@ -47,6 +45,11 @@ public class SyncServiceImpl implements SyncService {
     private final RSAUtils rsaUtils;
     private String API_URL = "/api/v1/sync/receive-data/";
     private String LOGIN_API = "/api/v1/authenticate";
+    private String FILE_STATUS_API = "/api/v1/sync";
+    public static final String AUTHORIZATION = "Authorization";
+    public static final String GEN_KEY = "genKey";
+    public static final String APP_KEY = "appKey";
+
 
     @Override
     public String getDatimId(Long facilityId) {
@@ -178,6 +181,65 @@ public class SyncServiceImpl implements SyncService {
             throw new EntityNotFoundException(FacilityAppKey.class, "App key", "not available");
         }
         return appKey.getServerUrl();
+    }
+
+    public ResponseEntity<Set<String>> getFileStatus(LoginVM loginVM, Long syncId){
+        ResponseEntity<Set> responseEntity = null;
+        Set<String> fileNames = new HashSet<>();
+        Set<String> error = new HashSet<>();
+        SyncHistory history = syncHistoryRepository
+                .findById(syncId)
+                .orElseThrow(()-> new EntityNotFoundException(SyncHistory.class, "syncId",String.valueOf(syncId)));
+
+        FacilityAppKey facilityAppKey = facilityAppKeyRepository
+                .findByFacilityId(history.getOrganisationUnitId().intValue())
+                .orElseThrow(()-> new EntityNotFoundException(FacilityAppKey.class, "appKey","facility"));
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set(AUTHORIZATION, authorizeBeforeSending(loginVM, history.getOrganisationUnitId()));
+        headers.set(GEN_KEY, history.getGenKey());
+        headers.set(APP_KEY, facilityAppKey.getAppKey());
+
+        try {
+            String apiUrl = facilityAppKey.getServerUrl() + FILE_STATUS_API;
+            log.info("apiUrl {}", apiUrl);
+            HttpEntity<Set<String>> requestEntity = new HttpEntity<>(headers);
+
+            responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, Set.class);
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                log.info("files are {}", responseEntity.getBody());
+
+                if(!responseEntity.getBody().isEmpty()){
+                    fileNames = (Set<String>) responseEntity.getBody().stream()
+                            .map(String::valueOf)
+                            .collect(Collectors.toSet());
+                    log.info("files set are {}", fileNames);
+                    log.info("files size is {}", fileNames.size());
+                    log.info("files size is {}", fileNames.size());
+                    //get all synced
+                    List<SyncHistoryTracker> trackers = syncHistoryTrackerRepository
+                            .findAllBySyncHistoryIdAndFileNameIn(history.getId(), fileNames)
+                                    .stream()
+                                            .map(tracker ->{ tracker.setStatus("Synced");
+                                            return tracker;})
+                                                    .collect(Collectors.toList());
+                    log.info("tracker size is {}", trackers.size());
+                    //save status
+                    syncHistoryTrackerRepository.saveAll(trackers);
+
+                }
+                return ResponseEntity.ok(fileNames);
+
+            }else {
+                return ResponseEntity.status(responseEntity.getStatusCode()).body(requestEntity.getBody());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            error.add("Error sending data: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
     }
 
 }

@@ -5,7 +5,9 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
+import org.lamisplus.modules.base.controller.vm.LoginVM;
 import org.lamisplus.modules.central.domain.dto.RemoteUrlDTO;
+import org.lamisplus.modules.central.domain.dto.SyncDetailDto;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
 import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
@@ -27,6 +29,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -110,5 +113,13 @@ public class SyncController {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @PostMapping(value = BASE_URL1 + "/sync-history/{id}")
+    public ResponseEntity<Set<String>> getFileStatus(@PathVariable Long id, @RequestBody SyncDetailDto syncDetailDto){
+        LoginVM loginVM = new LoginVM();
+        loginVM.setUsername(syncDetailDto.getUsername());
+        loginVM.setPassword(syncDetailDto.getPassword());
+        return syncService.getFileStatus(loginVM, id);
     }
 }

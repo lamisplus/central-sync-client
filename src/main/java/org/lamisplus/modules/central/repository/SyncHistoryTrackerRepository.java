@@ -7,11 +7,15 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface SyncHistoryTrackerRepository extends JpaRepository<SyncHistoryTracker, Long> {
     List<SyncHistoryTracker> findAllBySyncHistoryId(Long syncHistoryId);
+
+    @Query(value = "SELECT * FROM sync_history_tracker WHERE sync_history_id=?1 AND file_name IN (?2)", nativeQuery = true)
+    List<SyncHistoryTracker> findAllBySyncHistoryIdAndFileNameIn(Long syncHistoryId, Set<String> fileName);
 
     List<SyncHistoryTracker> findAllBySyncHistoryIdAndArchived(Long syncHistoryId, int archived);
 

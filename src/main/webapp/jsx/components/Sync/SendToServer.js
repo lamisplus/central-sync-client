@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Modal, ModalHeader, ModalBody, Form,
     Row, Col, Card, CardBody, FormGroup, Input, Label
@@ -16,6 +16,8 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import PendingOutlinedIcon from '@mui/icons-material/PendingOutlined';
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { Varient } from '../Utils/UtilFunctions';
+import { el } from 'date-fns/locale';
+import { set } from 'date-fns';
 
 
 const useStyles = makeStyles(theme => ({
@@ -68,24 +70,26 @@ const useStyles = makeStyles(theme => ({
 
 const SendToServer = (props) => {
     const [rowObj, setRowObj] = useState(null);
-    // const rowObj=props.rowObj!==null ? props.rowObj : {};
     const classes = useStyles()
     const [urlHide, setUrlHide] = useState(false);
-    // const defaultValues = { username: "", password: "", syncHistoryUuid:rowObj.id, syncHistoryTrackerUuid:rowObj.uuid, facilityId: rowObj.organisationUnitId }
     const [patDetails, setPatDetails] = useState({});
     const [saving, setSaving] = useState(false);
     const [serverUrl, setServerUrl] = useState([])
     const [generatedFiles, setGeneratedFiles] = useState([])
     const [currentlyUploading, setCurrentlyUploading] = useState('')
-    const [alreadyUploaded, setSetAlreadyUploaded] = useState([])
+    const alreadyUploaded = useRef([]);
+    const [alreadySynced, setAlreadySynced] = useState(false);
     const [errors, setErrors] = useState({});
 
     const toggleModal = () => {
+        setCurrentlyUploading('');
+        setPatDetails({});
+        setGeneratedFiles([]);
+        alreadyUploaded.current = [];
         props.refreshPrevious();
         props.toggleModal();
     }
 
-    // console.log("rowObj", props.rowObj);
     useEffect(() => {
         if (props.rowObj) {
             setRowObj(props.rowObj);
@@ -101,7 +105,7 @@ const SendToServer = (props) => {
 
     useEffect(() => {
         if (props.rowObj) {
-            ServerUrl();
+            // ServerUrl();
             GetGeneratedFiles();
         }
     }, [props.rowObj]);
@@ -153,14 +157,14 @@ const SendToServer = (props) => {
                 .then((response) => {
                     const data = response.data;
                     setGeneratedFiles(data);
-                    setSetAlreadyUploaded(data.filter((item) => item.status.toLowerCase() === 'synced')
-                        .map((each) => each.fileName));
+                    alreadyUploaded.current = data.filter((item) => item.status.toLowerCase() === 'synced').map(item => item.fileName);
+                    setAlreadySynced(!alreadySynced)
                 })
                 .catch((error) => {
                 });
         } else { 
             setGeneratedFiles([props.rowObj]);
-            setSetAlreadyUploaded([]);
+            alreadyUploaded.current = [];
         }
     }
 
@@ -173,8 +177,7 @@ const SendToServer = (props) => {
                 </Box>
             );
         }
-
-        if (alreadyUploaded.includes(fileName)) {
+        if (alreadyUploaded.current.includes(fileName)) {
             return (
                 <Box display={'flex'} justifyContent={'flex-start'}>
                     <CheckCircleOutlineIcon style={{ marginRight: "10px", color: "green" }} />
@@ -192,17 +195,31 @@ const SendToServer = (props) => {
         }
     }
 
+    const getSyncHistoryId = () => {
+        if (props.rowObj.syncHistoryId) {
+            return props.rowObj.syncHistoryId;
+        } else {
+            return props.rowObj.id;
+        }
+    }
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (validate()) {
             var fileUploadErrors = [];
             var errorCount = 0;
+            await axios.post(`${baseUrl}sync/sync-history/${getSyncHistoryId()}`, patDetails,
+            { headers: { "Authorization": `Bearer ${token}` } })
+            .then(response => {
+                alreadyUploaded.current = response.data;
+            })
+
             try {
                 setSaving(true);
                 for (let index = 0; index < generatedFiles.length; index++) {
                     const element = generatedFiles[index];
-                    // console.log(element.fileName, element);
-                    if (alreadyUploaded.includes(element.fileName)) {
+                    if (alreadyUploaded.current.includes(element.fileName)) {
                         continue;
                     }
                     const dataToBeSent = {
@@ -221,7 +238,7 @@ const SendToServer = (props) => {
                     )
                         .then(response => {
                             setCurrentlyUploading('');
-                            setSetAlreadyUploaded((prev) => [...prev, element.fileName])
+                            alreadyUploaded.current = [...alreadyUploaded.current, element.fileName];
                         })
                         .catch(error => {
                             setCurrentlyUploading('');
@@ -246,7 +263,12 @@ const SendToServer = (props) => {
     }
 
     const getUploadPercentage = () => {
-        return (alreadyUploaded.length / generatedFiles.length) * 100
+        if (props.isSingleFile === true){
+            return (alreadyUploaded.current.length > 0 
+                && alreadyUploaded.current.includes(generatedFiles[0].fileName)) 
+                ? 100 : 0;
+        }
+        return (alreadyUploaded.current.length / generatedFiles.length) * 100
     }
 
 
@@ -304,9 +326,8 @@ const SendToServer = (props) => {
                                 <Button
                                     type='submit'
                                     variant='contained'
-                                    disabled={(alreadyUploaded.length === generatedFiles.length) || saving}
+                                    disabled={(alreadyUploaded.current.length === generatedFiles.length) || saving}
                                     style={{ backgroundColor: '#014d88', fontWeight: "bolder" }}
-                                    //startIcon={<SettingsBackupRestoreIcon />}
                                     onClick={handleSubmit}
                                 >
                                     <span style={{ textTransform: "capitalize ", color: "#fff" }}>Send To Server</span>

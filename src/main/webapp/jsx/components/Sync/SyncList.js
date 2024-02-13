@@ -377,8 +377,12 @@ useEffect(() => {
 
                                             <Dropdown.Item disabled={(row.hasError !== null && row.hasError) || Math.ceil(row.percentageSynced) === 100}  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
                                             </Dropdown.Item>
+                                            {/* <Dropdown.Item  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
+                                            </Dropdown.Item> */}
                                             <Dropdown.Item disabled={(row.hasError !== null && row.hasError) || Math.ceil(row.percentageSynced) === 100}  onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
                                             </Dropdown.Item>
+                                            {/* <Dropdown.Item  onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
+                                            </Dropdown.Item> */}
                                             {/* <Dropdown.Item onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
                                             </Dropdown.Item> */}
                                             <Dropdown.Item  onClick={() => displayGeneratedfiles(row)}><VisibilityIcon color="primary"/>View Generated Files
@@ -513,7 +517,7 @@ useEffect(() => {
                 </ModalBody>
             </Modal>
 
-            <SendToServer refreshPrevious={JsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
+            <SendToServer isSingleFile={false} refreshPrevious={JsonSyncHistory} toggleModal={toggleSendToServerModal} showModal={sendToServerModal}  rowObj={rowObj}/>
             <Generatekey toggleModal={toggleGenerateKeyModal} showModal={generateKeyModal} genKey={genKey}  />
         </div>
         ) : (
