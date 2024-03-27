@@ -16,10 +16,7 @@ import org.lamisplus.modules.central.domain.dto.SyncHistoryResponse;
 import org.lamisplus.modules.central.domain.entity.FacilityAppKey;
 import org.lamisplus.modules.central.domain.entity.SyncHistory;
 import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
-import org.lamisplus.modules.central.repository.FacilityAppKeyRepository;
-import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
-import org.lamisplus.modules.central.repository.SyncHistoryRepository;
-import org.lamisplus.modules.central.repository.SyncHistoryTrackerRepository;
+import org.lamisplus.modules.central.repository.*;
 import org.lamisplus.modules.central.service.FacilityAppKeyService;
 import org.lamisplus.modules.central.service.SyncHistoryService;
 import org.lamisplus.modules.central.service.SyncService;
@@ -49,6 +46,7 @@ public class ExportController {
     public static final String VERSION = "version";
     public static final String GEN_KEY = "genKey";
     public static final String APP_KEY = "appKey";
+    public static final String CONFIG_VERSION = "configVersion";
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final FacilityAppKeyRepository facilityAppKeyRepository;
@@ -60,6 +58,7 @@ public class ExportController {
     private final FacilityAppKeyService facilityAppKeyService;
     private final SyncService syncService;
     private final SyncHistoryRepository syncHistoryRepository;
+    private final ConfigRepository configRepository;
 
     @GetMapping("/all")
     public ResponseEntity<String> generate(@RequestParam Long facilityId,
@@ -149,6 +148,7 @@ public class ExportController {
             headers.set(VERSION, version);
             headers.set(GEN_KEY, history.getGenKey());
             headers.set(APP_KEY, appKey);
+            headers.set(CONFIG_VERSION, configRepository.getActiveConfigVersion().orElse(null));
             //just the username
             String encryptedUsername = exportService.encryptMessage(loginVM.getUsername(), appKey);
             headers.set(CREDENTIAL, encryptedUsername);
