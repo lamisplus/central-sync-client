@@ -212,7 +212,7 @@ const SendToServer = (props) => {
             return error.response.data;
         } else {
             return "No Error Message";
-        }  
+        }
     }
 
 
@@ -253,7 +253,11 @@ const SendToServer = (props) => {
                     )
                         .then(response => {
                             setCurrentlyUploading('');
-                            alreadyUploaded.current = [...alreadyUploaded.current, element.fileName];
+                            if (props.isSingleFile === true) {
+                                alreadyUploaded.current = [element.fileName];
+                            } else {
+                                alreadyUploaded.current = [...alreadyUploaded.current, element.fileName];
+                            }
                         })
                         .catch(error => {
                             const errorMessage = getErrorMessage(error);
@@ -280,7 +284,9 @@ const SendToServer = (props) => {
                     toast.success("Sync Successful. All files uploaded successfully.");
                     props.refreshPrevious();
                 }
-            }};
+            }} else {
+                setSaving(false);
+            };
     }
 
     const getUploadPercentage = () => {
@@ -298,7 +304,7 @@ const SendToServer = (props) => {
 
             <Modal isOpen={props.showModal} toggle={toggleModal} className={props.className} size="lg" backdrop="static">
                 <Form >
-                    <ModalHeader className={classes.header} toggle={props.toggleModal}>SEND TO SERVER </ModalHeader>
+                    <ModalHeader className={classes.header} toggle={toggleModal}>SEND TO SERVER </ModalHeader>
                     <ModalBody>
                         <Typography fontSize={"14px"} marginBottom={"10px"}>
                             {`Sending `} <span style={{ fontWeight: "600" }}>{`${props?.rowObj?.tableName || props?.rowObj?.fileName}`}</span>
@@ -348,7 +354,7 @@ const SendToServer = (props) => {
                                     type='submit'
                                     variant='contained'
                                     disabled={(alreadyUploaded.current.length === generatedFiles.length) || saving}
-                                    style={{ backgroundColor: '#014d88', fontWeight: "bolder" }}
+                                    style={{ backgroundColor: !((alreadyUploaded.current.length === generatedFiles.length) || saving) ?'#014d88' : "#979a9c", fontWeight: "bolder" }}
                                     onClick={handleSubmit}
                                 >
                                     <span style={{ textTransform: "capitalize ", color: "#fff" }}>Send To Server</span>

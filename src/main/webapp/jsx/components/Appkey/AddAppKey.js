@@ -195,8 +195,9 @@ const Index = (props) => {
                 .then(response => {
                     setSaving(false);
                     toast.success("APP KEY save successful")
-                    props.showAppKeysListTable(true)
+                    // props.showAppKeysListTable(true)
                     props.AppKeyHistory();
+                    showListiew();
                 })
                 .catch(error => {
                     setSaving(false);
@@ -206,7 +207,9 @@ const Index = (props) => {
     }
     //
     const showListiew =()=> {
-        props.showAppKeysListTable(true)
+        props.setKeyObj(null);
+        setKeyDetails(defaultValues)
+        props.showAppKeysListTable(true) 
         props.setShowViewKey(false)
     }
 

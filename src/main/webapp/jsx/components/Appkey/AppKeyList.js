@@ -124,7 +124,7 @@ const AppKeyList = (props) => {
         AppKeyHistory();
     }, []);
 
-    ///GET LIST OF Sync History
+    ///GET LIST OF Sync History 
     async function AppKeyHistory() {
         axios
             .get(`${baseUrl}sync/app-key`,
@@ -224,7 +224,11 @@ const AppKeyList = (props) => {
             </>)
                 :
             (<>
-            <AddAppKey keyList={keyList} setShowViewKey={setShowViewKey} showViewKey={showViewKey} showAppKeysListTable={showAppKeysListTable} AppKeyHistory={AppKeyHistory} keyObj={keyObj}/>
+            <AddAppKey 
+                keyList={keyList} setShowViewKey={setShowViewKey} showViewKey={showViewKey} 
+                showAppKeysListTable={showAppKeysListTable} AppKeyHistory={AppKeyHistory} 
+                keyObj={keyObj} setKeyObj={setKeyObj}
+            />
             </>)
             }
 

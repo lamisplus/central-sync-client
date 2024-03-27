@@ -149,20 +149,6 @@ useEffect(() => {
     JsonSyncHistory();
     }, []);
 
-    // const varient = (value) => {
-    //     // console.log(value);
-    //     if (value <= 20) {
-    //       return "danger";
-    //     } else if (value > 20 && value <= 69) {
-    //       return "warning";
-    //     } else if (value >= 70 && value <= 99) {
-    //       return "info";
-    //     } else if (value === 100) {
-    //       return "success";
-    //     } else {
-    //       return "success";
-    //     }
-    //   };
 
     /*****  Validation */
     const validate = () => {
@@ -377,12 +363,12 @@ useEffect(() => {
 
                                             <Dropdown.Item disabled={(row.hasError !== null && row.hasError) || Math.ceil(row.percentageSynced) === 100}  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
                                             </Dropdown.Item>
-                                            <Dropdown.Item  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
-                                            </Dropdown.Item>
+                                            {/* <Dropdown.Item  onClick={() => downloadFile(row.tableName)}><CloudDownloadIcon color="primary"/> Download File
+                                            </Dropdown.Item> */}
                                             <Dropdown.Item disabled={(row.hasError !== null && row.hasError) || Math.ceil(row.percentageSynced) === 100}  onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
                                             </Dropdown.Item>
-                                            <Dropdown.Item  onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
-                                            </Dropdown.Item>
+                                            {/* <Dropdown.Item  onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
+                                            </Dropdown.Item> */}
                                             {/* <Dropdown.Item onClick={() => sendToServerAction(row)}><CloudUpload color="primary"/> Send To Server
                                             </Dropdown.Item> */}
                                             <Dropdown.Item  onClick={() => displayGeneratedfiles(row)}><VisibilityIcon color="primary"/>View Generated Files

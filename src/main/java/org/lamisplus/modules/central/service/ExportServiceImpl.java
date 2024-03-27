@@ -11,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
+import org.lamisplus.modules.central.domain.entity.Config;
 import org.lamisplus.modules.central.domain.entity.ConfigTable;
 import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
 import org.lamisplus.modules.central.domain.mapper.ResultSetToJsonMapper;
@@ -70,6 +72,7 @@ public class ExportServiceImpl implements ExportService {
     private final RSAUtils rsaUtils;
     private final ConfigModuleService configModuleService;
     HashMap<String, String> fileNames = new HashMap<>();
+    private final ConfigService configService;
 
 
     /**
@@ -279,6 +282,9 @@ public class ExportServiceImpl implements ExportService {
      */
     public boolean syncData(String fileLocation, FileDetail fileDetail) {
         try {
+            String configVersion = configService
+                    .getActiveConfig()
+                    .orElseThrow(()-> new EntityNotFoundException(Config.class, "Config", "is null"));
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JsonFactory jsonFactory = new JsonFactory();
             JSONArray jArray = new JSONArray();
@@ -293,7 +299,7 @@ public class ExportServiceImpl implements ExportService {
                 jsonGenerator.writeStringField("key", fileDetail.getKey());
                 jsonGenerator.writeStringField("datimId", fileDetail.getDatimId());
                 jsonGenerator.writeStringField("appKey", fileDetail.getAppKey());
-                //jsonGenerator.writeStringField("fileTracker", fileDetail.getFileTracker().toString());
+                jsonGenerator.writeStringField("configVersion", configVersion);
                 for (FileTrackerDTO fileTrackerDTO : fileDetail.getFileTracker()) {
                     JSONObject trackerJsonObject = new JSONObject();
                     trackerJsonObject.put("fileName", fileTrackerDTO.getFileName());
