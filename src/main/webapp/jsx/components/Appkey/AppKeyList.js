@@ -158,11 +158,11 @@ const AppKeyList = (props) => {
             {appKeysListTable ? (<>
                 <Button
                     variant="contained"
-                    style={{backgroundColor: keyList.length === 0 && "#014d88" }}
+                    style={{backgroundColor: "#014d88" }}
                     className=" float-right mr-1"
                     //startIcon={<FaUserPlus />}
                     onClick={createAppKey}
-                    disabled={keyList.length > 0}
+                    // disabled={keyList.length > 0}
                 >
                     <span style={{ textTransform: "capitalize", color:"#fff" }}>Add App Key </span>
                 </Button>
@@ -224,7 +224,7 @@ const AppKeyList = (props) => {
             </>)
                 :
             (<>
-            <AddAppKey setShowViewKey={setShowViewKey} showViewKey={showViewKey} showAppKeysListTable={showAppKeysListTable} AppKeyHistory={AppKeyHistory} keyObj={keyObj}/>
+            <AddAppKey keyList={keyList} setShowViewKey={setShowViewKey} showViewKey={showViewKey} showAppKeysListTable={showAppKeysListTable} AppKeyHistory={AppKeyHistory} keyObj={keyObj}/>
             </>)
             }
 

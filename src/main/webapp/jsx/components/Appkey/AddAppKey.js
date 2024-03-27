@@ -103,14 +103,18 @@ const Index = (props) => {
     
     useEffect(() => {
         Facilities();
-        // AppKeyHistory();
-        setKeyDetails(props.keyObj);
+        setKeyDetails(props.keyObj ? props.keyObj : defaultValues);
     }, [props]);
-    // useEffect(() => {
-    //     if (props.keyObj) {
-    //         setKey(props.keyObj.appKey);
-    //     }
-    // }, [props.keyObj]);
+    
+
+    const facilityExistsInKeyList = (facilityId) => {
+        const facilityKey = props.keyList.find((key) => Number(key.facilityId) === facilityId);
+        if (facilityKey) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     async function AppKeyHistory() {
         axios
             .get(`${baseUrl}sync/app-key`,
@@ -129,17 +133,29 @@ const Index = (props) => {
                 { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {
+                const keyList = props.keyList;
+                const facilities = response.data.applicationUserOrganisationUnits.map((facility) => {
+                    return {
+                        label: facility.organisationUnitName,
+                        value: facility.organisationUnitId
+                    };
+                }).filter((facility) => {
+                    return props.keyObj === null ? !facilityExistsInKeyList(Number(facility.value)) : true;
+                });
+                setFacilities(facilities);
 
-                setFacilities(
-                    Object.entries(response.data.applicationUserOrganisationUnits).map(([key, value]) => ({
-                        label: value.organisationUnitName,
-                        value: value.organisationUnitId,
-                    }))
-                );
+                // setFacilities(
+                //     Object.entries(response.data.applicationUserOrganisationUnits).filter().map(([key, value]) => ({
+                //         label: value.organisationUnitName,
+                //         value: value.organisationUnitId,
+                //     }))
+                // );
             })
             .catch((error) => {
 
             });
+
+            console.log(props.keyObj, props.keyList, facilities);
 
     }
     const validate = () => {
@@ -169,10 +185,8 @@ const Index = (props) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("its here");
         console.log(keyDetails);
         if (validate()) {
-            console.log("now here");
             setSaving(true);
             axios.post(`${baseUrl}sync/app-key`,keyDetails,
                 { headers: {"Authorization" : `Bearer ${token}`}},
@@ -267,7 +281,7 @@ const Index = (props) => {
                                     style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
                                     value={keyDetails?.facilityId}
                                 >
-                                    <option > </option>
+                                    <option></option>
                                     {facilities.map(({ label, value }) => (
                                         <option key={value} value={value}>
                                             {label}
