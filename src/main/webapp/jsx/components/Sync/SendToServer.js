@@ -203,17 +203,32 @@ const SendToServer = (props) => {
         }
     }
 
+    const getErrorMessage = (error) => {
+        if (error.response && error.response.data && error.response.data.apierror) {
+            return error.response.data.apierror.message;
+        } else if (error.code === 'ECONNABORTED') {
+            return 'Request Timed Out. Please check your internet connectivity and try again.';
+        } else if (error.response && error.response.data && typeof error.response.data === 'string') {
+            return error.response.data;
+        } else {
+            return "No Error Message";
+        }
+    }
+
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (validate()) {
-            var fileUploadErrors = [];
+            var fileUploadErrors = new Set();
             var errorCount = 0;
             await axios.post(`${baseUrl}sync/sync-history/${getSyncHistoryId()}`, patDetails,
             { headers: { "Authorization": `Bearer ${token}` } })
             .then(response => {
                 alreadyUploaded.current = response.data;
-            })
+            }).catch(error => {
+                toast.error(`Error:  ${getErrorMessage(error)}`, { autoClose: 2000 });
+            });
 
             try {
                 setSaving(true);
@@ -238,28 +253,40 @@ const SendToServer = (props) => {
                     )
                         .then(response => {
                             setCurrentlyUploading('');
-                            alreadyUploaded.current = [...alreadyUploaded.current, element.fileName];
+                            if (props.isSingleFile === true) {
+                                alreadyUploaded.current = [element.fileName];
+                            } else {
+                                alreadyUploaded.current = [...alreadyUploaded.current, element.fileName];
+                            }
                         })
                         .catch(error => {
+                            const errorMessage = getErrorMessage(error);
                             setCurrentlyUploading('');
-                            fileUploadErrors.push(element.fileName);
+                            fileUploadErrors.add(errorMessage);
                             errorCount++;
+                            toast.error(`Error:  ${errorMessage}`, { autoClose: 2000 });
                         });
                 }
 
             } catch (error) {
-                console.log(error);
+                console.log(`Error:  ${error}`);
 
             } finally {
                 setSaving(false);
                 if (errorCount > 0) {
-                    toast.error(`File upload incomplete. Error uploading ${fileUploadErrors.join(', ')}. Please check your internet connection, and try again.`);
+                    var errorText = "\n";
+                    fileUploadErrors.forEach((item) => {
+                        errorText += item + "\n";
+                    });
+                    toast.error(`Some files did not upload. ${errorText}`, { autoClose: false });
                     props.refreshPrevious();
                 } else {
                     toast.success("Sync Successful. All files uploaded successfully.");
                     props.refreshPrevious();
                 }
-            }};
+            }} else {
+                setSaving(false);
+            };
     }
 
     const getUploadPercentage = () => {
@@ -277,7 +304,7 @@ const SendToServer = (props) => {
 
             <Modal isOpen={props.showModal} toggle={toggleModal} className={props.className} size="lg" backdrop="static">
                 <Form >
-                    <ModalHeader className={classes.header} toggle={props.toggleModal}>SEND TO SERVER </ModalHeader>
+                    <ModalHeader className={classes.header} toggle={toggleModal}>SEND TO SERVER </ModalHeader>
                     <ModalBody>
                         <Typography fontSize={"14px"} marginBottom={"10px"}>
                             {`Sending `} <span style={{ fontWeight: "600" }}>{`${props?.rowObj?.tableName || props?.rowObj?.fileName}`}</span>
@@ -327,7 +354,7 @@ const SendToServer = (props) => {
                                     type='submit'
                                     variant='contained'
                                     disabled={(alreadyUploaded.current.length === generatedFiles.length) || saving}
-                                    style={{ backgroundColor: '#014d88', fontWeight: "bolder" }}
+                                    style={{ backgroundColor: !((alreadyUploaded.current.length === generatedFiles.length) || saving) ?'#014d88' : "#979a9c", fontWeight: "bolder" }}
                                     onClick={handleSubmit}
                                 >
                                     <span style={{ textTransform: "capitalize ", color: "#fff" }}>Send To Server</span>
