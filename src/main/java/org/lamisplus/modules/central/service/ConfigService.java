@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -23,6 +24,10 @@ public class ConfigService {
         config.setActive(true);
         InactivatePreviousConfig();
         return repository.save(config);
+    }
+
+    public Optional<String> getActiveConfig(){
+        return repository.getActiveConfigVersion();
     }
 
     public Config FindById(UUID Id){
