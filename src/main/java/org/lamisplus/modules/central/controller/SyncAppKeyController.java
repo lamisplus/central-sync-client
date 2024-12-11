@@ -8,6 +8,7 @@ import org.lamisplus.modules.central.domain.entity.FacilityAppKey;
 import org.lamisplus.modules.central.domain.mapper.SyncMapper;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.service.FacilityAppKeyService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,17 +27,19 @@ public class SyncAppKeyController {
     private final SyncMapper mapper;
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<FacilityAppKey> create(@RequestBody FacilityAppKey facilityAppKey) {
-        if(facilityAppKey.getServerUrl().endsWith(SERVER_URL_SUFFIX)){
+    public ResponseEntity<FacilityAppKey> create(@RequestBody FacilityAppKeyDto facilityAppKeyDto) {
+        if(facilityAppKeyDto.getServerUrl().endsWith(SERVER_URL_SUFFIX)){
             throw new IllegalTypeException(FacilityAppKey.class, "Server url issue", "check url");
         }
-        facilityAppKey.setId(java.util.UUID.randomUUID());
-        return ResponseEntity.ok(service.Save(facilityAppKey));
+        facilityAppKeyDto.setId(java.util.UUID.randomUUID());
+        FacilityAppKey facilityAppKey = new FacilityAppKey();
+        BeanUtils.copyProperties(facilityAppKey, facilityAppKeyDto);
+        return ResponseEntity.ok(service.save(facilityAppKey));
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<FacilityAppKeyDto>> getAll() {
-        List<FacilityAppKeyDto> keys = mapper.toFacilityAppKeyDtoList(service.FindAll());
+        List<FacilityAppKeyDto> keys = mapper.toFacilityAppKeyDtoList(service.findAll());
         for(FacilityAppKeyDto key : keys){
             key.setFacilityName(syncHistoryRepository.getFacilityNameById(Long.valueOf(key.getFacilityId())).orElse(""));
         }
@@ -45,15 +48,15 @@ public class SyncAppKeyController {
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<FacilityAppKeyDto> getById(@PathVariable("id") UUID id) {
-        FacilityAppKeyDto key=mapper.toFacilityAppKeyDto(service.FindById(id));
+        FacilityAppKeyDto key=mapper.toFacilityAppKeyDto(service.findById(id));
         key.setFacilityName(syncHistoryRepository.getFacilityNameById(Long.valueOf(key.getFacilityId())).orElse(""));
         return ResponseEntity.ok(key);
     }
 
     @DeleteMapping(value = "/{id}",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> Delete(@PathVariable("id") UUID id) {
-        service.Delete(id);
+    public ResponseEntity<String> delete(@PathVariable("id") UUID id) {
+        service.delete(id);
         return ResponseEntity.accepted().build();
     }
 }
