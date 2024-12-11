@@ -28,9 +28,12 @@ public class ConfigTable {
     private String excludeColumns;
 
     @Column(name = "has_facility_id")
-    public Boolean hasFacilityId;
+    private boolean hasFacilityId;
 
     @Column(name = "config_module_id", nullable = false)
     private UUID configModuleId;
+
+    @Column(name = "archived")
+    public Boolean archived;
 }
 

@@ -1,13 +1,8 @@
 package org.lamisplus.modules.central.controller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
 import org.lamisplus.modules.central.domain.dto.SyncDetailDto;
@@ -50,8 +45,8 @@ public class ExportController {
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final FacilityAppKeyRepository facilityAppKeyRepository;
-    private String API_URL = "/api/v1/sync/receive-data/";
-    private String LOGIN_API = "/api/v1/authenticate";
+    private String apiUrl = "/api/v1/sync/receive-data/";
+    private String loginApi = "/api/v1/authenticate";
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository historyRepository;
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
@@ -107,7 +102,7 @@ public class ExportController {
                 .orElseThrow(()-> new EntityNotFoundException(FacilityAppKey.class, "App Key", "not available"));
 
         List<SyncHistoryTracker> trackers = new ArrayList<>();
-        String USE_API_URL = syncService.checkUrl(facilityAppKey).concat(API_URL);
+        String useApiUrl = syncService.checkUrl(facilityAppKey).concat(apiUrl);
 
         if(syncDetailDto.getSyncHistoryTrackerUuid() != null){
             SyncHistoryTracker tracker = syncHistoryTrackerRepository
@@ -128,13 +123,13 @@ public class ExportController {
         loginVM.setUsername(syncDetailDto.getUsername());
         loginVM.setPassword(syncDetailDto.getPassword());
 
-        return getStringResponseEntity(syncDetailDto.getFacilityId(), loginVM, trackers, USE_API_URL, history);
+        return getStringResponseEntity(syncDetailDto.getFacilityId(), loginVM, trackers, useApiUrl, history);
     }
 
-    private ResponseEntity<String> getStringResponseEntity(Long facilityId, LoginVM loginVM, List<SyncHistoryTracker> trackers, String USE_API_URL, SyncHistory history) {
+    private ResponseEntity<String> getStringResponseEntity(Long facilityId, LoginVM loginVM, List<SyncHistoryTracker> trackers, String useApiUrl, SyncHistory history) {
         ResponseEntity<String> responseEntity = null;
         String datimId = historyRepository.getDatimCode(facilityId);
-        String appKey = facilityAppKeyService.FindByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
+        String appKey = facilityAppKeyService.findByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
 
         for (SyncHistoryTracker tracker : trackers) {
             byte[] byteRequest = fileUtility.convertFileToByteArray(history.getFilePath() + File.separator + tracker.getFileName());
@@ -154,7 +149,7 @@ public class ExportController {
             headers.set(CREDENTIAL, encryptedUsername);
 
             try {
-                String apiUrl = USE_API_URL + datimId + "/" + history.getUuid() + "/" + tracker.getUuid() + "/" + tracker.getFileName();
+                String apiUrl = useApiUrl + datimId + "/" + history.getUuid() + "/" + tracker.getUuid() + "/" + tracker.getFileName();
                 log.info("apiUrl {}", apiUrl);
                 HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
 

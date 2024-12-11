@@ -9,18 +9,17 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
-import org.lamisplus.modules.central.domain.entity.Config;
-import org.lamisplus.modules.central.domain.entity.ConfigTable;
-import org.lamisplus.modules.central.domain.entity.SyncHistoryTracker;
+import org.lamisplus.modules.central.domain.entity.*;
 import org.lamisplus.modules.central.domain.mapper.ResultSetToJsonMapper;
 import org.lamisplus.modules.central.domain.dto.*;
-import org.lamisplus.modules.central.domain.entity.SyncHistory;
 import org.lamisplus.modules.central.repository.SyncHistoryRepository;
 import org.lamisplus.modules.central.repository.SyncHistoryTrackerRepository;
+import org.lamisplus.modules.central.repository.SyncTableCountRepository;
 import org.lamisplus.modules.central.utility.*;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -59,12 +59,11 @@ public class ExportServiceImpl implements ExportService {
     public static final String INIT = "init";
     public static final String UNDER_SCORE = "_";
     public static final String NOT_AVAILABLE = "N/A";
-    public static Long FILE_FACILITY_ID = null;
     private final FileUtility fileUtility;
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository syncHistoryRepository;
     private final SyncHistoryTrackerRepository syncHistoryTrackerRepository;
-    private static final ArrayList MESSAGE_LOG = new ArrayList<>();
+    private static final ArrayList<MessageLog> MESSAGE_LOG = new ArrayList<>();
     private final DateUtility dateUtility;
     private final DataSource dataSource;
     private final ConfigTableService configTableService;
@@ -73,20 +72,26 @@ public class ExportServiceImpl implements ExportService {
     private final ConfigModuleService configModuleService;
     HashMap<String, String> fileNames = new HashMap<>();
     private final ConfigService configService;
-
+    private final SyncTableCountRepository syncTableCountRepository;
 
     /**
      * generate files for syncing.
-     * @param facilityId
-     * @param current
+     * @param facilityId - facility id
+     * @param current - is it for current generation
      * @return String
      */
     @Override
-    public String generateFilesForSyncing(Long facilityId, Boolean current) {
-        FILE_FACILITY_ID = facilityId;
+    public String generateFilesForSyncing(Long facilityId, boolean current) {
+        //generate table count
+        generateTableCount(facilityId);
+
         boolean anyTable = false;
         SyncHistoryResponse syncResponse = null;
-        String appKey = facilityAppKeyService.FindByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
+
+        //get client public key
+        String clientPublicKey = facilityAppKeyService
+                .findByFacilityId(Integer.valueOf(String.valueOf(facilityId)))
+                .getAppKey();
 
 
         List<SyncHistoryTracker> saveTrackers = null;
@@ -96,16 +101,12 @@ public class ExportServiceImpl implements ExportService {
 
         //Generate uuid for the key
         String uuid = java.util.UUID.randomUUID().toString();
-        Path path = Paths.get(TEMP_BATCH_DIR);
-        if(!Files.exists(path)) {
-            try {
-                Files.createDirectories(path);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+
+        createDirectory(Paths.get(TEMP_BATCH_DIR));
+
         String start = START_DATE;
-        String end = dateUtility.ConvertDateTimeToString(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        String end = dateUtility.ConvertDateTimeToString(now);
 
         SyncHistory history = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
 
@@ -120,14 +121,10 @@ public class ExportServiceImpl implements ExportService {
         String folder = TEMP_BATCH_DIR + fileFolder + File.separator;
         Path folderPath = Paths.get(folder);
         Path createdFile = folderPath;
-        try {
-            createdFile = Files.createDirectories(folderPath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        createdFile = getCreatedFile(folderPath, createdFile);
 
         try {
-            if(!fileNames.isEmpty())fileNames.clear();
+            clearFile();
             List<SyncHistoryTracker> syncHistoryTrackers = new ArrayList<>();
             List<ConfigTable> configTables = configTableService.getTablesForSyncing();
             //Generate AES key...
@@ -135,9 +132,8 @@ public class ExportServiceImpl implements ExportService {
 
             for(ConfigTable configTable : configTables){
                 List<SyncHistoryTracker> trackers;
-                Long facility = configTable.getHasFacilityId() == null || !configTable.getHasFacilityId() ? null : facilityId;
-                trackers = exportAnyTable(configTable.getTableName(), facility, configTable.getUpdateColumn(), start,
-                        configTable.getUpdateColumn(), end, fileFolder, uuid, configTable.getExcludeColumns());
+                trackers = exportAnyTable(configTable, facilityId, configTable.getUpdateColumn(), start,
+                        end, fileFolder, uuid, configTable.getExcludeColumns());
                 if(!trackers.isEmpty()) {
                     anyTable = true;
                     syncHistoryTrackers.addAll(trackers);
@@ -152,18 +148,18 @@ public class ExportServiceImpl implements ExportService {
                 File dir = new File(createdFile + File.separator);
 
                 //encrypted key
-                String key = manageKey(uuid, appKey);
+                String key = manageKey(uuid, clientPublicKey);
 
-                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, 0, (MESSAGE_LOG.isEmpty()) ? null : MESSAGE_LOG, folder, key);
+                SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, 0, getMessageLog(), folder, key);
                 syncResponse = syncHistoryService.saveSyncHistory(request);
 
                 if (syncResponse != null && !syncHistoryTrackers.isEmpty()) {
                     saveTrackers = syncHistoryTrackerRepository.saveAll(getSyncHistoryTrackers(syncHistoryTrackers, syncResponse));
                 }
                 //set file details
-                FileDetail fileDetail = setFileDetails(appKey, datimCode, current, syncResponse, saveTrackers);
+                FileDetail fileDetail = setFileDetails(clientPublicKey, datimCode, current, syncResponse, saveTrackers);
                 //create meta data
-                syncData(fileFolder, fileDetail);
+                syncData(fileFolder, fileDetail, now);
 
                 //zip json files
                 fileUtility.zipDirectory(dir, fullPath, fileFolder);
@@ -171,20 +167,73 @@ public class ExportServiceImpl implements ExportService {
                 int fileSize = (int) fileUtility.getFileSize(fullPath);
                 SyncHistory syncHistory = syncHistoryRepository.findByGenKey(key).orElse(null);
                 //update history with file size
-                if(syncHistory != null){
-                    syncHistory.setUploadSize(fileSize);
-                    syncHistoryRepository.save(syncHistory);
-                }
+                setUploadSizeAndSave(fileSize, syncHistory);
                 log.info("Data export completed");
             } else {
                 zipFileName = "NO_RECORD";
             }
-        } catch (Exception e) {
+        } catch (IOException | GeneralSecurityException e) {
             log.debug("Something went wrong. Error: {}", e.getMessage());
             e.printStackTrace();
         }
         log.info("Initializing successful generated file...");
         return zipFileName;
+    }
+
+    /**
+     * clear File
+     * @return void
+     */
+    private void clearFile() {
+        if(!fileNames.isEmpty())fileNames.clear();
+    }
+
+    @Nullable
+    private static List<MessageLog> getMessageLog() {
+        return (MESSAGE_LOG.isEmpty()) ? null : MESSAGE_LOG;
+    }
+
+    /**
+     * set file size and save
+     * @param fileSize
+     * @param syncHistory
+     * @return void
+     */
+    private void setUploadSizeAndSave(int fileSize, SyncHistory syncHistory) {
+        if(syncHistory != null){
+            syncHistory.setUploadSize(fileSize);
+            syncHistoryRepository.save(syncHistory);
+        }
+    }
+
+    /**
+     * get created file
+     * @param folderPath
+     * @param createdFile
+     * @return Path
+     */
+    private static Path getCreatedFile(Path folderPath, Path createdFile) {
+        try {
+            createdFile = Files.createDirectories(folderPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return createdFile;
+    }
+
+    /**
+     * create directory
+     * @param path
+     * @return void
+     */
+    private static void createDirectory(Path path) {
+        if(!Files.exists(path)) {
+            try {
+                Files.createDirectories(path);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -196,10 +245,11 @@ public class ExportServiceImpl implements ExportService {
      * @Param saveTrackers
      * @return FileDetail
      */
-    private FileDetail setFileDetails(String appKey, String datimId, Boolean current, @NotNull  SyncHistoryResponse syncResponse, List<SyncHistoryTracker> saveTrackers) {
+    private FileDetail setFileDetails(String appKey, String datimId, Boolean current,
+                                      @NotNull  SyncHistoryResponse syncResponse, List<SyncHistoryTracker> saveTrackers) {
         FileDetail fileDetail = new FileDetail();
         //Set file details
-        if(syncResponse != null && !saveTrackers.isEmpty()) {
+        if(!saveTrackers.isEmpty()) {
             fileDetail.setKey(syncResponse.getGenKey());
             fileDetail.setHistory(syncResponse.getUuid());
             fileDetail.setInit(current);
@@ -221,18 +271,7 @@ public class ExportServiceImpl implements ExportService {
         return fileDetail;
     }
 
-    private List extracted(List<SyncHistoryTracker> trackers) {
-        HashMap<String, String> names = new HashMap<>();
-        if(trackers != null && !trackers.isEmpty()){
-            return trackers.stream()
-                    .map(syncHistoryTracker -> {
-                        names.put(syncHistoryTracker.getFileName(), syncHistoryTracker.getUuid().toString());
-                        return names;
-                    })
-                    .collect(Collectors.toList());
-        }
-        return null;
-    }
+
 
     /**
      * get Sync History Trackers.
@@ -261,7 +300,6 @@ public class ExportServiceImpl implements ExportService {
     private String manageKey(String uuid, String appKey) {
         log.info("manage key {}", uuid);
         try {
-            byte[] keyBytes = DatatypeConverter.parseBase64Binary(uuid);
 
             //encrypt aes key
             byte[] encryptedKey = this.rsaUtils.encrypt(uuid.getBytes(StandardCharsets.UTF_8), appKey);
@@ -280,43 +318,36 @@ public class ExportServiceImpl implements ExportService {
      * @param fileDetail
      * @return boolean
      */
-    public boolean syncData(String fileLocation, FileDetail fileDetail) {
-        try {
+    public boolean syncData(String fileLocation, FileDetail fileDetail, LocalDateTime generationTime) {
+        JsonFactory jsonFactory = new JsonFactory();
+        String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + DATA_JSON + "_" + fileLocation + ".json";
+        try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
             String configVersion = configService
                     .getActiveConfig()
                     .orElseThrow(()-> new EntityNotFoundException(Config.class, "Config", "is null"));
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
-            JsonFactory jsonFactory = new JsonFactory();
             JSONArray jArray = new JSONArray();
-            String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + DATA_JSON + "_" + fileLocation + ".json";
-            try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
-                jsonGenerator.setCodec(objectMapper);
-                jsonGenerator.useDefaultPrettyPrinter();
-                jsonGenerator.writeStartObject();
-                jsonGenerator.writeStringField("version", fileDetail.getVersion());
-                jsonGenerator.writeStringField(INIT, String.valueOf(fileDetail.getInit()));
-                jsonGenerator.writeStringField("history", String.valueOf(fileDetail.getHistory()));
-                jsonGenerator.writeStringField("key", fileDetail.getKey());
-                jsonGenerator.writeStringField("datimId", fileDetail.getDatimId());
-                jsonGenerator.writeStringField("appKey", fileDetail.getAppKey());
-                jsonGenerator.writeStringField("configVersion", configVersion);
-                for (FileTrackerDTO fileTrackerDTO : fileDetail.getFileTracker()) {
-                    JSONObject trackerJsonObject = new JSONObject();
-                    trackerJsonObject.put("fileName", fileTrackerDTO.getFileName());
-                    trackerJsonObject.put("uuid", fileTrackerDTO.getUuid());
-                    jArray.put(trackerJsonObject);
-                }
-                jsonGenerator.writeStringField("fileTracker", jArray.toString());
-
-
-                //configureObjectMapper(objectMapper);
-                jsonGenerator.writeEndObject();
-                addMessageLog(DATA_JSON, SYNC_TRACKER_STATUS, DATA_JSON, GENERATED_SUCCESSFULLY + DATA_JSON, MessageType.SUCCESS);
-                return true;
-            } catch (IOException e) {
-                addMessageLog("data", e.getMessage(), getPrintStackError(e), GENERATING_DATA_JSON, MessageType.ERROR);
-                log.error("Error writing data to a JSON file: {}", e.getMessage());
+            jsonGenerator.setCodec(objectMapper);
+            jsonGenerator.useDefaultPrettyPrinter();
+            jsonGenerator.writeStartObject();
+            jsonGenerator.writeStringField("version", fileDetail.getVersion());
+            jsonGenerator.writeStringField(INIT, String.valueOf(fileDetail.getInit()));
+            jsonGenerator.writeStringField("history", String.valueOf(fileDetail.getHistory()));
+            jsonGenerator.writeStringField("key", fileDetail.getKey());
+            jsonGenerator.writeStringField("datimId", fileDetail.getDatimId());
+            jsonGenerator.writeStringField("appKey", fileDetail.getAppKey());
+            jsonGenerator.writeStringField("configVersion", configVersion);
+            jsonGenerator.writeStringField("jsonGenerationTime", String.valueOf(generationTime));
+            for (FileTrackerDTO fileTrackerDTO : fileDetail.getFileTracker()) {
+                JSONObject trackerJsonObject = new JSONObject();
+                trackerJsonObject.put("fileName", fileTrackerDTO.getFileName());
+                trackerJsonObject.put("uuid", fileTrackerDTO.getUuid());
+                jArray.put(trackerJsonObject);
             }
+            jsonGenerator.writeStringField("fileTracker", jArray.toString());
+            jsonGenerator.writeEndObject();
+            addMessageLog(DATA_JSON, SYNC_TRACKER_STATUS, DATA_JSON, GENERATED_SUCCESSFULLY + DATA_JSON, MessageType.SUCCESS);
+            return true;
         } catch (Exception e) {
             addMessageLog("extract", e.getMessage(), getPrintStackError(e), GENERATING_DATA_JSON,  MessageType.ERROR);
             log.error("Error mapping data: {}", e.getMessage());
@@ -326,10 +357,10 @@ public class ExportServiceImpl implements ExportService {
 
     /**
      * module check and get message log
-     * @return void
+     * @return List<ModuleStatus> - list of module status
      */
-    public void moduleCheckAndMsgLog(){
-        configModuleService.moduleCheck()
+    public List<ModuleStatus> moduleCheckAndMsgLog(){
+        return configModuleService.moduleCheck()
                 .stream()
                 .map(moduleStatus -> {
                     addMessageLog(moduleStatus.getName(),
@@ -342,11 +373,10 @@ public class ExportServiceImpl implements ExportService {
 
     /**
      * Handles table data export on client.
-     * @param tableName
+     * @param configTable
      * @param facilityId
      * @param startName
      * @param startDate
-     * @param endName
      * @param endDate
      * @param fileLocation
      * @param uuid
@@ -354,35 +384,23 @@ public class ExportServiceImpl implements ExportService {
      * @return boolean - true | false
      */
     @Override
-    public List<SyncHistoryTracker> exportAnyTable(String tableName, Long facilityId, String startName,
-                                                   String startDate, String endName, String endDate,
+    public List<SyncHistoryTracker> exportAnyTable(ConfigTable configTable, long facilityId, String startName,
+                                                   String startDate, String endDate,
                                                    String fileLocation, String uuid, String excludeColumn) {
+        String tableName = configTable.getTableName();
         log.info("Started generating... " + tableName);
         List<SyncHistoryTracker> trackers = new ArrayList<>();
         Long level = 0L;
         String query = null;
         JSONArray jsonArray = new JSONArray();
         Connection conn = null;
-        //List list = null;
         SyncHistoryTracker tracker = null;
 
-        if (facilityId == null) {
-            query = "SELECT * FROM %s";
-            query = String.format(query, tableName);
-        } else
-            //where no update or audit column
-            if (startDate == null) {
-                query = "SELECT * FROM %s WHERE facility_id=%d";
-                query = String.format(query, tableName, facilityId);
-            } else {
-                query = "SELECT * FROM %s WHERE facility_id=%d AND %s BETWEEN CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE) AND CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE)";
-                query = String.format(query, tableName, facilityId, startName, startDate, endDate);
-            }
-            log.info("query is {}", query);
+        query = getQuery(tableName, (configTable.isHasFacilityId() ? facilityId : null),
+                configTable.getUpdateColumn(), startDate, endDate, false, false);
 
         try {
             conn = dataSource.getConnection();
-            //Statement stmt = conn.createStatement();
             Statement stmt = conn.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY,
                     java.sql.ResultSet.CONCUR_READ_ONLY);
             stmt.setFetchSize(FETCH_SIZE);
@@ -394,7 +412,7 @@ public class ExportServiceImpl implements ExportService {
 
 
             for (List list : ResultSetToJsonMapper.getPages(queryList, FETCH_SIZE)) {
-                if(list.size() > 0) {
+                if(list.isEmpty()) {
                     ObjectMapper objectMapper = new ObjectMapper();
                     configureObjectMapper(objectMapper);
                     String fileName = tableName + UNDER_SCORE + level + UNDER_SCORE + fileLocation + ".json";
@@ -408,8 +426,20 @@ public class ExportServiceImpl implements ExportService {
                     //Encrypt the byte
                     bytes = AESUtil.encrypt(bytes, secretKey);
                     FileUtils.writeByteArrayToFile(new File(tempFile), bytes);
-                    tracker = new SyncHistoryTracker(null, null, fileName, fileSize, SYNC_TRACKER_STATUS,
-                            LocalDateTime.now(), UN_ARCHIVED, (FILE_FACILITY_ID != null ? FILE_FACILITY_ID : facilityId), null, null);
+                    //build SyncHistoryTracker object
+                    tracker = SyncHistoryTracker.builder()
+                            .id(null)
+                            .syncHistoryId(null)
+                            .fileName(fileName)
+                            .recordSize(fileSize)
+                            .status(SYNC_TRACKER_STATUS)
+                            .timeCreated(LocalDateTime.now())
+                            .archived(UN_ARCHIVED)
+                            .facilityId(facilityId)
+                            .syncHistoryUuid(null)
+                            .uuid(null)
+                            .build();
+
                     addMessageLog(tableName, SYNC_TRACKER_STATUS, fileName, GENERATING, MessageType.SUCCESS);
                     //success log
                     trackers.add(tracker);
@@ -427,6 +457,33 @@ public class ExportServiceImpl implements ExportService {
     return trackers;
     }
 
+    private static String getQuery(String tableName, Long facilityId,
+                                   String startName, String startDate,
+                                   String endDate, boolean count, boolean archived) {
+        String query;
+
+        if (facilityId == null) {
+            query = "SELECT * FROM %s";
+            query = String.format(query, tableName);
+        } else
+            //where no update or audit column
+            if (startDate == null) {
+                query = "SELECT * FROM %s WHERE facility_id=%d";
+                query = String.format(query, tableName, facilityId);
+            } else {
+                query = "SELECT * FROM %s WHERE facility_id=%d AND %s BETWEEN CAST('%s' " +
+                        "AS TIMESTAMP WITHOUT TIME ZONE) AND CAST('%s' AS TIMESTAMP WITHOUT TIME ZONE)";
+                query = String.format(query, tableName, facilityId, startName, startDate, endDate);
+            }
+
+        if(count){
+            query = query.replace("SELECT *", "SELECT COUNT(*)");
+            if(archived)query = query + " AND archived=0";
+        }
+        log.info("query is {}", query);
+        return query;
+    }
+
     /**
      * Closes an open db connection.
      * @param connection
@@ -441,41 +498,6 @@ public class ExportServiceImpl implements ExportService {
             }
         }
     }
-
-    /*private Long countTableRow(String tableName, Long facilityId){
-        log.info("counting table row started... {}", tableName);
-        Connection conn = null;
-        String query;
-        Long count=0L;
-        try {
-            if(facilityId == null){
-                query = "SELECT COUNT(*) FROM %s";
-                query = String.format(query, tableName);
-            } else{
-                    query = "SELECT COUNT(*) FROM %s WHERE facility_id=%d GROUP BY facility_id";
-                    query = String.format(query, tableName, facilityId);
-                }
-
-            conn = dataSource.getConnection();
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(query);
-
-            while (rs.next()){
-                count = rs.getLong(1);
-            }
-            return count;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return count;
-
-    }*/
 
     /**
      * Configures ObjectMapper
@@ -533,26 +555,7 @@ public class ExportServiceImpl implements ExportService {
         return sw.toString();
     }
 
-    /**
-     * get byte from a file
-     * @param path
-     * @return byte[]
-     */
-    private byte[] getByte(String path) {
-        byte[] getBytes = {};
-        try {
-            File file = new File(path);
-            getBytes = new byte[(int) file.length()];
-            InputStream is = new FileInputStream(file);
-            is.read(getBytes);
-            is.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return getBytes;
-    }
+
 
     /**
      * module encrypt Credentials
@@ -592,5 +595,58 @@ public class ExportServiceImpl implements ExportService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * generate table count
+     * @param facilityId
+     * @return void
+     */
+    private void generateTableCount(Long facilityId){
+        List<ConfigTable> configTables = configTableService.getTablesForSyncing();
+        LocalDateTime timeGenerated = LocalDateTime.now();
+        List<SyncTableCount> syncTableCounts = new ArrayList<>();
+        for(ConfigTable configTable : configTables){
+            if(configTable.getTableName().contains("sync_table_count")){
+                continue;
+            }
+            String query = getQuery(configTable.getTableName(), facilityId,
+                    configTable.getUpdateColumn(), null, null, true, configTable.getArchived());
+
+            Connection conn = null;
+            try {
+                conn = dataSource.getConnection();
+                Statement stmt = conn.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY,
+                        java.sql.ResultSet.CONCUR_READ_ONLY);
+                ResultSet resultSet = stmt.executeQuery(query);
+                Long value = 0L;
+                while(resultSet.next()) {
+                    value = resultSet.getLong(1);
+                }
+                //build or set
+                SyncTableCount syncTableCount = SyncTableCount
+                        .builder()
+                        .id(java.util.UUID.randomUUID())
+                        .timeGenerated(timeGenerated)
+                        .facilityId(facilityId)
+                        .totalRecord(value)
+                        .name(configTable.getTableName())
+                        .build();
+                syncTableCounts.add(syncTableCount);
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }finally {
+                if(conn != null) {
+                    try {
+                        conn.close();
+                        log.info("connection closed");
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            syncTableCountRepository.saveAll(syncTableCounts);
+        }
     }
 }
