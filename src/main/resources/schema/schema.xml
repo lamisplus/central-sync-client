@@ -268,4 +268,38 @@
                 ADD COLUMN file_path character varying;
         </sql>
     </changeSet>
+
+    <changeSet failOnError="true" author="Emeka Ilozue" id="202412081137">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM pg_attribute
+                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'sync_table_count')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            CREATE TABLE IF NOT EXISTS sync_table_count(
+                id uuid NOT NULL,
+                name character varying,
+                total_record bigint,
+                time_generated timestamp without time zone,
+                facility_id INTEGER,
+                CONSTRAINT sync_table_count_pk PRIMARY KEY (id)
+                );
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true" author="Emeka Ilozue" id="202412081222">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM pg_attribute
+                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'sync_config_table')
+                AND attname = 'archived';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE IF EXISTS sync_config_table ADD COLUMN archived BOOLEAN;
+        </sql>
+    </changeSet>
 </databaseChangeLog>
