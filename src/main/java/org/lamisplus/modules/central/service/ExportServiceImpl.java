@@ -298,7 +298,6 @@ public class ExportServiceImpl implements ExportService {
      * @return String
      */
     private String manageKey(String uuid, String appKey) {
-        log.info("manage key {}", uuid);
         try {
 
             //encrypt aes key
@@ -396,7 +395,7 @@ public class ExportServiceImpl implements ExportService {
         Connection conn = null;
         SyncHistoryTracker tracker = null;
 
-        query = getQuery(tableName, (configTable.isHasFacilityId() ? facilityId : null),
+        query = getQuery(tableName, getFacilityId(configTable, facilityId),
                 configTable.getUpdateColumn(), startDate, endDate, false, false);
 
         try {
@@ -412,7 +411,7 @@ public class ExportServiceImpl implements ExportService {
 
 
             for (List list : ResultSetToJsonMapper.getPages(queryList, FETCH_SIZE)) {
-                if(list.isEmpty()) {
+                if(!list.isEmpty()) {
                     ObjectMapper objectMapper = new ObjectMapper();
                     configureObjectMapper(objectMapper);
                     String fileName = tableName + UNDER_SCORE + level + UNDER_SCORE + fileLocation + ".json";
@@ -457,12 +456,22 @@ public class ExportServiceImpl implements ExportService {
     return trackers;
     }
 
+    @Nullable
+    private static Long getFacilityId(ConfigTable configTable, long facilityId) {
+        return configTable.isHasFacilityId() ? facilityId : null;
+    }
+
     private static String getQuery(String tableName, Long facilityId,
                                    String startName, String startDate,
                                    String endDate, boolean count, boolean archived) {
         String query;
-
-        if (facilityId == null) {
+        if(count){
+            query = "SELECT COUNT(*) FROM %s";
+            if(archived) {
+                query = query + " WHERE archived=0";
+            }
+            query = String.format(query, tableName);
+        }else if (facilityId == null) {
             query = "SELECT * FROM %s";
             query = String.format(query, tableName);
         } else
@@ -476,10 +485,7 @@ public class ExportServiceImpl implements ExportService {
                 query = String.format(query, tableName, facilityId, startName, startDate, endDate);
             }
 
-        if(count){
-            query = query.replace("SELECT *", "SELECT COUNT(*)");
-            if(archived)query = query + " AND archived=0";
-        }
+
         log.info("query is {}", query);
         return query;
     }
@@ -510,7 +516,6 @@ public class ExportServiceImpl implements ExportService {
         JsonDeserializer<LocalDateTime> deserializer = new LocalDateTimeDeserializer(formatter);
         javaTimeModule.addDeserializer(LocalDateTime.class, deserializer);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        //mapper.configure(DeserializationFeature.)
         objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
@@ -610,7 +615,7 @@ public class ExportServiceImpl implements ExportService {
             if(configTable.getTableName().contains("sync_table_count")){
                 continue;
             }
-            String query = getQuery(configTable.getTableName(), facilityId,
+            String query = getQuery(configTable.getTableName(), getFacilityId(configTable, facilityId),
                     configTable.getUpdateColumn(), null, null, true, configTable.getArchived());
 
             Connection conn = null;

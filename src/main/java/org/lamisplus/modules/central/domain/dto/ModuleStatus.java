@@ -13,15 +13,4 @@ public class ModuleStatus {
 	private String availableVersion;
 	private String minimumVersion;
 	private String maximumVersion;
-
-	//overriding equals() method
-	/*@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == null)
-			return false;
-		if (obj == this)
-			return true;
-		return this.getName() == ((ModuleStatus) obj).getName() && this.getVersion() == ((ModuleStatus) obj).getVersion();
-	}*/
 }

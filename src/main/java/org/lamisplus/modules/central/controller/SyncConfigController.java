@@ -45,7 +45,7 @@ public class SyncConfigController {
             for (ConfigTableDto configTableDto:configModuleDto.getConfigTables()) {
                 ConfigTable configTable = mapper.toConfigTable(configTableDto);
                 configTable.setConfigModuleId(configModule.getId());
-                configTable = configTableService.Save(configTable);
+                configTableService.Save(configTable);
             }
         }
 
@@ -55,31 +55,31 @@ public class SyncConfigController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ConfigDto>> getAllConfigs() {
         List<Config> configs = configService.FindAll();
-        return ResponseEntity.ok(ConvertConfigListToDtoList(configs));
+        return ResponseEntity.ok(convertConfigListToDtoList(configs));
     }
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<ConfigDto> getConfigById(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok(ConvertConfigToDto(configService.FindById(id)));
+        return ResponseEntity.ok(convertConfigToDto(configService.FindById(id)));
     }
 
     @DeleteMapping(value = "/{id}",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> DeleteConfig(@PathVariable("id") UUID id) {
+    public ResponseEntity<String> deleteConfig(@PathVariable("id") UUID id) {
         configService.Delete(id);
         return ResponseEntity.accepted().build();
     }
 
-    private List<ConfigDto> ConvertConfigListToDtoList(List<Config> configs) {
+    private List<ConfigDto> convertConfigListToDtoList(List<Config> configs) {
         List<ConfigDto> configDtos = new ArrayList<>();
 
         for (Config config : configs) {
-            configDtos.add(ConvertConfigToDto(config));
+            configDtos.add(convertConfigToDto(config));
         }
         return configDtos;
     }
 
-    private ConfigDto ConvertConfigToDto(Config config) {
+    private ConfigDto convertConfigToDto(Config config) {
         ConfigDto configDto = mapper.toConfigDto(config);
 
         List<ConfigModuleDto> configModuleDtos = mapper.toConfigModuleDtoList(configModuleService.FindAllByConfigId(configDto.getId()));

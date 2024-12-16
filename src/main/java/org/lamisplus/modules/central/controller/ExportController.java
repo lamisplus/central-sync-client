@@ -126,7 +126,8 @@ public class ExportController {
         return getStringResponseEntity(syncDetailDto.getFacilityId(), loginVM, trackers, useApiUrl, history);
     }
 
-    private ResponseEntity<String> getStringResponseEntity(Long facilityId, LoginVM loginVM, List<SyncHistoryTracker> trackers, String useApiUrl, SyncHistory history) {
+    private ResponseEntity<String> getStringResponseEntity(Long facilityId, LoginVM loginVM, List<SyncHistoryTracker> trackers,
+                                                           String useApiUrl, SyncHistory history) {
         ResponseEntity<String> responseEntity = null;
         String datimId = historyRepository.getDatimCode(facilityId);
         String appKey = facilityAppKeyService.findByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
@@ -149,11 +150,11 @@ public class ExportController {
             headers.set(CREDENTIAL, encryptedUsername);
 
             try {
-                String apiUrl = useApiUrl + datimId + "/" + history.getUuid() + "/" + tracker.getUuid() + "/" + tracker.getFileName();
-                log.info("apiUrl {}", apiUrl);
+                String api = useApiUrl + datimId + "/" + history.getUuid() + "/" + tracker.getUuid() + "/" + tracker.getFileName();
+                log.info("apiUrl {}", api);
                 HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
 
-                responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
+                responseEntity = restTemplate.exchange(api, HttpMethod.POST, requestEntity, String.class);
                 if (responseEntity.getStatusCode() == HttpStatus.OK) {
                     syncHistoryService.updateSyncHistoryTracker(tracker.getId());
                 }else {

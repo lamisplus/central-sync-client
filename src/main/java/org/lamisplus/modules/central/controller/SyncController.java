@@ -14,18 +14,13 @@ import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.central.service.SyncService;
 import org.lamisplus.modules.central.utility.ConstantUtility;
 import org.lamisplus.modules.central.utility.RSAUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.List;
