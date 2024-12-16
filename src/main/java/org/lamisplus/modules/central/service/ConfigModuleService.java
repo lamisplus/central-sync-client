@@ -85,7 +85,7 @@ public class ConfigModuleService {
                                 syncModule.getMinVersion(), syncModule.getMaxVersion()));
                     } else {
                         moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
-                                MessageType.WARNING, appModule.getVersion(),
+                                MessageType.ERROR, appModule.getVersion(),
                                 syncModule.getMinVersion(), syncModule.getMaxVersion()));
                     }
 

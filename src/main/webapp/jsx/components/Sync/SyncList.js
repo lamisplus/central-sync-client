@@ -132,7 +132,7 @@ const SyncList = (props) => {
   const toggleSendToServerModal = () => setSendToServerModal(!sendToServerModal);
   const [modal2, setModal2] = useState(false);
   const toggle2 = () => setModal2(!modal2);
-  const defaultValues = { facilityId: "", startDate : "", endDate:"", all:false}
+  const defaultValues = { facilityId: "", start : "", end:"", all:false}
   const [uploadDetails, setUploadDetails] = useState(defaultValues);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -156,6 +156,16 @@ useEffect(() => {
         temp.facilityId = uploadDetails.facilityId
             ? ""
             : "Facility is required";
+            if (uploadDetails.start && !uploadDetails.end) { 
+                temp.start = ""; 
+                temp.end = "End date is required if start date is provided"; 
+            } else if (!uploadDetails.start && uploadDetails.end) { 
+                temp.start = "Start date is required if end date is provided"; 
+                temp.end = ""; 
+            } else { 
+                temp.start = ""; 
+                temp.end = ""; 
+            }
             setErrors({
                 ...temp,
             });
@@ -194,44 +204,58 @@ useEffect(() => {
     
     }
     const handleInputChange = e => {
-        setUploadDetails ({...uploadDetails,  [e.target.name]: e.target.value});
+        const { name, value } = e.target; 
+        if (name === 'start' && value === '') { 
+            setUploadDetails(prevState => ({ ...prevState, start: '', end: '' })); 
+        } else { 
+            setUploadDetails(prevState => ({ ...prevState, [name]: value }));
+        }
     }
     const handleCheckBox =e =>{
         if(e.target.checked){
             setUploadDetails ({...uploadDetails,  ['all']: e.target.checked});  
             //setOvcEnrolled(true)
         }else{
-            setUploadDetails ({...uploadDetails,  ['all']: false}); 
+            setUploadDetails ({...uploadDetails,  ['all']: false, start: '', end: '' }); 
         }
     }
-    const handleSubmit = async e => {  
+
+    const handleSubmit = async e => {
         e.preventDefault();
         setSaving(true);
-        if(validate()){
+        if (validate()) {
+        // if (true) {
+            let url = '';
+            if (uploadDetails.start && uploadDetails.end) {
+                url = `${baseUrl}export/all/date-range?facilityId=${uploadDetails.facilityId}&current=${uploadDetails.all}` +
+                    `&start=${uploadDetails.start}&end=${uploadDetails.end}`
+            } else {
+                url = `${baseUrl}export/all?facilityId=${uploadDetails.facilityId}&current=${uploadDetails.all}`
+            }
             try {
-                const res = await axios.get(`${baseUrl}export/all?facilityId=${uploadDetails.facilityId}&current=${uploadDetails.all}`, {
-                    headers: {"Authorization" : `Bearer ${token}`},
+                const res = await axios.get(url, {
+                    headers: { "Authorization": `Bearer ${token}` },
                     onUploadProgress: progressEvent => {
                         setUploadPercentage(
-                        parseInt(
-                            Math.round((progressEvent.loaded * 100) / progressEvent.total)
-                        )
+                            parseInt(
+                                Math.round((progressEvent.loaded * 100) / progressEvent.total)
+                            )
                         );
                         // Clear percentage
                         setTimeout(() => setUploadPercentage(0), 10000);
                     }
                 });
                 toast.success("JSON Extraction was successful!");
+                setUploadDetails(defaultValues)
                 toggle();
                 JsonSyncHistory();
                 setSaving(false);
             } catch (err) {
-                setSaving(false); 
-                }  
-        }else{
-            toast.error("Please select facility");
-        }    
-       
+                setSaving(false);
+            }
+            setSaving(false);
+        }
+
     };
 
     const fetchGeneratedFiles = (id) => {
@@ -464,6 +488,49 @@ useEffect(() => {
                                 <Progress percentage={uploadPercentage} /> 
                                 : ""}
                                 <br />
+                                {uploadDetails.all && <Row>
+                                    <Col md={6}>
+                                    <FormGroup>
+                                <Label >{`Start Date (Optional)`}</Label>
+                                    <Input
+                                        type="date"
+                                        name="start"
+                                        id="start"
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
+                                        value={uploadDetails.start}
+                                        onKeyDown={(e) => e.preventDefault()}
+                                        max={moment(new Date()).format("YYYY-MM-DD")}
+                                        
+                                        >
+                                    </Input>
+                                    {errors.start !=="" ? (
+                                        <span className={classes.error}>{errors.start}</span>
+                                    ) : "" } 
+                                </FormGroup>
+                                    </Col>
+                                    <Col md={6}>
+                                    <FormGroup>
+                                <Label >{`End Date (Optional)`}</Label>
+                                    <Input
+                                        type="date"
+                                        name="end"
+                                        id="end"
+                                        disabled={!uploadDetails.start}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
+                                        value={uploadDetails.end}
+                                        onKeyDown={(e) => e.preventDefault()}
+                                        min={moment(new Date(uploadDetails.start)).format("YYYY-MM-DD")}
+                                        max={moment(new Date()).format("YYYY-MM-DD")}
+                                        >
+                                    </Input>
+                                    {errors.end !=="" ? (
+                                        <span className={classes.error}>{errors.end}</span>
+                                    ) : "" } 
+                                </FormGroup>
+                                    </Col>
+                                </Row>}
                                 
                                 <MatButton
                                     type='submit'
@@ -473,6 +540,7 @@ useEffect(() => {
                                     style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
                                     startIcon={<SettingsBackupRestoreIcon />}
                                     onClick={handleSubmit}
+                                    disabled={saving}
                                     
                                 >   
                                     {!saving ? (

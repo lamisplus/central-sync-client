@@ -15,6 +15,7 @@ import org.lamisplus.modules.central.repository.*;
 import org.lamisplus.modules.central.service.FacilityAppKeyService;
 import org.lamisplus.modules.central.service.SyncHistoryService;
 import org.lamisplus.modules.central.service.SyncService;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
 import org.lamisplus.modules.central.service.ExportService;
 import org.lamisplus.modules.central.utility.FileUtility;
@@ -26,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.time.LocalDate;
 import java.util.*;
 
 import static org.lamisplus.modules.central.utility.ConstantUtility.*;
@@ -62,7 +64,25 @@ public class ExportController {
         if (facilityId == null)   {
             throw new IllegalAccessException("Invalid request parameters");
         }
-        String zipFileName = exportService.generateFilesForSyncing(facilityId, current);
+        String zipFileName = exportService.generateFilesForSyncing(facilityId, current, null, null);
+        if (!zipFileName.equals("None") && !zipFileName.equals("NO_RECORD")) {
+            return new ResponseEntity<>("Record generated successfully.", HttpStatus.OK);
+        } else if (zipFileName.equals("NO_RECORD")) {
+            return new ResponseEntity<>("No record found for the selected period.", HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>("Record generation failed.", HttpStatus.OK);
+    }
+    @GetMapping("/all/date-range")
+    public ResponseEntity<String> generate(@RequestParam Long facilityId,
+                                           @RequestParam (required = false, defaultValue = "true") boolean current,
+                                           @RequestParam (required = false, defaultValue = "start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+                                           @RequestParam (required = false, defaultValue = "end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+                                           HttpServletResponse response) throws IllegalAccessException {
+        if (facilityId == null)   {
+            throw new IllegalAccessException("Invalid request parameters");
+        }
+        String zipFileName = exportService.generateFilesForSyncing(facilityId, current, start, end);
         if (!zipFileName.equals("None") && !zipFileName.equals("NO_RECORD")) {
             return new ResponseEntity<>("Record generated successfully.", HttpStatus.OK);
         } else if (zipFileName.equals("NO_RECORD")) {

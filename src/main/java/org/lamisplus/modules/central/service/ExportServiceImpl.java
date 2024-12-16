@@ -37,7 +37,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -81,7 +83,7 @@ public class ExportServiceImpl implements ExportService {
      * @return String
      */
     @Override
-    public String generateFilesForSyncing(Long facilityId, boolean current) {
+    public String generateFilesForSyncing(Long facilityId, boolean current, LocalDate startDate, LocalDate endDate) {
         //generate table count
         generateTableCount(facilityId);
 
@@ -110,8 +112,13 @@ public class ExportServiceImpl implements ExportService {
 
         SyncHistory history = syncHistoryRepository.getDateLastSync(facilityId).orElse(null);
 
+        if (startDate != null && endDate != null){
+            start = dateUtility.ConvertDateTimeToString(startDate.atStartOfDay());
+            end = dateUtility.ConvertDateTimeToString(endDate.atTime(LocalTime.MAX));
+        }
+
         //if current and there is sync history for the facility
-        if(current && history != null){
+        else if(current && history != null){
                 LocalDateTime lastSync = history.getDateLastSync();
                 start = dateUtility.ConvertDateTimeToString(lastSync);
         }
