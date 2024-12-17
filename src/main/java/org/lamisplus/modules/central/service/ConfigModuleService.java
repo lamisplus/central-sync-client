@@ -79,9 +79,14 @@ public class ConfigModuleService {
                     int max = Integer.valueOf(syncModule.getMaxVersion().replace(".", ""));
                     int min = Integer.valueOf(syncModule.getMinVersion().replace(".", ""));
                     int appVersion = Integer.valueOf(appV.replace(".", ""));
-                    if (appVersion >= min && appVersion <= max) {
+                    int mainVersion = Integer.valueOf(syncModule.getMainVersion().replace(".", ""));
+                    if(mainVersion == appVersion){
                         moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
                                 MessageType.SUCCESS, appModule.getVersion(),
+                                syncModule.getMinVersion(), syncModule.getMaxVersion()));
+                    } else if (appVersion >= min && appVersion <= max) {
+                        moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
+                                MessageType.WARNING, appModule.getVersion(),
                                 syncModule.getMinVersion(), syncModule.getMaxVersion()));
                     } else {
                         moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),

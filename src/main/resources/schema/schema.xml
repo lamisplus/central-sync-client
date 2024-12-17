@@ -302,4 +302,18 @@
             ALTER TABLE IF EXISTS sync_config_table ADD COLUMN archived BOOLEAN;
         </sql>
     </changeSet>
+
+    <changeSet failOnError="true" author="Emeka Ilozue" id="202412171222">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM pg_attribute
+                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'sync_config_module')
+                  AND attname = 'main_version';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE IF EXISTS sync_config_table ADD COLUMN main_version CHARACTER VARYING;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

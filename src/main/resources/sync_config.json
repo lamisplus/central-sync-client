@@ -10,6 +10,7 @@
       "id": "3276a3df-d9c5-43f0-ab94-5fdaf1864225",
       "moduleName": "BaseModule",
       "minVersion": "2.0.0",
+      "mainVersion": "2.0.0",
       "maxVersion": "5.0.0",
       "configId": "8f44a8a1-8229-4967-af6e-2c147b4831ea",
       "configTables": [
@@ -37,6 +38,7 @@
       "id": "354ede79-213b-46a5-b7d7-29dbb99d9bd3",
       "moduleName": "PatientModule",
       "minVersion": "2.1.1",
+      "mainVersion": "2.1.1",
       "maxVersion": "2.5.0",
       "configId": "8f44a8a1-8229-4967-af6e-2c147b4831ea",
       "configTables": [
@@ -73,6 +75,7 @@
       "id": "34d1cfb6-d728-48fb-98db-0831b729b6c7",
       "moduleName": "TriageModule",
       "minVersion": "2.0.6",
+      "mainVersion": "2.0.6",
       "maxVersion": "2.5.0",
       "configId": "8f44a8a1-8229-4967-af6e-2c147b4831ea",
       "configTables": [
@@ -91,6 +94,7 @@
       "id": "a690789f-1d29-40b1-92fb-1a90264e0bbd",
       "moduleName": "BiometricModule",
       "minVersion": "2.1.0",
+      "mainVersion": "2.1.0",
       "maxVersion": "2.5.0",
       "configId": "8f44a8a1-8229-4967-af6e-2c147b4831ea",
       "configTables": [
@@ -109,6 +113,7 @@
       "id": "57f3721e-6cd2-4309-8e35-fbb262b4cece",
       "moduleName": "PrepModule",
       "minVersion": "2.1.1",
+      "mainVersion": "2.1.1",
       "maxVersion": "2.5.0",
       "configId": "8f44a8a1-8229-4967-af6e-2c147b4831ea",
       "configTables": [
@@ -163,6 +168,7 @@
       "id": "f13999fd-7c64-44fb-afc5-8710c9546cc6",
       "moduleName": "HtsModule",
       "minVersion": "2.1.1",
+      "mainVersion": "2.1.1",
       "maxVersion": "2.5.0",
       "configId": "ef211ac2-b952-4905-ba36-b4bf79dda8a1",
       "configTables": [
@@ -253,6 +259,7 @@
       "id": "86dcfd82-0dde-4b0c-a414-f93894acb733",
       "moduleName": "HivModule",
       "minVersion": "2.4.1",
+      "mainVersion": "2.4.1",
       "maxVersion": "2.5.0",
       "configId": "8f44a8a1-8229-4967-af6e-2c147b4831ea",
       "configTables": [
@@ -406,6 +413,7 @@
       "id": "e9506202-db3f-496b-bb7a-421fbc47ea29",
       "moduleName": "CaseManagerModule",
       "minVersion": "2.1.0",
+      "mainVersion": "2.1.0",
       "maxVersion": "2.5.0",
       "configId": "8f44a8a1-8229-4967-af6e-2c147b4831ea",
       "configTables": [
@@ -433,6 +441,7 @@
       "id": "7758116b-4cd4-4e1a-afc0-91826b5aa128",
       "moduleName": "MhpssModule",
       "minVersion": "2.0.1",
+      "mainVersion": "2.0.1",
       "maxVersion": "2.5.0",
       "configId": "8f44a8a1-8229-4967-af6e-2c147b4831ea",
       "configTables": [
@@ -460,6 +469,7 @@
       "id": "32dd4211-f9d9-497b-b6c4-8ccdb070d10e",
       "moduleName": "ClientSyncModule",
       "minVersion": "2.2.2",
+      "mainVersion": "2.2.2",
       "maxVersion": "2.5.0",
       "configId": "8f44a8a1-8229-4967-af6e-2c147b4831ea",
       "configTables": [
@@ -478,6 +488,7 @@
       "id": "b98de15d-15b1-4e6d-b3be-a29e88c5b280",
       "moduleName": "LaboratoryModule",
       "minVersion": "2.0.9",
+      "mainVersion": "2.0.9",
       "maxVersion": "2.5.0",
       "configId": "8f44a8a1-8229-4967-af6e-2c147b4831ea",
       "configTables": [
@@ -559,6 +570,7 @@
       "id": "6a17eba6-b158-4c7a-a7fe-5d36f31bdc76",
       "moduleName": "PMTCTModule",
       "minVersion": "2.1.2",
+      "mainVersion": "2.1.2",
       "maxVersion": "2.5.0",
       "configId": "8f44a8a1-8229-4967-af6e-2c147b4831ea",
       "configTables": [
