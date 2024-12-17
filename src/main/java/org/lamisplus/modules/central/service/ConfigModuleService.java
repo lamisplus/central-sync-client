@@ -24,24 +24,24 @@ public class ConfigModuleService {
     private final ConfigModuleRepository repository;
     private final SyncMapper mapper;
 
-    public ConfigModule Save(ConfigModule configModule){
+    public ConfigModule save(ConfigModule configModule){
         configModule.setId(java.util.UUID.randomUUID());
         return repository.save(configModule);
     }
 
-    public ConfigModule FindById(UUID Id){
-        return repository.findById(Id).orElse(null);
+    public ConfigModule findById(UUID id){
+        return repository.findById(id).orElse(null);
     }
 
-    public List<ConfigModule> FindAll(){
+    public List<ConfigModule> findAll(){
         return repository.findAll();
     }
 
-    public List<ConfigModule> FindAllByConfigId(UUID configId){
+    public List<ConfigModule> findAllByConfigId(UUID configId){
         return repository.findAllByConfigId(configId);
     }
 
-    public void Delete(UUID id){
+    public void delete(UUID id){
         repository.deleteById(id);
     }
 
@@ -50,7 +50,7 @@ public class ConfigModuleService {
      * @return ModuleStatus
      */
     public List<ModuleStatus> moduleCheck(){
-        Boolean found = false;
+        boolean found = false;
         List<ModuleStatus> moduleStatuses = new ArrayList<>();
         //sync modules
         List<ConfigModule> syncModules = repository.getActiveConfigModules();
