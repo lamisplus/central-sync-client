@@ -44,6 +44,7 @@ public class ExportController {
     public static final String GEN_KEY = "genKey";
     public static final String APP_KEY = "appKey";
     public static final String CONFIG_VERSION = "configVersion";
+    public static final String NO_RECORD = "NO_RECORD";
     private final FileUtility fileUtility;
     private final ExportService exportService;
     private final FacilityAppKeyRepository facilityAppKeyRepository;
@@ -65,9 +66,9 @@ public class ExportController {
             throw new IllegalAccessException("Invalid request parameters");
         }
         String zipFileName = exportService.generateFilesForSyncing(facilityId, current, null, null);
-        if (!zipFileName.equals("None") && !zipFileName.equals("NO_RECORD")) {
+        if (!zipFileName.equals("None") && !zipFileName.equals(NO_RECORD)) {
             return new ResponseEntity<>("Record generated successfully.", HttpStatus.OK);
-        } else if (zipFileName.equals("NO_RECORD")) {
+        } else if (zipFileName.equals(NO_RECORD)) {
             return new ResponseEntity<>("No record found for the selected period.", HttpStatus.OK);
         }
 
@@ -83,9 +84,9 @@ public class ExportController {
             throw new IllegalAccessException("Invalid request parameters");
         }
         String zipFileName = exportService.generateFilesForSyncing(facilityId, current, start, end);
-        if (!zipFileName.equals("None") && !zipFileName.equals("NO_RECORD")) {
+        if (!zipFileName.equals("None") && !zipFileName.equals(NO_RECORD)) {
             return new ResponseEntity<>("Record generated successfully.", HttpStatus.OK);
-        } else if (zipFileName.equals("NO_RECORD")) {
+        } else if (zipFileName.equals(NO_RECORD)) {
             return new ResponseEntity<>("No record found for the selected period.", HttpStatus.OK);
         }
 
