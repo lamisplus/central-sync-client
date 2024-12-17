@@ -21,4 +21,6 @@ public class FileDetail implements Serializable {
     private List<FileTrackerDTO> fileTracker;
     private String datimId;
     private String appKey;
+    private String start;
+    private String end;
 }

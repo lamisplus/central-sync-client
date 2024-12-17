@@ -10,6 +10,7 @@ public class ConfigModuleDto {
     private String moduleName;
     private String minVersion;
     private String maxVersion;
+    private String mainVersion;
     private UUID configId;
     private List<ConfigTableDto> configTables;
 }

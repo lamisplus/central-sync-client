@@ -303,7 +303,7 @@
         </sql>
     </changeSet>
 
-    <changeSet failOnError="true" author="Emeka Ilozue" id="202412171222">
+    <changeSet failOnError="true" author="Emeka Ilozue" id="202412171322">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(*)
@@ -313,7 +313,7 @@
             </sqlCheck>
         </preConditions>
         <sql>
-            ALTER TABLE IF EXISTS sync_config_table ADD COLUMN main_version CHARACTER VARYING;
+            ALTER TABLE IF EXISTS sync_config_module ADD COLUMN main_version CHARACTER VARYING;
         </sql>
     </changeSet>
 </databaseChangeLog>

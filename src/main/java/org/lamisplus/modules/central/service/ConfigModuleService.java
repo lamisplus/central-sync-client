@@ -61,7 +61,7 @@ public class ConfigModuleService {
             found = false;
             if(syncModule.getModuleName().contains(BASE_MODULE)){
                 moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
-                        MessageType.SUCCESS, syncModule.getMinVersion(),
+                        MessageType.SUCCESS, syncModule.getMinVersion(), syncModule.getMainVersion(),
                         syncModule.getMinVersion(), syncModule.getMaxVersion()));
                 continue;
             }
@@ -82,15 +82,15 @@ public class ConfigModuleService {
                     int mainVersion = Integer.valueOf(syncModule.getMainVersion().replace(".", ""));
                     if(mainVersion == appVersion){
                         moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
-                                MessageType.SUCCESS, appModule.getVersion(),
+                                MessageType.SUCCESS, appModule.getVersion(), syncModule.getMainVersion(),
                                 syncModule.getMinVersion(), syncModule.getMaxVersion()));
                     } else if (appVersion >= min && appVersion <= max) {
                         moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
-                                MessageType.WARNING, appModule.getVersion(),
+                                MessageType.WARNING, appModule.getVersion(), syncModule.getMainVersion(),
                                 syncModule.getMinVersion(), syncModule.getMaxVersion()));
                     } else {
                         moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
-                                MessageType.ERROR, appModule.getVersion(),
+                                MessageType.ERROR, appModule.getVersion(), syncModule.getMainVersion(),
                                 syncModule.getMinVersion(), syncModule.getMaxVersion()));
                     }
 
@@ -102,7 +102,7 @@ public class ConfigModuleService {
             if(!found){
                 //add to list
                 moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(), MessageType.ERROR, NOT_FOUND,
-                        syncModule.getMinVersion(), syncModule.getMaxVersion()));
+                        syncModule.getMinVersion(), syncModule.getMainVersion(), syncModule.getMaxVersion()));
             }
         }
         return moduleStatuses;

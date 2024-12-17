@@ -164,7 +164,7 @@ public class ExportServiceImpl implements ExportService {
                     saveTrackers = syncHistoryTrackerRepository.saveAll(getSyncHistoryTrackers(syncHistoryTrackers, syncResponse));
                 }
                 //set file details
-                FileDetail fileDetail = setFileDetails(clientPublicKey, datimCode, current, syncResponse, saveTrackers);
+                FileDetail fileDetail = setFileDetails(clientPublicKey, datimCode, current, syncResponse, saveTrackers, start, end);
                 //create meta data
                 syncData(fileFolder, fileDetail, now);
 
@@ -253,7 +253,7 @@ public class ExportServiceImpl implements ExportService {
      * @return FileDetail
      */
     private FileDetail setFileDetails(String appKey, String datimId, Boolean current,
-                                      @NotNull  SyncHistoryResponse syncResponse, List<SyncHistoryTracker> saveTrackers) {
+                                      @NotNull  SyncHistoryResponse syncResponse, List<SyncHistoryTracker> saveTrackers, String start, String end) {
         FileDetail fileDetail = new FileDetail();
         //Set file details
         if(!saveTrackers.isEmpty()) {
@@ -262,6 +262,8 @@ public class ExportServiceImpl implements ExportService {
             fileDetail.setInit(current);
             fileDetail.setDatimId(datimId);
             fileDetail.setAppKey(appKey);
+            fileDetail.setStart(start);
+            fileDetail.setEnd(end);
             Optional<String> version = syncHistoryRepository.getClientSyncModuleVersion();
 
             if (version.isPresent())
@@ -344,6 +346,8 @@ public class ExportServiceImpl implements ExportService {
             jsonGenerator.writeStringField("appKey", fileDetail.getAppKey());
             jsonGenerator.writeStringField("configVersion", configVersion);
             jsonGenerator.writeStringField("jsonGenerationTime", String.valueOf(generationTime));
+            jsonGenerator.writeStringField("start", fileDetail.getStart());
+            jsonGenerator.writeStringField("end", fileDetail.getEnd());
             for (FileTrackerDTO fileTrackerDTO : fileDetail.getFileTracker()) {
                 JSONObject trackerJsonObject = new JSONObject();
                 trackerJsonObject.put("fileName", fileTrackerDTO.getFileName());
@@ -370,7 +374,8 @@ public class ExportServiceImpl implements ExportService {
                 .stream()
                 .map(moduleStatus -> {
                     addMessageLog(moduleStatus.getName(),
-                            "Required version is from " + moduleStatus.getMinimumVersion() + " - " + moduleStatus.getMaximumVersion(),
+                            "Required version is from " + moduleStatus.getMinimumVersion() + " - " + moduleStatus.getMaximumVersion()
+                                    + " and Current Release Version is " + moduleStatus.getMainVersion(),
                         "Installed version is " + moduleStatus.getAvailableVersion(), MODULE_CHECK,
                         moduleStatus.getMessage());
                     return moduleStatus;
