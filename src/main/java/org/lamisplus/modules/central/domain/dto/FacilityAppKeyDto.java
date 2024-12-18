@@ -11,8 +11,6 @@ public class FacilityAppKeyDto {
     private UUID id;
     @NotNull(message = "facility id is required")
     private Integer facilityId;
-    @NotNull
-    @NotEmpty(message = "facility name is required")
     private String facilityName;
     @NotNull
     @NotEmpty(message = "app key is required")

@@ -33,7 +33,7 @@ public class SyncAppKeyController {
             throw new IllegalTypeException(FacilityAppKey.class, "Server url issue", "check url");
         }
         FacilityAppKey facilityAppKey = new FacilityAppKey();
-        BeanUtils.copyProperties(facilityAppKey, facilityAppKeyDto);
+        BeanUtils.copyProperties(facilityAppKeyDto, facilityAppKey);
         return ResponseEntity.ok(service.save(facilityAppKey));
     }
 

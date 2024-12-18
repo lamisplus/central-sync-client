@@ -36,7 +36,7 @@ public class ConfigModule {
     @Column(name = "config_id", nullable = false)
     private UUID configId;
 
-    @OneToMany(mappedBy = "module", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "module", cascade = {CascadeType.ALL, CascadeType.REMOVE}, fetch = FetchType.LAZY)
     @ToString.Exclude
     @JsonIgnore
     private List<ConfigTable> configTables;

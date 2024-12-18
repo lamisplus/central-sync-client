@@ -19,7 +19,6 @@ public class ConfigService {
     public final ConfigRepository repository;
 
     public Config Save(Config config){
-        config.setId(java.util.UUID.randomUUID());
         config.setUploadDate(LocalDateTime.now());
         config.setActive(true);
         InactivatePreviousConfig();

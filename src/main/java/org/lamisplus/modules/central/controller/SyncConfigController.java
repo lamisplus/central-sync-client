@@ -34,13 +34,11 @@ public class SyncConfigController {
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> createConfig(@RequestBody ConfigDto configDto) {
-        log.info("config dto: {}", configDto);
         configDto.setUploadDate(LocalDateTime.now());
         Config config = configService.Save(mapper.toConfig(configDto));
 
         for ( ConfigModuleDto configModuleDto:configDto.getConfigModules()) {
             ConfigModule configModule = mapper.toConfigModule(configModuleDto);
-            configModule.setConfigId(config.getId());
             configModule = configModuleService.save(configModule);
 
             for (ConfigTableDto configTableDto:configModuleDto.getConfigTables()) {
