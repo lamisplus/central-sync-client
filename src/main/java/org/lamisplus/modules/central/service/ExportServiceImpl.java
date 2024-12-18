@@ -97,13 +97,10 @@ public class ExportServiceImpl implements ExportService {
 
 
         List<SyncHistoryTracker> saveTrackers = null;
-        if(!MESSAGE_LOG.isEmpty()) MESSAGE_LOG.clear();
-        List<String> moduleName = new ArrayList<>();
-        //do a module check on log files to message log
-        moduleCheckAndMsgLog().forEach(moduleStatus -> {
-            //check if there are errors
-            if(moduleStatus.getMessage().equals(MessageType.ERROR))moduleName.add(moduleStatus.getName());
-        });
+        MESSAGE_LOG.clear();
+
+        //do a module check on log files to message log and check for module errors
+        List<String> moduleName = getErrorModules(moduleCheckAndMsgLog());
 
         //Generate uuid for the key
         String uuid = java.util.UUID.randomUUID().toString();
@@ -181,8 +178,7 @@ public class ExportServiceImpl implements ExportService {
                 //update history with file size
                 setUploadSizeAndSave(fileSize, syncHistory);
                 log.info("Data export completed");
-            } else {
-                zipFileName = "NO_RECORD";
+                return zipFileName;
             }
         } catch (IOException | GeneralSecurityException e) {
             log.debug("Something went wrong. Error: {}", e.getMessage());
@@ -190,6 +186,18 @@ public class ExportServiceImpl implements ExportService {
         }
         log.info("Initializing successful generated file...");
         return zipFileName;
+    }
+
+    /**
+     * get Modules with errors
+     * @param moduleStatuses - check status of the module
+     * @return List<String> - names of modules with errors
+     */
+    private static List<String> getErrorModules(List<ModuleStatus> moduleStatuses) {
+        return moduleStatuses.stream()
+                        .filter(moduleStatus -> moduleStatus.getMessage().equals(MessageType.ERROR))
+                .map(ModuleStatus::getName)
+                .collect(Collectors.toList());
     }
 
     /**
