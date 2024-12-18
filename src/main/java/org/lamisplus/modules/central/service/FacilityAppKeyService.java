@@ -18,8 +18,11 @@ public class FacilityAppKeyService {
 
     public FacilityAppKey save(FacilityAppKey appKey){
         List<FacilityAppKey> facilityAppKeys = repository.findFacilityAppKeyByFacilityId(appKey.getFacilityId());
-        if(facilityAppKeys.isEmpty()){
+        if(!facilityAppKeys.isEmpty()){
+            log.info("Found app key for facility ID: {} ", appKey.getFacilityId());
             appKey.setId(facilityAppKeys.get(0).getId());
+        } else {
+            appKey.setId(UUID.randomUUID());
         }
         return repository.save(appKey);
     }

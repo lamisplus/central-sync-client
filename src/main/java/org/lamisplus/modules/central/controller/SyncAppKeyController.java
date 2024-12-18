@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,11 +28,10 @@ public class SyncAppKeyController {
     private final SyncMapper mapper;
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<FacilityAppKey> create(@RequestBody FacilityAppKeyDto facilityAppKeyDto) {
+    public ResponseEntity<FacilityAppKey> create(@RequestBody @Valid FacilityAppKeyDto facilityAppKeyDto) {
         if(facilityAppKeyDto.getServerUrl().endsWith(SERVER_URL_SUFFIX)){
             throw new IllegalTypeException(FacilityAppKey.class, "Server url issue", "check url");
         }
-        facilityAppKeyDto.setId(java.util.UUID.randomUUID());
         FacilityAppKey facilityAppKey = new FacilityAppKey();
         BeanUtils.copyProperties(facilityAppKey, facilityAppKeyDto);
         return ResponseEntity.ok(service.save(facilityAppKey));
