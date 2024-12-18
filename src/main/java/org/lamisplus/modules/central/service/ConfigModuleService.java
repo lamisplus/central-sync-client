@@ -25,7 +25,6 @@ public class ConfigModuleService {
     private final SyncMapper mapper;
 
     public ConfigModule save(ConfigModule configModule){
-        configModule.setId(java.util.UUID.randomUUID());
         return repository.save(configModule);
     }
 

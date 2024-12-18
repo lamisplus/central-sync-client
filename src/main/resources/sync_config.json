@@ -9,8 +9,8 @@
     {
       "id": "3276a3df-d9c5-43f0-ab94-5fdaf1864225",
       "moduleName": "BaseModule",
-      "minVersion": "2.0.0",
-      "mainVersion": "2.0.0",
+      "minVersion": "2.1.0",
+      "mainVersion": "2.1.0",
       "maxVersion": "5.0.0",
       "configId": "8f44a8a1-8229-4967-af6e-2c147b4831ea",
       "configTables": [

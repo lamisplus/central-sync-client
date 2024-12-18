@@ -34,6 +34,7 @@ public class SyncConfigController {
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> createConfig(@RequestBody ConfigDto configDto) {
+        log.info("config dto: {}", configDto);
         configDto.setUploadDate(LocalDateTime.now());
         Config config = configService.Save(mapper.toConfig(configDto));
 
@@ -44,7 +45,6 @@ public class SyncConfigController {
 
             for (ConfigTableDto configTableDto:configModuleDto.getConfigTables()) {
                 ConfigTable configTable = mapper.toConfigTable(configTableDto);
-                configTable.setConfigModuleId(configModule.getId());
                 configTableService.Save(configTable);
             }
         }
