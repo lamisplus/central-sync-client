@@ -98,8 +98,12 @@ public class ExportServiceImpl implements ExportService {
 
         List<SyncHistoryTracker> saveTrackers = null;
         if(!MESSAGE_LOG.isEmpty()) MESSAGE_LOG.clear();
+        List<String> moduleName = new ArrayList<>();
         //do a module check on log files to message log
-        moduleCheckAndMsgLog();
+        moduleCheckAndMsgLog().forEach(moduleStatus -> {
+            //check if there are errors
+            if(moduleStatus.getMessage().equals(MessageType.ERROR))moduleName.add(moduleStatus.getName());
+        });
 
         //Generate uuid for the key
         String uuid = java.util.UUID.randomUUID().toString();
@@ -138,6 +142,7 @@ public class ExportServiceImpl implements ExportService {
             uuid = AESUtil.generateAESKey(uuid);
 
             for(ConfigTable configTable : configTables){
+                if(moduleName.contains(configTable.getModule().getModuleName()))continue;
                 List<SyncHistoryTracker> trackers;
                 trackers = exportAnyTable(configTable, facilityId, configTable.getUpdateColumn(), start,
                         end, fileFolder, uuid, configTable.getExcludeColumns());

@@ -1,7 +1,7 @@
 package org.lamisplus.modules.central.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
-
 import javax.persistence.*;
 import java.util.UUID;
 
@@ -35,5 +35,13 @@ public class ConfigTable {
 
     @Column(name = "archived")
     public Boolean archived;
+
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "config_module_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @ToString.Exclude
+    private ConfigModule module;
+
+
 }
 

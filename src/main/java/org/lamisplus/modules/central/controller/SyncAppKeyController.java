@@ -53,8 +53,7 @@ public class SyncAppKeyController {
         return ResponseEntity.ok(key);
     }
 
-    @DeleteMapping(value = "/{id}",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> delete(@PathVariable("id") UUID id) {
         service.delete(id);
         return ResponseEntity.accepted().build();
