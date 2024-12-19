@@ -18,24 +18,24 @@ public class ConfigTableService {
     public final ConfigTableRepository repository;
     private final SyncMapper mapper;
 
-    public ConfigTable Save(ConfigTable configTable){
+    public ConfigTable save(ConfigTable configTable){
         configTable.setId(java.util.UUID.randomUUID());
         return repository.save(configTable);
     }
 
-    public ConfigTable FindById(UUID Id){
-        return repository.findById(Id).orElse(null);
+    public ConfigTable findById(UUID id){
+        return repository.findById(id).orElse(null);
     }
 
-    public List<ConfigTable> FindAll(){
+    public List<ConfigTable> findAll(){
         return repository.findAll();
     }
 
-    public List<ConfigTable> FindAllByModuleId(UUID moduleId){
+    public List<ConfigTable> findAllByModuleId(UUID moduleId){
         return repository.findAllByConfigModuleId(moduleId);
     }
 
-    public void Delete(UUID id){
+    public void delete(UUID id){
         repository.deleteById(id);
     }
 

@@ -140,8 +140,7 @@ public class ExportServiceImpl implements ExportService {
 
             for(ConfigTable configTable : configTables){
                 if(moduleName.contains(configTable.getModule().getModuleName()))continue;
-                List<SyncHistoryTracker> trackers;
-                trackers = exportAnyTable(configTable, facilityId, configTable.getUpdateColumn(), start,
+                List<SyncHistoryTracker> trackers = exportAnyTable(configTable, facilityId, configTable.getUpdateColumn(), start,
                         end, fileFolder, uuid, configTable.getExcludeColumns());
                 if(!trackers.isEmpty()) {
                     anyTable = true;
