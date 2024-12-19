@@ -19,7 +19,6 @@ public class ConfigTableService {
     private final SyncMapper mapper;
 
     public ConfigTable Save(ConfigTable configTable){
-        configTable.setId(java.util.UUID.randomUUID());
         return repository.save(configTable);
     }
 
