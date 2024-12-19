@@ -1,8 +1,11 @@
 package org.lamisplus.modules.central.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.lamisplus.modules.base.domain.entities.ApplicationUserOrganisationUnit;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -27,6 +30,14 @@ public class ConfigModule {
     @Column(name = "max_version", nullable = false)
     private String maxVersion;
 
+    @Column(name = "main_version", nullable = false)
+    private String mainVersion;
+
     @Column(name = "config_id", nullable = false)
     private UUID configId;
+
+    @OneToMany(mappedBy = "module", cascade = {CascadeType.ALL, CascadeType.REMOVE}, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @JsonIgnore
+    private List<ConfigTable> configTables;
 }

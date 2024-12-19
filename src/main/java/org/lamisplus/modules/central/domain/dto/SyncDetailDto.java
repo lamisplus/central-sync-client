@@ -11,7 +11,6 @@ public class SyncDetailDto {
     private String syncHistoryUuid;
     private String syncHistoryTrackerUuid;
     private Long facilityId;
-    //private String fileName;
     private String username;
     private String password;
 }

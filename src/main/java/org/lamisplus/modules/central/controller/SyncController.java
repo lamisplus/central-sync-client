@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.vm.LoginVM;
+import org.lamisplus.modules.central.domain.dto.RemoteAccessTokenDto;
 import org.lamisplus.modules.central.domain.dto.RemoteUrlDTO;
 import org.lamisplus.modules.central.domain.dto.SyncDetailDto;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
@@ -14,21 +15,17 @@ import org.lamisplus.modules.central.repository.RemoteAccessTokenRepository;
 import org.lamisplus.modules.central.service.SyncService;
 import org.lamisplus.modules.central.utility.ConstantUtility;
 import org.lamisplus.modules.central.utility.RSAUtils;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RequiredArgsConstructor
@@ -36,7 +33,7 @@ import java.util.Set;
 @RestController
 public class SyncController {
     private final SyncService syncService;
-    private final static String BASE_URL1 = "/api/v1/sync";
+    private static final  String BASE_URL1 = "/api/v1/sync";
     private final RemoteAccessTokenRepository accessTokenRepository;
 
     private final RSAUtils rsaUtils;
@@ -52,7 +49,7 @@ public class SyncController {
     }
 
     @GetMapping(value = BASE_URL1 + "/history/{id}/tracker")
-    public List<SyncHistoryTracker> getSyncHistoryTracker(@PathVariable Long id){
+    public Set<SyncHistoryTracker> getSyncHistoryTracker(@PathVariable Long id){
         return syncService.getSyncHistoryTracker(id);
     }
 
@@ -62,40 +59,37 @@ public class SyncController {
         new File(ConstantUtility.TEMP_SERVER_DIR).mkdirs();
         File directory = new File(ConstantUtility.TEMP_SERVER_DIR);
 
-        if (!directory.exists()) {
-            return;
-        } else {
+        if (directory.exists()) {
             FileUtils.cleanDirectory(directory);
         }
     }
 
-    @RequestMapping(value = BASE_URL1 + "/remote-access-token",
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public void sendToRemoteAccessToServer(@Valid @RequestBody RemoteAccessToken remoteAccessToken) {
-        if(syncService.authorize(remoteAccessToken, false) == null) throw new RuntimeException("Error while signing in");
+    @PostMapping(value = BASE_URL1 + "/remote-access-token", produces = MediaType.APPLICATION_JSON_VALUE)
+    public void sendToRemoteAccessToServer(@Valid @RequestBody RemoteAccessTokenDto remoteAccessTokenDto) {
+        RemoteAccessToken remoteAccessToken = new RemoteAccessToken();
+        BeanUtils.copyProperties(remoteAccessTokenDto, remoteAccessToken);
+        if(syncService.authorize(remoteAccessToken, false) == null) {
+            throw new EntityNotFoundException(RemoteAccessToken.class, "Error while signing in");
+        }
     }
 
-    @RequestMapping(value = BASE_URL1 + "/remote-access-token/{id}",
-            method = RequestMethod.PUT,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public void updateRemoteAccessOnServer(@PathVariable Long id, @Valid @RequestBody RemoteAccessToken remoteAccessToken) {
-        accessTokenRepository
-                .findById(id)
-                .orElseThrow(()-> new EntityNotFoundException(RemoteAccessToken.class, "id", "not found"));
-        if(syncService.authorize(remoteAccessToken, true) == null) throw new RuntimeException("Error while signing in");
+    @PutMapping(value = BASE_URL1 + "/remote-access-token/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public void updateRemoteAccessOnServer(@PathVariable Long id, @Valid @RequestBody RemoteAccessTokenDto remoteAccessTokenDto) {
+        if(!accessTokenRepository.findById(id).isPresent()){
+            throw new EntityNotFoundException(RemoteAccessToken.class, "id", "not found");
+        }
+        RemoteAccessToken remoteAccessToken = new RemoteAccessToken();
+        BeanUtils.copyProperties(remoteAccessTokenDto, remoteAccessToken);
+        if(syncService.authorize(remoteAccessToken, true) == null) throw new EntityNotFoundException(RemoteAccessToken.class, "Error while signing in");
     }
 
-    @RequestMapping(value = BASE_URL1 + "/remote-urls",
-            method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = BASE_URL1 + "/remote-urls", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<RemoteUrlDTO>> getRemoteUrls() {
         return ResponseEntity.ok(syncService.getRemoteUrls());
     }
 
-    @RequestMapping(value = BASE_URL1 + "/key",
-            method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public HashMap<String, String> getKey() {
+    @GetMapping(value = BASE_URL1 + "/key", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, String> getKey() {
         return rsaUtils.keyGenerateAndReturnKey();
     }
 

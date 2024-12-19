@@ -37,8 +37,9 @@ public class ResultSetToJsonMapper {
             //if(resultSet.next()) {
                 for (int index = 1; index <= columnCount; index++) {
                     String column = rsmd.getColumnName(index);
-                    //exclude column
+                    //mask excluded columns
                     if (excludedColumn != null && excludedColumn.contains(column)) {
+                        jsonObject.put(column, "");
                         continue;
                     }
 

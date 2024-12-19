@@ -2,7 +2,6 @@ package org.lamisplus.modules.central.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.hpsf.GUID;
 import org.lamisplus.modules.central.domain.entity.Config;
 import org.lamisplus.modules.central.repository.ConfigRepository;
 import org.springframework.stereotype.Service;
@@ -18,11 +17,10 @@ import java.util.UUID;
 public class ConfigService {
     public final ConfigRepository repository;
 
-    public Config Save(Config config){
-        config.setId(java.util.UUID.randomUUID());
+    public Config save(Config config){
         config.setUploadDate(LocalDateTime.now());
         config.setActive(true);
-        InactivatePreviousConfig();
+        inactivatePreviousConfig();
         return repository.save(config);
     }
 
@@ -30,20 +28,20 @@ public class ConfigService {
         return repository.getActiveConfigVersion();
     }
 
-    public Config FindById(UUID Id){
-        return repository.findById(Id).orElse(null);
+    public Config findById(UUID id){
+        return repository.findById(id).orElse(null);
     }
 
-    public List<Config> FindAll(){
+    public List<Config> findAll(){
         return repository.findAll();
     }
 
-    public void Delete(UUID id){
+    public void delete(UUID id){
         repository.deleteById(id);
     }
 
-    private void InactivatePreviousConfig(){
-        List<Config> configs = FindAll();
+    private void inactivatePreviousConfig(){
+        List<Config> configs = findAll();
         for(Config config:configs){
             config.setActive(false);
             repository.save(config);
