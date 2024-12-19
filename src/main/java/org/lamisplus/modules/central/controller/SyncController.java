@@ -49,7 +49,7 @@ public class SyncController {
     }
 
     @GetMapping(value = BASE_URL1 + "/history/{id}/tracker")
-    public List<SyncHistoryTracker> getSyncHistoryTracker(@PathVariable Long id){
+    public Set<SyncHistoryTracker> getSyncHistoryTracker(@PathVariable Long id){
         return syncService.getSyncHistoryTracker(id);
     }
 
