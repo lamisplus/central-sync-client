@@ -123,11 +123,11 @@ public class SyncServiceImpl implements SyncService {
         remoteAccessTokenRepository.delete(remoteAccessToken);
     }
 
-    public List<SyncHistoryTracker> getSyncHistoryTracker(Long syncHistoryId){
+    public Set<SyncHistoryTracker> getSyncHistoryTracker(Long syncHistoryId){
         return syncHistoryTrackerRepository.findAllBySyncHistoryIdAndArchived(syncHistoryId, UN_ARCHIVED)
                 .stream()
                 .sorted(Comparator.comparing(SyncHistoryTracker::getTimeCreated).reversed())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     public void decrypt(String key, String fileLocation, String tableName){

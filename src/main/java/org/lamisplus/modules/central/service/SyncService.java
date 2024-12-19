@@ -25,7 +25,7 @@ public interface SyncService {
 
     void deleteRemoteAccessToken(Long id);
 
-    List<SyncHistoryTracker> getSyncHistoryTracker(Long syncHistoryId);
+    Set<SyncHistoryTracker> getSyncHistoryTracker(Long syncHistoryId);
 
     void decrypt(String key, String fileLocation, String tableName);
 
