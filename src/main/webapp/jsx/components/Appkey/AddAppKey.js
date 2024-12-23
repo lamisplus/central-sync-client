@@ -155,7 +155,6 @@ const Index = (props) => {
 
             });
 
-            console.log(props.keyObj, props.keyList, facilities);
 
     }
     const validate = () => {
@@ -185,7 +184,6 @@ const Index = (props) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log(keyDetails);
         if (validate()) {
             setSaving(true);
             axios.post(`${baseUrl}sync/app-key`,keyDetails,
@@ -223,7 +221,6 @@ const Index = (props) => {
       reader.onload = (event) => {
         // Read the content of the file
         const content = event.target.result;
-        console.log(content);
         setFileContent(content);
         setKeyDetails ({...keyDetails,  appKey: content});
       };

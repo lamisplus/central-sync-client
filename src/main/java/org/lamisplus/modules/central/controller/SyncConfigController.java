@@ -35,7 +35,7 @@ public class SyncConfigController {
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> createConfig(@RequestBody ConfigDto configDto) {
         configDto.setUploadDate(LocalDateTime.now());
-        Config config = configService.Save(mapper.toConfig(configDto));
+        Config config = configService.save(mapper.toConfig(configDto));
 
         for ( ConfigModuleDto configModuleDto:configDto.getConfigModules()) {
             ConfigModule configModule = mapper.toConfigModule(configModuleDto);
@@ -43,7 +43,7 @@ public class SyncConfigController {
 
             for (ConfigTableDto configTableDto:configModuleDto.getConfigTables()) {
                 ConfigTable configTable = mapper.toConfigTable(configTableDto);
-                configTableService.Save(configTable);
+                configTableService.save(configTable);
             }
         }
 
@@ -52,19 +52,19 @@ public class SyncConfigController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ConfigDto>> getAllConfigs() {
-        List<Config> configs = configService.FindAll();
+        List<Config> configs = configService.findAll();
         return ResponseEntity.ok(convertConfigListToDtoList(configs));
     }
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<ConfigDto> getConfigById(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok(convertConfigToDto(configService.FindById(id)));
+        return ResponseEntity.ok(convertConfigToDto(configService.findById(id)));
     }
 
     @DeleteMapping(value = "/{id}",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> deleteConfig(@PathVariable("id") UUID id) {
-        configService.Delete(id);
+        configService.delete(id);
         return ResponseEntity.accepted().build();
     }
 
@@ -84,7 +84,7 @@ public class SyncConfigController {
         configDto.setConfigModules(configModuleDtos);
 
         for (ConfigModuleDto configModuleDto : configModuleDtos) {
-            List<ConfigTableDto> configTableDtos = mapper.toConfigTableDtoList(configTableService.FindAllByModuleId(configModuleDto.getId()));
+            List<ConfigTableDto> configTableDtos = mapper.toConfigTableDtoList(configTableService.findAllByModuleId(configModuleDto.getId()));
             configModuleDto.setConfigTables(configTableDtos);
         }
         return configDto;

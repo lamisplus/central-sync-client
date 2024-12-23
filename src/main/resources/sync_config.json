@@ -55,7 +55,7 @@
           "id": "487c7cf8-cf16-4574-bd1a-654417006930",
           "tableName": "patient_person",
           "updateColumn": "last_modified_date",
-          "excludeColumns": "contact_point, address, contact, first_name, surname, othername, full_name",
+          "excludeColumns": "",
           "hasFacilityId": true,
           "configModuleId": "ad83923f-a37b-40d5-af98-e1f277a5a122",
           "archived": true
