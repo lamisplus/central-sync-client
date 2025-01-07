@@ -469,7 +469,7 @@
       "id": "4365197b-d9c5-4912-9ef3-677d1f098bf9",
       "moduleName": "ClientSyncModule",
       "minVersion": "2.2.2",
-      "mainVersion": "2.2.3",
+      "mainVersion": "2.2.3.1",
       "maxVersion": "2.2.5",
       "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
       "configTables": [
