@@ -1,0 +1,29 @@
+{
+  "id": "2f615132-1e2a-4c9a-9788-8e01bc936b71",
+  "name": "sync_config",
+  "version": "2.0.1.1",
+  "releaseDate": "2024-12-13T00:00:00",
+  "uploadDate": "2024-12-13T18:56:09.421",
+  "active": true,
+  "configModules": [
+    {
+        "id": "c1a20492-f6e7-4b37-b067-42844900869f",
+        "moduleName": "HivModule",
+        "minVersion": "2.4.1",
+        "mainVersion": "2.4.1",
+        "maxVersion": "2.5.0",
+        "configId": "2f615132-1e2a-4c9a-9788-8e01bc936b71",
+        "configTables": [
+          {
+              "id": "022fb816-7fdf-4e6b-be40-52f90990ce3a",
+              "tableName": "hiv_art_pharmacy_regimens",
+              "updateColumn": null,
+              "excludeColumns": "",
+              "hasFacilityId": false,
+              "configModuleId": "c1a20492-f6e7-4b37-b067-42844900869f",
+              "archived": false
+            }
+        ]
+      }
+  ]
+}

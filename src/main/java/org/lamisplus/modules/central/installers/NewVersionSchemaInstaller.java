@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 @Order(2)
 @Installer(name = "client-sync-schema-installer",
         description = "Installs the required database tables for new client sync module",
-        version = 3)
+        version = 4)
 public class NewVersionSchemaInstaller extends AcrossLiquibaseInstaller {
     public NewVersionSchemaInstaller() {
         super("classpath:schema/schema-new-version.xml");

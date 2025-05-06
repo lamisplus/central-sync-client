@@ -32,6 +32,12 @@ public class SyncHistory {
     private Integer processedSize;
     private String filePath;
     private String genKey;
+    private Integer fileCount;
+    private LocalDateTime syncStartDate;
+    private LocalDateTime syncEndDate;
+    private String configVersion;
+    private String generationType;
+    private Integer source;
     @Basic
     @Column(name = "uuid", updatable = false, unique = true)
     private UUID uuid;

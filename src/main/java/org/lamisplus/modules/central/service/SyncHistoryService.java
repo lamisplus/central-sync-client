@@ -38,6 +38,12 @@ public class SyncHistoryService {
         syncHistory.setErrorLog(request.getMessageLog());
         syncHistory.setFilePath(request.getFilePath());
         syncHistory.setGenKey(request.getGenKey());
+        syncHistory.setSyncStartDate(request.getSyncStartDate());
+        syncHistory.setSyncEndDate(request.getSyncEndDate());
+        syncHistory.setConfigVersion(request.getConfigVersion());
+        syncHistory.setGenerationType(request.getGenerationType());
+        syncHistory.setSource(request.getSource());
+        syncHistory.setFileCount(request.getFileCount());
         syncHistoryRepository.save(syncHistory);
 
         return entityToDto(syncHistory);
@@ -95,6 +101,12 @@ public class SyncHistoryService {
         response.setUuid(entity.getUuid());
         response.setGenKey(entity.getGenKey());
         response.setPercentageSynced(getPercentageSynced(entity.getUuid()));
+        response.setFileCount(entity.getFileCount());
+        response.setSyncStartDate(entity.getSyncStartDate());
+        response.setSyncEndDate(entity.getSyncEndDate());
+        response.setConfigVersion(entity.getConfigVersion());
+        response.setGenerationType(entity.getGenerationType());
+        response.setSource(entity.getSource());
         if(entity.getErrorLog().toString().contains(ERROR))response.setHasError(HAS_ERROR);
         return response;
     }

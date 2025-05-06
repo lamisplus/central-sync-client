@@ -61,6 +61,7 @@ public class ExportServiceImpl implements ExportService {
     public static final String INIT = "init";
     public static final String UNDER_SCORE = "_";
     public static final String NOT_AVAILABLE = "N/A";
+    public static final Integer CLIENT_SOURCE = 2;
     private final FileUtility fileUtility;
     private final SyncHistoryService syncHistoryService;
     private final SyncHistoryRepository syncHistoryRepository;
@@ -75,6 +76,7 @@ public class ExportServiceImpl implements ExportService {
     HashMap<String, String> fileNames = new HashMap<>();
     private final ConfigService configService;
     private final SyncTableCountRepository syncTableCountRepository;
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * generate files for syncing.
@@ -96,7 +98,7 @@ public class ExportServiceImpl implements ExportService {
                 .getAppKey();
 
 
-        List<SyncHistoryTracker> saveTrackers = null;
+        List<SyncHistoryTracker> saveTrackers = new ArrayList<>();
         MESSAGE_LOG.clear();
 
         //do a module check on log files to message log and check for module errors
@@ -159,6 +161,19 @@ public class ExportServiceImpl implements ExportService {
                 String key = manageKey(uuid, clientPublicKey);
 
                 SyncHistoryRequest request = new SyncHistoryRequest(facilityId, zipFileName, 0, getMessageLog(), folder, key);
+
+                String configVersion = configService
+                        .getActiveConfig()
+                        .orElseThrow(()-> new EntityNotFoundException(Config.class, "Config", "is null"));
+//                if (startDate != null && endDate != null){
+                    request.setSyncStartDate(startDate != null ? startDate.atStartOfDay() : LocalDateTime.parse(start, dateTimeFormatter));
+                    request.setSyncEndDate(endDate != null ? endDate.atTime(23, 59, 59, 0) : LocalDateTime.parse(end, dateTimeFormatter));
+//                }
+                request.setConfigVersion(configVersion);
+                request.setGenerationType(current ? "Updated" : "Initial");
+                request.setSource(CLIENT_SOURCE);
+                request.setFileCount(syncHistoryTrackers.size());
+
                 syncResponse = syncHistoryService.saveSyncHistory(request);
 
                 if (syncResponse != null && !syncHistoryTrackers.isEmpty()) {
@@ -166,8 +181,8 @@ public class ExportServiceImpl implements ExportService {
                 }
                 //set file details
                 FileDetail fileDetail = setFileDetails(clientPublicKey, datimCode, current, syncResponse, saveTrackers, start, end);
-                //create meta data
-                syncData(fileFolder, fileDetail, now);
+                //create meta data file
+                syncData(fileFolder, fileDetail, now, configVersion);
 
                 //zip json files
                 fileUtility.zipDirectory(dir, fullPath, fileFolder);
@@ -338,13 +353,10 @@ public class ExportServiceImpl implements ExportService {
      * @param fileDetail
      * @return boolean
      */
-    public boolean syncData(String fileLocation, FileDetail fileDetail, LocalDateTime generationTime) {
+    public boolean syncData(String fileLocation, FileDetail fileDetail, LocalDateTime generationTime, String configVersion) {
         JsonFactory jsonFactory = new JsonFactory();
         String tempFile = TEMP_BATCH_DIR + fileLocation + File.separator + DATA_JSON + "_" + fileLocation + ".json";
         try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(new FileWriter(tempFile))) {
-            String configVersion = configService
-                    .getActiveConfig()
-                    .orElseThrow(()-> new EntityNotFoundException(Config.class, "Config", "is null"));
             ObjectMapper objectMapper = JsonUtility.getObjectMapperWriter();
             JSONArray jArray = new JSONArray();
             jsonGenerator.setCodec(objectMapper);
@@ -360,6 +372,7 @@ public class ExportServiceImpl implements ExportService {
             jsonGenerator.writeStringField("jsonGenerationTime", String.valueOf(generationTime));
             jsonGenerator.writeStringField("start", fileDetail.getStart());
             jsonGenerator.writeStringField("end", fileDetail.getEnd());
+            jsonGenerator.writeStringField("fileCount", String.valueOf(fileDetail.getFileTracker().size()));
             for (FileTrackerDTO fileTrackerDTO : fileDetail.getFileTracker()) {
                 JSONObject trackerJsonObject = new JSONObject();
                 trackerJsonObject.put("fileName", fileTrackerDTO.getFileName());

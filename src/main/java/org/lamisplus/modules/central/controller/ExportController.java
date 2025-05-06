@@ -28,6 +28,8 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.lamisplus.modules.central.utility.ConstantUtility.*;
@@ -44,6 +46,11 @@ public class ExportController {
     public static final String GEN_KEY = "genKey";
     public static final String APP_KEY = "appKey";
     public static final String CONFIG_VERSION = "configVersion";
+    public static final String FILE_COUNT = "fileCount";
+    public static final String GENERATION_TYPE = "generationType";
+    public static final String START = "start";
+    public static final String END = "end";
+    public static final String SOURCE = "source";
     public static final String NO_RECORD = "NO_RECORD";
     private final FileUtility fileUtility;
     private final ExportService exportService;
@@ -57,6 +64,7 @@ public class ExportController {
     private final SyncService syncService;
     private final SyncHistoryRepository syncHistoryRepository;
     private final ConfigRepository configRepository;
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @GetMapping("/all")
     public ResponseEntity<String> generate(@RequestParam Long facilityId,
@@ -153,6 +161,9 @@ public class ExportController {
         String datimId = historyRepository.getDatimCode(facilityId);
         String appKey = facilityAppKeyService.findByFacilityId(Integer.valueOf(String.valueOf(facilityId))).getAppKey();
 
+        // get count of trackers by history uuid
+        int fileCount  = syncHistoryTrackerRepository.countBySyncHistoryUuid(history.getUuid());
+
         for (SyncHistoryTracker tracker : trackers) {
             byte[] byteRequest = fileUtility.convertFileToByteArray(history.getFilePath() + File.separator + tracker.getFileName());
 
@@ -164,15 +175,22 @@ public class ExportController {
             String version = syncHistoryRepository.getClientSyncModuleVersion().orElse("N/A");
             headers.set(VERSION, version);
             headers.set(GEN_KEY, history.getGenKey());
+            headers.set(FILE_COUNT, String.valueOf(fileCount));
             headers.set(APP_KEY, appKey);
             headers.set(CONFIG_VERSION, configRepository.getActiveConfigVersion().orElse(null));
+            headers.set(GENERATION_TYPE, history.getGenerationType());
+            headers.set(START, history.getSyncStartDate() != null ? String.valueOf(history.getSyncStartDate().format(dateTimeFormatter)) : null);
+            headers.set(END, history.getSyncEndDate() != null ? String.valueOf(history.getSyncEndDate().format(dateTimeFormatter)) : null);
+            headers.set(SOURCE, String.valueOf(history.getSource()));
+
             //just the username
             String encryptedUsername = exportService.encryptMessage(loginVM.getUsername(), appKey);
             headers.set(CREDENTIAL, encryptedUsername);
 
             try {
                 String api = useApiUrl + datimId + "/" + history.getUuid() + "/" + tracker.getUuid() + "/" + tracker.getFileName();
-                log.info("apiUrl {}", api);
+                log.debug("apiUrl: {} | File Count: {} | Start: {} | End: {}",
+                        api, headers.get(FILE_COUNT), headers.get("start"), headers.get("end"));
                 HttpEntity<byte[]> requestEntity = new HttpEntity<>(byteRequest, headers);
 
                 responseEntity = restTemplate.exchange(api, HttpMethod.POST, requestEntity, String.class);

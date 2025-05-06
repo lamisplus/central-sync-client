@@ -349,8 +349,12 @@ useEffect(() => {
                 { title: "File Name ", field: "tableName", filtering: false },
                 { title: "Size (MB)", field: "uploadSize", filtering: false },
                 { title: "Upload (%) ", field: "uploadPercentage", filtering: false },
-                { title: "Date Generated ", field: "date", filtering: false },
                 { title: "Status", field: "status", filtering: false },         
+                { title: "File Count", field: "fileCount", filtering: false },         
+                { title: "Date Generated ", field: "date", filtering: false },
+                { title: "Data Period ", field: "dataPeriod", filtering: false },
+                { title: "Generation Type ", field: "generationType", filtering: false },
+                { title: "Config Version ", field: "configVersion", filtering: false },
                 { title: "Action", field: "actions", filtering: false }, 
                 ]}
                 data={ syncList.map((row) => ({
@@ -368,6 +372,9 @@ useEffect(() => {
                         <Typography>{`${row.percentageSynced.toFixed(0)}%`}</Typography>
                     </div>),
                     date:  moment(row.dateLastSync).format("LLLL"),
+                    dataPeriod:  `${row.syncStartDate ? moment(row.syncStartDate).format("LLLL") : 'N/A'} - ${row.syncEndDate ? moment(row.syncEndDate).format("LLLL") : 'N/A'}`,
+                    generationType:  row.generationType,
+                    configVersion:  row.configVersion,
                     // status: row.messageLog===null ? row.processed===0 ? "Processing" : "Completed" : "Error",
                     status: (<Box style={{width:"100%", height:"auto"}}>
                         <Typography>{"Completed"}</Typography>
@@ -377,6 +384,7 @@ useEffect(() => {
                             <Badge style={{marginLeft:"5px"}} color="danger">{logStats(row.messageLog)[2]}</Badge>
                         </div>
                     </Box>),
+                    fileCount: row.fileCount,
                     //errorLog: row.errorLog,
                     actions:(<div>
                                 <Menu.Menu position='right'  >

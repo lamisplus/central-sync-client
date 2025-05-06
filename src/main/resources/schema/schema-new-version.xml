@@ -177,4 +177,23 @@
                 ADD COLUMN ip_code bigint;
         </sql>
     </changeSet>
+    <changeSet failOnError="false" author="Peter Abiodun" id="202504170814">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM pg_attribute
+                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'sync_history')
+                  AND attname = 'file_count';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE sync_history
+                ADD COLUMN file_count INTEGER,
+                ADD COLUMN sync_start_date TIMESTAMP WITHOUT TIME ZONE,
+                ADD COLUMN sync_end_date TIMESTAMP WITHOUT TIME ZONE,
+                ADD COLUMN config_version CHARACTER VARYING,
+                ADD COLUMN source CHARACTER VARYING,
+                ADD COLUMN generation_type CHARACTER VARYING;
+        </sql>
+    </changeSet>
 </databaseChangeLog>
