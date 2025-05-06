@@ -58,3 +58,13 @@ npm run build
 
 ## Access Application Logs
 - Application logs can be accessed in the `application-debug` folder.
+
+## Authors & Acknowledgments
+### Main contributors
+- Emeka https://github.com/drjavanew
+- Mathew Adegbite https://github.com/mathewade
+- Kennedy Kirui https://github.com/kenkirui
+- Peter Abiodun https://github.com/Asquarep
+
+### Special mentions
+- Niyi Ogungbemi https://github.com/niyiment
