@@ -2,6 +2,9 @@ package org.lamisplus.modules.central.domain.dto;
 
 import lombok.Data;
 
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -16,6 +19,12 @@ public class SyncHistoryRequest {
     private List messageLog;
     private String filePath;
     private String genKey;
+    private Integer fileCount;
+    private LocalDateTime syncStartDate;
+    private LocalDateTime syncEndDate;
+    private String configVersion;
+    private String generationType;
+    private Integer source;
 
     public SyncHistoryRequest(Long organisationUnitId, String tableName, Integer uploadSize, List messageLog, String filePath, String genKey) {
         this.organisationUnitId = organisationUnitId;

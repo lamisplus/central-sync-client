@@ -22,4 +22,10 @@ public class SyncHistoryResponse {
     private float percentageSynced;
     private String genKey;
     private boolean hasError;
+    private Integer fileCount;
+    private LocalDateTime syncStartDate;
+    private LocalDateTime syncEndDate;
+    private String configVersion;
+    private String generationType;
+    private Integer source;
 }

@@ -1,6 +1,7 @@
 package org.lamisplus.modules.central.domain.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class FileDetail implements Serializable {
     private String version;
     private Boolean init;
@@ -19,4 +21,6 @@ public class FileDetail implements Serializable {
     private List<FileTrackerDTO> fileTracker;
     private String datimId;
     private String appKey;
+    private String start;
+    private String end;
 }

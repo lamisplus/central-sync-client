@@ -203,12 +203,27 @@ const SendToServer = (props) => {
         }
     }
 
+    const getErrorMessage = (error) => {
+        if (error.response && error.response.data && error.response.data.apierror) {
+            return error.response.data.apierror.message;
+        } else if (error.code === 'ECONNABORTED') {
+            return 'Request Timed Out. Please check your internet connectivity and try again.';
+        } else if (error.response && error.response.data && typeof error.response.data === 'string') {
+            return error.response.data;
+        } else if (error.response && error.response.data && error.response.data[0] !== null) {
+            return error.response.data[0];
+        } else {
+            return error.message || "No error message found.";
+        }
+    }
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (validate()) {
             setSaving(true);
-            var fileUploadErrors = [];
+            // var fileUploadErrors = [];
+            const fileUploadErrors = new Set();
             var errorCount = 0;
             await axios.post(`${baseUrl}sync/sync-history/${getSyncHistoryId()}`, patDetails,
             { headers: { "Authorization": `Bearer ${token}` } })
@@ -217,6 +232,7 @@ const SendToServer = (props) => {
             }).catch(error => {
                 setSaving(false);
                 toast.error("could not process request. Please try again.");
+                return;
             });
 
             try {
@@ -250,7 +266,10 @@ const SendToServer = (props) => {
                         })
                         .catch(error => {
                             setCurrentlyUploading('');
-                            fileUploadErrors.push(element.fileName);
+                            toast.error(`${getErrorMessage(error)}`, { autoClose: 2000 });
+                            fileUploadErrors.add(getErrorMessage(error));
+                            // fileUploadErrors.push(element.fileName);
+                            // fileUploadErrors.add(error);
                             errorCount++;
                         });
                 }
@@ -260,7 +279,12 @@ const SendToServer = (props) => {
             } finally {
                 setSaving(false);
                 if (errorCount > 0) {
-                    toast.error(`File upload incomplete. Error uploading ${fileUploadErrors.join(', ')}. Please check your internet connection, and try again.`);
+                    var errorText = "\n";
+                    fileUploadErrors.forEach((item) => {
+                        errorText += item + "\n";
+                    });
+                    toast.error(`Some files did not upload. ${errorText}`, { autoClose: false });
+                    // toast.error(`File upload incomplete. Error uploading ${fileUploadErrors.join(', ')}. Please check your internet connection, and try again.`);
                     props.refreshPrevious();
                 } else {
                     toast.success("Sync Successful. All files uploaded successfully.");

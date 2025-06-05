@@ -1,0 +1,670 @@
+{
+  "id": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+  "name": "sync_config",
+  "version": "2.0.1",
+  "releaseDate": "2024-12-13T00:00:00",
+  "uploadDate": "2024-12-13T18:56:09.421",
+  "active": true,
+  "configModules": [
+    {
+      "id": "a1c9482a-4883-4884-a2a2-f9cf77cf664f",
+      "moduleName": "BaseModule",
+      "minVersion": "2.1.0",
+      "mainVersion": "2.1.0",
+      "maxVersion": "5.0.0",
+      "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+      "configTables": [
+        {
+          "id": "693e5418-549d-469f-a348-9a613565ed46",
+          "tableName": "base_application_codeset",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "a1c9482a-4883-4884-a2a2-f9cf77cf664f",
+          "archived": true
+        },
+        {
+          "id": "f85eedde-19c5-4d0e-b0af-31fd69e7bf6b",
+          "tableName": "base_organisation_unit",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "a1c9482a-4883-4884-a2a2-f9cf77cf664f",
+          "archived": true
+        }
+      ]
+    },
+    {
+      "id": "ad83923f-a37b-40d5-af98-e1f277a5a122",
+      "moduleName": "PatientModule",
+      "minVersion": "2.1.1",
+      "mainVersion": "2.1.1",
+      "maxVersion": "2.5.0",
+      "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+      "configTables": [
+        {
+          "id": "e7de7bd6-9c62-4c95-b0d9-d11db6020eab",
+          "tableName": "patient_encounter",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "ad83923f-a37b-40d5-af98-e1f277a5a122",
+          "archived": true
+        },
+        {
+          "id": "487c7cf8-cf16-4574-bd1a-654417006930",
+          "tableName": "patient_person",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "ad83923f-a37b-40d5-af98-e1f277a5a122",
+          "archived": true
+        },
+        {
+          "id": "bdf0efb7-798e-407d-a041-718aa58a09c4",
+          "tableName": "patient_visit",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "ad83923f-a37b-40d5-af98-e1f277a5a122",
+          "archived": true
+        }
+      ]
+    },
+    {
+      "id": "52dd3ced-1766-48e5-a20c-a9360c61009d",
+      "moduleName": "TriageModule",
+      "minVersion": "2.0.6",
+      "mainVersion": "2.0.6",
+      "maxVersion": "2.5.0",
+      "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+      "configTables": [
+        {
+          "id": "60f3d9fd-5e80-49be-aa36-bd187b94d7d3",
+          "tableName": "triage_vital_sign",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "52dd3ced-1766-48e5-a20c-a9360c61009d",
+          "archived": true
+        }
+      ]
+    },
+    {
+      "id": "a537ff08-f2b4-4e15-a7f7-ad65991595d0",
+      "moduleName": "BiometricModule",
+      "minVersion": "2.1.0",
+      "mainVersion": "2.1.0",
+      "maxVersion": "2.5.0",
+      "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+      "configTables": [
+        {
+          "id": "56069a6e-b4d5-4cd2-bea8-71205dd149c9",
+          "tableName": "biometric",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "a537ff08-f2b4-4e15-a7f7-ad65991595d0",
+          "archived": true
+        }
+      ]
+    },
+    {
+      "id": "efe03689-7bce-4ec4-96d5-d3a68330bccb",
+      "moduleName": "PrepModule",
+      "minVersion": "2.1.1",
+      "mainVersion": "2.1.1",
+      "maxVersion": "2.5.0",
+      "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+      "configTables": [
+        {
+          "id": "e14d5704-30ae-4167-9319-e46db9aaaf1d",
+          "tableName": "prep_clinic",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "efe03689-7bce-4ec4-96d5-d3a68330bccb",
+          "archived": true
+        },
+        {
+          "id": "cd4fa8dc-24c1-48c9-bd20-9831d214e66a",
+          "tableName": "prep_eligibility",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "efe03689-7bce-4ec4-96d5-d3a68330bccb",
+          "archived": true
+        },
+        {
+          "id": "ac1ffa58-19d5-49cf-94cf-384abbd3bd02",
+          "tableName": "prep_enrollment",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "efe03689-7bce-4ec4-96d5-d3a68330bccb",
+          "archived": true
+        },
+        {
+          "id": "221aa8c4-605c-4f67-8962-6f234adc1631",
+          "tableName": "prep_interruption",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "efe03689-7bce-4ec4-96d5-d3a68330bccb",
+          "archived": true
+        },
+        {
+          "id": "8c2b9372-5270-4cbc-8c75-590037ae605d",
+          "tableName": "prep_regimen",
+          "updateColumn": null,
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "efe03689-7bce-4ec4-96d5-d3a68330bccb",
+          "archived": true
+        }
+      ]
+    },
+    {
+      "id": "41c30821-381d-48e1-a39f-18d386ed1965",
+      "moduleName": "HtsModule",
+      "minVersion": "2.1.1",
+      "mainVersion": "2.1.1",
+      "maxVersion": "2.5.0",
+      "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+      "configTables": [
+        {
+          "id": "4072b95f-7215-4b37-8d41-18d9c437d3ee",
+          "tableName": "hts_client",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "41c30821-381d-48e1-a39f-18d386ed1965",
+          "archived": true
+        },
+        {
+          "id": "9cb64442-3ee2-466c-a461-1d8dbb620df5",
+          "tableName": "hts_index_elicitation",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "41c30821-381d-48e1-a39f-18d386ed1965",
+          "archived": true
+        },
+        {
+          "id": "470f9959-e4f8-4295-8baf-f9e4ca49659c",
+          "tableName": "hts_risk_stratification",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "41c30821-381d-48e1-a39f-18d386ed1965",
+          "archived": true
+        },
+        {
+          "id": "4b5d8e9c-aef9-4d08-abb9-5a8f56a54638",
+          "tableName": "hivst",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "41c30821-381d-48e1-a39f-18d386ed1965",
+          "archived": true
+        },
+        {
+          "id": "d84ebb0e-0b4b-4a78-a71c-9d3ad2766ec4",
+          "tableName": "hts_client_referral",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "41c30821-381d-48e1-a39f-18d386ed1965",
+          "archived": true
+        },
+        {
+          "id": "a40e0c47-8a12-46bc-894d-28a0d255cf27",
+          "tableName": "hts_family_index",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "41c30821-381d-48e1-a39f-18d386ed1965",
+          "archived": true
+        },
+        {
+          "id": "addf537a-4d34-4b7c-84a0-211ea3d55f52",
+          "tableName": "hts_family_index_testing",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "41c30821-381d-48e1-a39f-18d386ed1965",
+          "archived": true
+        },
+        {
+          "id": "4d3e9e9c-02f0-483d-be94-0b6723b1686b",
+          "tableName": "hts_family_index_testing_tracker",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "41c30821-381d-48e1-a39f-18d386ed1965",
+          "archived": true
+        },
+        {
+          "id": "b4c20b8e-c23b-4401-b283-abec2673f38c",
+          "tableName": "hts_pns_index_client_partner",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "41c30821-381d-48e1-a39f-18d386ed1965",
+          "archived": true
+        }
+      ]
+    },
+    {
+      "id": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+      "moduleName": "HivModule",
+      "minVersion": "2.4.1",
+      "mainVersion": "2.4.1",
+      "maxVersion": "2.5.0",
+      "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+      "configTables": [
+        {
+          "id": "d21f59da-dfd1-4862-ade2-8aa12b7bb54a",
+          "tableName": "hiv_art_clinical",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": true
+        },
+        {
+          "id": "50f5639c-e845-49c1-b462-17d801509883",
+          "tableName": "hiv_art_pharmacy",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": true
+        },
+        {
+          "id": "d8cad700-2de9-4b73-8605-f04b46ce395d",
+          "tableName": "hiv_eac_out_come",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": true
+        },
+        {
+          "id": "8a760cc2-9fa4-4475-8081-2eb11a1abdff",
+          "tableName": "hiv_eac",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": true
+        },
+        {
+          "id": "4aa7d92e-1b32-4604-af94-56565ca2c24b",
+          "tableName": "hiv_eac_session",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": true
+        },
+        {
+          "id": "47c9ad2e-64e8-45f8-91ae-f887d6523fb0",
+          "tableName": "hiv_enrollment",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": true
+        },
+        {
+          "id": "f8952ea6-62e3-4417-9928-3c2a78736abb",
+          "tableName": "hiv_observation",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": true
+        },
+        {
+          "id": "d62c4e0b-a827-4a1a-99d5-2e8b0322e2b8",
+          "tableName": "hiv_patient_tracker",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": true
+        },
+        {
+          "id": "9ae4a13a-50eb-4b9a-91c1-cc16a51b8291",
+          "tableName": "hiv_status_tracker",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": true
+        },
+        {
+          "id": "49084f34-a728-4045-acff-e52b865eb50a",
+          "tableName": "hiv_art_pharmacy_regimens",
+          "updateColumn": null,
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": false
+        },
+        {
+          "id": "864912e2-f660-4b9c-bfd5-36afdfe05088",
+          "tableName": "hiv_regimen",
+          "updateColumn": "",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": false
+        },
+        {
+          "id": "0bf2bd61-6698-47cb-9a7e-2932bfa330e4",
+          "tableName": "hiv_regimen_drug",
+          "updateColumn": "",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": false
+        },
+        {
+          "id": "99996a7d-1c6e-4493-8e5b-72dc34824c2a",
+          "tableName": "hiv_regimen_resolver",
+          "updateColumn": "",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": false
+        },
+        {
+          "id": "1c01ea1e-ea5c-45e0-acd3-8e587acee990",
+          "tableName": "hiv_regimen_type",
+          "updateColumn": "",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": false
+        },
+        {
+          "id": "8af8101c-87c6-45c4-bf84-f2988a72677f",
+          "tableName": "dsd_devolvement",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": true
+        },
+        {
+          "id": "7266fd77-6a58-481d-92b5-b82f36249652",
+          "tableName": "adr_table",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "6d33bab1-bb96-4b56-90a8-5fe4d7ad3e33",
+          "archived": false
+        }
+      ]
+    },
+    {
+      "id": "6d586c0e-b562-4d66-83a8-39959b071e48",
+      "moduleName": "CaseManagerModule",
+      "minVersion": "2.1.0",
+      "mainVersion": "2.1.0",
+      "maxVersion": "2.5.0",
+      "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+      "configTables": [
+        {
+          "id": "798dca63-9591-4a2f-b0ec-4ee89ef172a1",
+          "tableName": "case_manager",
+          "updateColumn": "create_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "6d586c0e-b562-4d66-83a8-39959b071e48",
+          "archived": true
+        },
+        {
+          "id": "29de979b-9f0d-4e9b-b53a-6a72ac990e8c",
+          "tableName": "case_manager_patients",
+          "updateColumn": "create_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "6d586c0e-b562-4d66-83a8-39959b071e48",
+          "archived": false
+        }
+      ]
+    },
+    {
+      "id": "6b873f84-bf36-46cc-8378-1186da70649a",
+      "moduleName": "MhpssModule",
+      "minVersion": "2.0.1",
+      "mainVersion": "2.0.1",
+      "maxVersion": "2.5.0",
+      "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+      "configTables": [
+        {
+          "id": "5121a99a-d28e-404c-ac5b-6209c193a683",
+          "tableName": "mhpss_screening",
+          "updateColumn": "updated_at",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "6b873f84-bf36-46cc-8378-1186da70649a",
+          "archived": false
+        },
+        {
+          "id": "c7615518-50c8-4ce2-8674-3013106303b4",
+          "tableName": "mhpss_confirmation",
+          "updateColumn": "updated_at",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "6b873f84-bf36-46cc-8378-1186da70649a",
+          "archived": false
+        }
+      ]
+    },
+    {
+      "id": "4365197b-d9c5-4912-9ef3-677d1f098bf9",
+      "moduleName": "ClientSyncModule",
+      "minVersion": "2.2.2",
+      "mainVersion": "2.2.3.1",
+      "maxVersion": "2.2.5",
+      "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+      "configTables": [
+        {
+          "id": "b7e4d63e-b434-4fc9-a5a8-b061b44bc946",
+          "tableName": "sync_table_count",
+          "updateColumn": "time_generated",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "4365197b-d9c5-4912-9ef3-677d1f098bf9",
+          "archived": false
+        }
+      ]
+    },
+    {
+      "id": "21b1c683-9a36-4770-bd97-2ab408356952",
+      "moduleName": "LaboratoryModule",
+      "minVersion": "2.0.9",
+      "mainVersion": "2.0.9",
+      "maxVersion": "2.5.0",
+      "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+      "configTables": [
+        {
+          "id": "8a799f87-2464-4500-ac55-cfcb822be4d2",
+          "tableName": "laboratory_labtest",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "21b1c683-9a36-4770-bd97-2ab408356952",
+          "archived": true
+        },
+        {
+          "id": "4022f19e-d40f-4e76-955b-28bea3eb95e3",
+          "tableName": "laboratory_labtestgroup",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "21b1c683-9a36-4770-bd97-2ab408356952",
+          "archived": true
+        },
+        {
+          "id": "126a33ff-ce13-452a-a3bb-38cf7f43014d",
+          "tableName": "laboratory_number",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "21b1c683-9a36-4770-bd97-2ab408356952",
+          "archived": true
+        },
+        {
+          "id": "c6406d4a-0540-46eb-aa0a-b00eec4813e8",
+          "tableName": "laboratory_order",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "21b1c683-9a36-4770-bd97-2ab408356952",
+          "archived": true
+        },
+        {
+          "id": "0ec2aa25-5a2e-4ca7-b282-a5b43beba41a",
+          "tableName": "laboratory_result",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "21b1c683-9a36-4770-bd97-2ab408356952",
+          "archived": true
+        },
+        {
+          "id": "523ccdf7-2613-4b42-8cda-812f3603962c",
+          "tableName": "laboratory_sample",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "21b1c683-9a36-4770-bd97-2ab408356952",
+          "archived": true
+        },
+        {
+          "id": "17f64cf8-67df-4ce5-9b3e-2fc3f0d7b3ba",
+          "tableName": "laboratory_sample_type",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "21b1c683-9a36-4770-bd97-2ab408356952",
+          "archived": true
+        },
+        {
+          "id": "01a60318-0540-4bc8-b0fd-e74323afe7ad",
+          "tableName": "laboratory_test",
+          "updateColumn": "date_modified",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "21b1c683-9a36-4770-bd97-2ab408356952",
+          "archived": true
+        }
+      ]
+    },
+    {
+      "id": "b646520f-646c-49e2-ade6-26d710e7dffe",
+      "moduleName": "PMTCTModule",
+      "minVersion": "2.1.2",
+      "mainVersion": "2.1.2",
+      "maxVersion": "2.5.0",
+      "configId": "82ceb1e0-4494-47f4-8eba-9b550e8b26f2",
+      "configTables": [
+        {
+          "id": "69e14d1a-5b04-4782-afdb-af5e013a5275",
+          "tableName": "pmtct_anc",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "b646520f-646c-49e2-ade6-26d710e7dffe",
+          "archived": true
+        },
+        {
+          "id": "61f546d1-8a43-4165-8f55-d0ec1282c1c5",
+          "tableName": "pmtct_delivery",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "b646520f-646c-49e2-ade6-26d710e7dffe",
+          "archived": false
+        },
+        {
+          "id": "ed2eac3b-165e-4b21-8939-5ce3324836da",
+          "tableName": "pmtct_enrollment",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "b646520f-646c-49e2-ade6-26d710e7dffe",
+          "archived": true
+        },
+        {
+          "id": "2135392d-6b37-4710-8752-4b8700a54966",
+          "tableName": "pmtct_infant_arv",
+          "updateColumn": "",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "b646520f-646c-49e2-ade6-26d710e7dffe",
+          "archived": false
+        },
+        {
+          "id": "2f847e81-20ed-4041-a930-27d67a4f7a15",
+          "tableName": "pmtct_infant_information",
+          "updateColumn": "last_modified_date",
+          "excludeColumns": "",
+          "hasFacilityId": true,
+          "configModuleId": "b646520f-646c-49e2-ade6-26d710e7dffe",
+          "archived": false
+        },
+        {
+          "id": "a725890e-e5af-43a6-b046-5996e9a44f9d",
+          "tableName": "pmtct_infant_mother_art",
+          "updateColumn": "",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "b646520f-646c-49e2-ade6-26d710e7dffe",
+          "archived": false
+        },
+        {
+          "id": "468df2b4-7fa1-43b0-af78-7323a2ad0579",
+          "tableName": "pmtct_infant_pcr",
+          "updateColumn": "",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "b646520f-646c-49e2-ade6-26d710e7dffe",
+          "archived": false
+        },
+        {
+          "id": "c7572b9e-a6ab-4f47-afcd-f861928b7d27",
+          "tableName": "pmtct_infant_rapid_antibody",
+          "updateColumn": "",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "b646520f-646c-49e2-ade6-26d710e7dffe",
+          "archived": false
+        },
+        {
+          "id": "49f1619a-07e1-4d5b-b9d7-518a0b668783",
+          "tableName": "pmtct_infant_visit",
+          "updateColumn": "",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "b646520f-646c-49e2-ade6-26d710e7dffe",
+          "archived": false
+        },
+        {
+          "id": "8bd41a52-a5d7-42be-991f-82ac2fe682d9",
+          "tableName": "pmtct_mother_visitation",
+          "updateColumn": "",
+          "excludeColumns": "",
+          "hasFacilityId": false,
+          "configModuleId": "b646520f-646c-49e2-ade6-26d710e7dffe",
+          "archived": false
+        }
+      ]
+    }
+  ]
+}

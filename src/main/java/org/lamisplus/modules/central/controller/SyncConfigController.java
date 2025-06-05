@@ -35,17 +35,15 @@ public class SyncConfigController {
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> createConfig(@RequestBody ConfigDto configDto) {
         configDto.setUploadDate(LocalDateTime.now());
-        Config config = configService.Save(mapper.toConfig(configDto));
+        Config config = configService.save(mapper.toConfig(configDto));
 
         for ( ConfigModuleDto configModuleDto:configDto.getConfigModules()) {
             ConfigModule configModule = mapper.toConfigModule(configModuleDto);
-            configModule.setConfigId(config.getId());
-            configModule = configModuleService.Save(configModule);
+            configModule = configModuleService.save(configModule);
 
             for (ConfigTableDto configTableDto:configModuleDto.getConfigTables()) {
                 ConfigTable configTable = mapper.toConfigTable(configTableDto);
-                configTable.setConfigModuleId(configModule.getId());
-                configTable = configTableService.Save(configTable);
+                configTableService.save(configTable);
             }
         }
 
@@ -54,39 +52,39 @@ public class SyncConfigController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ConfigDto>> getAllConfigs() {
-        List<Config> configs = configService.FindAll();
-        return ResponseEntity.ok(ConvertConfigListToDtoList(configs));
+        List<Config> configs = configService.findAll();
+        return ResponseEntity.ok(convertConfigListToDtoList(configs));
     }
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<ConfigDto> getConfigById(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok(ConvertConfigToDto(configService.FindById(id)));
+        return ResponseEntity.ok(convertConfigToDto(configService.findById(id)));
     }
 
     @DeleteMapping(value = "/{id}",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> DeleteConfig(@PathVariable("id") UUID id) {
-        configService.Delete(id);
+    public ResponseEntity<String> deleteConfig(@PathVariable("id") UUID id) {
+        configService.delete(id);
         return ResponseEntity.accepted().build();
     }
 
-    private List<ConfigDto> ConvertConfigListToDtoList(List<Config> configs) {
+    private List<ConfigDto> convertConfigListToDtoList(List<Config> configs) {
         List<ConfigDto> configDtos = new ArrayList<>();
 
         for (Config config : configs) {
-            configDtos.add(ConvertConfigToDto(config));
+            configDtos.add(convertConfigToDto(config));
         }
         return configDtos;
     }
 
-    private ConfigDto ConvertConfigToDto(Config config) {
+    private ConfigDto convertConfigToDto(Config config) {
         ConfigDto configDto = mapper.toConfigDto(config);
 
-        List<ConfigModuleDto> configModuleDtos = mapper.toConfigModuleDtoList(configModuleService.FindAllByConfigId(configDto.getId()));
+        List<ConfigModuleDto> configModuleDtos = mapper.toConfigModuleDtoList(configModuleService.findAllByConfigId(configDto.getId()));
         configDto.setConfigModules(configModuleDtos);
 
         for (ConfigModuleDto configModuleDto : configModuleDtos) {
-            List<ConfigTableDto> configTableDtos = mapper.toConfigTableDtoList(configTableService.FindAllByModuleId(configModuleDto.getId()));
+            List<ConfigTableDto> configTableDtos = mapper.toConfigTableDtoList(configTableService.findAllByModuleId(configModuleDto.getId()));
             configModuleDto.setConfigTables(configTableDtos);
         }
         return configDto;
