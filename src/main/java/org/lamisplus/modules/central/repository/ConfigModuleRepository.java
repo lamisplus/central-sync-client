@@ -1,6 +1,5 @@
 package org.lamisplus.modules.central.repository;
 
-import org.lamisplus.modules.central.CentralSyncModule;
 import org.lamisplus.modules.central.domain.dto.ModuleProjection;
 import org.lamisplus.modules.central.domain.entity.ConfigModule;
 import org.springframework.data.jpa.repository.JpaRepository;

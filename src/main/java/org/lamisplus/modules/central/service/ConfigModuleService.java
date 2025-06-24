@@ -46,58 +46,6 @@ public class ConfigModuleService {
         repository.deleteById(id);
     }
 
-//    /**
-//     * Module checking on the client sync.
-//     * @return ModuleStatus
-//     */
-//    public List<ModuleStatus> moduleCheck(){
-//        boolean found = false;
-//        List<ModuleStatus> moduleStatuses = new ArrayList<>();
-//        //sync modules
-//        List<ConfigModule> syncModules = repository.getActiveConfigModules();
-//        //app modules
-//        List<ModuleProjection> appModules = repository.getAppModules();
-//
-//        for (ConfigModule syncModule : syncModules) {
-//            found = false;
-//            if(syncModule.getModuleName().contains(BASE_MODULE)){
-//                moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(),
-//                        MessageType.SUCCESS, syncModule.getMinVersion(), syncModule.getMainVersion(),
-//                        syncModule.getMinVersion(), syncModule.getMaxVersion()));
-//                continue;
-//            }
-//            for (ModuleProjection appModule : appModules) {
-//                //where there is a match
-//                if(syncModule.getModuleName().equals(appModule.getName())) {
-//                    //2.0.0.0
-//                    String appV;
-//                   if(appModule.getVersion().length() > 7) {
-//                        appV = appModule.getVersion().substring(0, appModule.getVersion().length() - 1);
-//                    } else {
-//                        appV= appModule.getVersion();
-//                    }
-//
-//                    int max = Integer.parseInt(syncModule.getMaxVersion().replace(".", ""));
-//                    int min = Integer.parseInt(syncModule.getMinVersion().replace(".", ""));
-//                    int appVersion = Integer.parseInt(appV.replace(".", ""));
-//                    int mainVersion = Integer.parseInt(syncModule.getMainVersion().replace(".", ""));
-//
-//                    moduleStatuses.add(checkModuleSpecificVersion(syncModule, appModule, max, min, appVersion, mainVersion));
-//
-//                    found = true;
-//                    break;
-//                }
-//            }
-//            //if not found
-//            if(!found){
-//                //add to list
-//                moduleStatuses.add(new ModuleStatus(syncModule.getModuleName(), MessageType.ERROR, NOT_FOUND,
-//                        syncModule.getMinVersion(), syncModule.getMainVersion(), syncModule.getMaxVersion()));
-//            }
-//        }
-//        return moduleStatuses;
-//    }
-
     /**
      * Module checking on the client sync.
      * @return ModuleStatus
@@ -122,8 +70,6 @@ public class ConfigModuleService {
                 //where there is a match
                 if(syncModule.getModuleName().equals(appModule.getName())) {
                     //2.0.0.0
-                    Version appV = Version.createVersion(appModule.getVersion());
-
                     Version max = Version.createVersion(syncModule.getMaxVersion());
                     Version min = Version.createVersion(syncModule.getMinVersion());
                     Version mainVersion = Version.createVersion(syncModule.getMainVersion());
@@ -145,32 +91,6 @@ public class ConfigModuleService {
         return moduleStatuses;
     }
 
-//    /**
-//     * check Module Version.
-//     * @param syncModule
-//     * @param appModule
-//     * @param max
-//     * @param min
-//     * @param appVersion
-//     * @param mainVersion
-//     * @return ModuleStatus
-//     */
-//    private static ModuleStatus checkModuleSpecificVersion(ConfigModule syncModule, ModuleProjection appModule,
-//                                           int max, int min, int appVersion, int mainVersion) {
-//        if(mainVersion == appVersion){
-//            return new ModuleStatus(syncModule.getModuleName(),
-//                    MessageType.SUCCESS, appModule.getVersion(), syncModule.getMainVersion(),
-//                    syncModule.getMinVersion(), syncModule.getMaxVersion());
-//        } else if (appVersion >= min && appVersion <= max) {
-//            return new ModuleStatus(syncModule.getModuleName(),
-//                    MessageType.WARNING, appModule.getVersion(), syncModule.getMainVersion(),
-//                    syncModule.getMinVersion(), syncModule.getMaxVersion());
-//        } else {
-//            return new ModuleStatus(syncModule.getModuleName(),
-//                    MessageType.ERROR, appModule.getVersion(), syncModule.getMainVersion(),
-//                    syncModule.getMinVersion(), syncModule.getMaxVersion());
-//        }
-//    }
     /**
      * check Module Version.
      * @param syncModule

@@ -1,13 +1,9 @@
 package org.lamisplus.modules.central.repository;
 
-import org.lamisplus.modules.base.domain.entities.User;
 import org.lamisplus.modules.central.domain.dto.*;
 import org.lamisplus.modules.central.domain.entity.RemoteAccessToken;
-import org.lamisplus.modules.patient.domain.entity.Person;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 

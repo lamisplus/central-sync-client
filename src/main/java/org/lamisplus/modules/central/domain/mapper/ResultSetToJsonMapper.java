@@ -33,54 +33,61 @@ public class ResultSetToJsonMapper {
 
         while(resultSet.next())
         {
-            jsonObject = new JSONObject();
-            //if(resultSet.next()) {
-                for (int index = 1; index <= columnCount; index++) {
-                    String column = rsmd.getColumnName(index);
-                    //mask excluded columns
-                    if (excludedColumn != null && excludedColumn.contains(column)) {
-                        jsonObject.put(column, "");
-                        continue;
-                    }
-
-                    Object value = resultSet.getObject(column);
-                    if (value == null) {
-                        jsonObject.put(column, "");
-                    } else if (value instanceof Integer) {
-                        jsonObject.put(column, (Integer) value);
-                    } else if (value instanceof String) {
-                        jsonObject.put(column, (String) value);
-                    } else if (value instanceof Boolean) {
-                        jsonObject.put(column, (Boolean) value);
-                    } else if (value instanceof Date) {
-                        jsonObject.put(column, value.toString());
-                    } else if (value instanceof Long) {
-                        jsonObject.put(column, (Long) value);
-                    } else if (value instanceof Double) {
-                        jsonObject.put(column, (Double) value);
-                    } else if (value instanceof Float) {
-                        jsonObject.put(column, (Float) value);
-                    } else if (value instanceof BigDecimal) {
-                        jsonObject.put(column, (BigDecimal) value);
-                    } else if (value instanceof Byte) {
-                        jsonObject.put(column, (Byte) value);
-                    } else if (value instanceof byte[]) {
-                        jsonObject.put(column, (byte[]) value);
-                    } else if (rsmd.getColumnType(index) == 1111) {
-                        jsonObject.put(column, value);
-                    } else {
-                        throw new IllegalArgumentException("Unmappable object type: " + value.getClass());
-                    }
-                }
-            //}
+            jsonObject = mapData(resultSet, excludedColumn, rsmd, columnCount);
             jArray.put(jsonObject);
-        }//while(resultSet.next());
+        }
 
         return jArray;
     }
 
+    private static JSONObject mapData(ResultSet resultSet, String excludedColumn, ResultSetMetaData rsmd, int columnCount) throws SQLException {
+        JSONObject jsonObject = new JSONObject();
+        for (int index = 1; index <= columnCount; index++) {
+            String column = rsmd.getColumnName(index);
+            //mask excluded columns
+            if (excludedColumn != null && excludedColumn.contains(column)) {
+                jsonObject.put(column, "");
+                continue;
+            }
+
+            Object value = resultSet.getObject(column);
+            getMappedJson(rsmd, jsonObject, index, column, value);
+        }
+        return jsonObject;
+    }
+
+    private static void getMappedJson(ResultSetMetaData rsmd, JSONObject jsonObject, int index, String column, Object value) throws SQLException {
+        if (value == null) {
+            jsonObject.put(column, "");
+        } else if (value instanceof Integer) {
+            jsonObject.put(column, value);
+        } else if (value instanceof String) {
+            jsonObject.put(column, value);
+        } else if (value instanceof Boolean) {
+            jsonObject.put(column, value);
+        } else if (value instanceof Date) {
+            jsonObject.put(column, value.toString());
+        } else if (value instanceof Long) {
+            jsonObject.put(column, value);
+        } else if (value instanceof Double) {
+            jsonObject.put(column, value);
+        } else if (value instanceof Float) {
+            jsonObject.put(column, value);
+        } else if (value instanceof BigDecimal) {
+            jsonObject.put(column, value);
+        } else if (value instanceof Byte) {
+            jsonObject.put(column, value);
+        } else if (value instanceof byte[]) {
+            jsonObject.put(column, value);
+        } else if (rsmd.getColumnType(index) == 1111) {
+            jsonObject.put(column, value);
+        } else {
+            throw new IllegalArgumentException("Unmappable object type: " + value.getClass());
+        }
+    }
+
     public static List<List> getPages(List list, Integer pageSize) {
-        if (list == null || list.isEmpty() || list.size() < 1) return Collections.emptyList();
+        if (list == null || list.isEmpty()) return Collections.emptyList();
         if (pageSize == null || pageSize <= 0 || pageSize > list.size())
             pageSize = list.size();
         int numPages = (int) Math.ceil((double)list.size() / (double)pageSize);

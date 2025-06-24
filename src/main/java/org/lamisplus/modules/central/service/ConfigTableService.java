@@ -22,8 +22,8 @@ public class ConfigTableService {
         return repository.save(configTable);
     }
 
-    public ConfigTable findById(UUID Id){
-        return repository.findById(Id).orElse(null);
+    public ConfigTable findById(UUID id){
+        return repository.findById(id).orElse(null);
     }
 
     public List<ConfigTable> findAll(){
@@ -34,7 +34,7 @@ public class ConfigTableService {
         return repository.findAllByConfigModuleId(moduleId);
     }
 
-    public void Delete(UUID id){
+    public void delete(UUID id){
         repository.deleteById(id);
     }
 

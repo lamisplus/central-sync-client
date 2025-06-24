@@ -127,7 +127,7 @@ public class SyncServiceImpl implements SyncService {
         return syncHistoryTrackerRepository.findAllBySyncHistoryIdAndArchived(syncHistoryId, UN_ARCHIVED)
                 .stream()
                 .sorted(Comparator.comparing(SyncHistoryTracker::getTimeCreated).reversed())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void decrypt(String key, String fileLocation, String tableName){

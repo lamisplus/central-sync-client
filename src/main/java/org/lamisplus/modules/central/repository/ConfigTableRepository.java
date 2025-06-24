@@ -1,6 +1,5 @@
 package org.lamisplus.modules.central.repository;
 
-import org.lamisplus.modules.central.domain.dto.ModuleProjection;
 import org.lamisplus.modules.central.domain.entity.ConfigTable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

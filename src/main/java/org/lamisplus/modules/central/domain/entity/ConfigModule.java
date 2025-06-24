@@ -2,8 +2,6 @@ package org.lamisplus.modules.central.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
-import org.lamisplus.modules.base.domain.entities.ApplicationUserOrganisationUnit;
-
 import javax.persistence.*;
 import java.util.List;
 import java.util.UUID;
