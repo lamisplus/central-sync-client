@@ -653,7 +653,7 @@ public class ExportServiceImpl implements ExportService {
                 continue;
             }
             String query = getQuery(configTable.getTableName(), getFacilityId(configTable, facilityId),
-                    configTable.getUpdateColumn(), null, null, true, configTable.getArchived());
+                    configTable.getUpdateColumn(), null, null, true, Boolean.TRUE.equals(configTable.getArchived()));
 
             Connection conn = null;
             try {
