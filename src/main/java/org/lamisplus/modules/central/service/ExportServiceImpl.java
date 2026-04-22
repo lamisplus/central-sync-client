@@ -52,7 +52,7 @@ public class ExportServiceImpl implements ExportService {
     public static final int FETCH_SIZE = 3000;
     public static final String SYNC_TRACKER_STATUS = "Generated";
     public static final int UN_ARCHIVED = 0;
-    public static final String START_DATE = "1985-01-01 01:01:01";
+    public static final String START_DATE = "1980-01-01 01:01:01";
     public static final String GENERATED_SUCCESSFULLY = "Generated successfully...";
     public static final String GENERATING_DATA_JSON = "Generating data json";
     public static final String MODULE_CHECK = "Module check";
@@ -81,11 +81,11 @@ public class ExportServiceImpl implements ExportService {
     /**
      * generate files for syncing.
      * @param facilityId - facility id
-     * @param current - is it for current generation
+     * @param isUpdated - is it for isUpdated generation
      * @return String
      */
     @Override
-    public String generateFilesForSyncing(Long facilityId, boolean current, LocalDate startDate, LocalDate endDate) {
+    public String generateFilesForSyncing(Long facilityId, boolean isUpdated, LocalDate startDate, LocalDate endDate) {
         //generate table count
         generateTableCount(facilityId);
 
@@ -120,8 +120,8 @@ public class ExportServiceImpl implements ExportService {
             end = dateUtility.ConvertDateTimeToString(endDate.atTime(LocalTime.MAX));
         }
 
-        //if current and there is sync history for the facility
-        else if(current && history != null){
+        //if isUpdated and there is sync history for the facility
+        else if(isUpdated && history != null){
                 LocalDateTime lastSync = history.getDateLastSync();
                 start = dateUtility.ConvertDateTimeToString(lastSync);
         }
@@ -170,7 +170,7 @@ public class ExportServiceImpl implements ExportService {
                     request.setSyncEndDate(endDate != null ? endDate.atTime(23, 59, 59, 0) : LocalDateTime.parse(end, dateTimeFormatter));
 //                }
                 request.setConfigVersion(configVersion);
-                request.setGenerationType(current ? "Updated" : "Initial");
+                request.setGenerationType(isUpdated ? "Updated" : "Initial");
                 request.setSource(CLIENT_SOURCE);
                 request.setFileCount(syncHistoryTrackers.size());
 
@@ -180,7 +180,7 @@ public class ExportServiceImpl implements ExportService {
                     saveTrackers = syncHistoryTrackerRepository.saveAll(getSyncHistoryTrackers(syncHistoryTrackers, syncResponse));
                 }
                 //set file details
-                FileDetail fileDetail = setFileDetails(clientPublicKey, datimCode, current, syncResponse, saveTrackers, start, end);
+                FileDetail fileDetail = setFileDetails(clientPublicKey, datimCode, isUpdated, syncResponse, saveTrackers, start, end);
                 //create meta data file
                 syncData(fileFolder, fileDetail, now, configVersion);
 
@@ -279,14 +279,14 @@ public class ExportServiceImpl implements ExportService {
      * @Param saveTrackers
      * @return FileDetail
      */
-    private FileDetail setFileDetails(String appKey, String datimId, Boolean current,
+    private FileDetail setFileDetails(String appKey, String datimId, Boolean isUpdated,
                                       @NotNull  SyncHistoryResponse syncResponse, List<SyncHistoryTracker> saveTrackers, String start, String end) {
         FileDetail fileDetail = new FileDetail();
         //Set file details
         if(!saveTrackers.isEmpty()) {
             fileDetail.setKey(syncResponse.getGenKey());
             fileDetail.setHistory(syncResponse.getUuid());
-            fileDetail.setInit(current);
+            fileDetail.setInit(isUpdated);
             fileDetail.setDatimId(datimId);
             fileDetail.setAppKey(appKey);
             fileDetail.setStart(start);

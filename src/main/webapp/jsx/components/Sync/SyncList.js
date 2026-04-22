@@ -369,7 +369,7 @@ useEffect(() => {
                             style={{width:"100%"}}
                             // label={`${row.percentageSynced}%`}
                         />
-                        <Typography>{`${row.percentageSynced.toFixed(0)}%`}</Typography>
+                        <Typography>{`${row.percentageSynced.toFixed(2)}%`}</Typography>
                     </div>),
                     date:  moment(row.dateLastSync).format("LLLL"),
                     dataPeriod:  `${row.syncStartDate ? moment(row.syncStartDate).format("LLLL") : 'N/A'} - ${row.syncEndDate ? moment(row.syncEndDate).format("LLLL") : 'N/A'}`,
